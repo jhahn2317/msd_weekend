@@ -14,7 +14,6 @@
         .screen { display: none; }
         .screen.active { display: block; }
         .tab-active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
-        /* 토글 스위치 디자인 CSS */
         .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
         .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
         .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
@@ -182,11 +181,11 @@
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label>
-                        <input type="text" id="v_name" placeholder="예: 범아관광" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
+                        <input type="text" id="v_name" placeholder="예: 위드고" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label>
-                        <input type="text" id="v_tel" placeholder="예: 010-1234-5678" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
+                        <input type="text" id="v_tel" placeholder="예: 1800-9222" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                     </div>
                 </div>
 
@@ -213,15 +212,15 @@
 
                 <div id="smsTemplateArea" class="hidden">
                     <div class="flex justify-between items-end mb-1 mt-2">
-                        <label class="block text-[10px] font-bold text-slate-500">문자 양식 (템플릿)</label>
-                        <span class="text-[8px] text-blue-500 font-bold bg-blue-50 px-1 rounded">[일시], [장소], [행사명] 자동변환</span>
+                        <label class="block text-[10px] font-bold text-slate-500">기타 업체 문자 양식 (위드고/우영/범아는 양식 고정됨)</label>
+                        <span class="text-[8px] text-blue-500 font-bold bg-blue-50 px-1 rounded">자동변환: [일시], [장소], [행사명]</span>
                     </div>
-                    <textarea id="v_sms_template" rows="5" placeholder="예) 업체명: 유니테스트\n출발지:\n출발시간: [일시]\n도착지 주소: [장소]" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none focus:border-blue-500 leading-relaxed"></textarea>
+                    <textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none focus:border-blue-500 leading-relaxed"></textarea>
                 </div>
 
                 <div class="flex gap-2 pt-2 mt-4">
                     <button id="btn_delete_vendor" onclick="deleteVendor()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">업체 삭제</button>
-                    <button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">업체 정보 저장</button>
+                    <button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button>
                 </div>
             </div>
         </div>
@@ -245,6 +244,7 @@
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
         let activeTasksUnsubscribe = null; 
         let activeMetaUnsubscribe = null;
+        let vendorDataCache = {};
 
         // [탭 메뉴 컨트롤]
         function switchTab(tabName) {
@@ -252,6 +252,7 @@
             document.getElementById('tab-vendor').classList.add('hidden');
             document.getElementById('tab-btn-rule').classList.remove('tab-active');
             document.getElementById('tab-btn-vendor').classList.remove('tab-active');
+            
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             document.getElementById('tab-btn-' + tabName).classList.add('tab-active');
         }
@@ -372,7 +373,6 @@
         window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
         window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장 완료'); }); };
 
-        // [업무 컨트롤 & 롱터치 편집기]
         let editTargetTaskId = null;
         window.openTaskEditModal = (id, currentTitle) => {
             if(isReadOnly) return;
@@ -428,22 +428,19 @@
         const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
-
         // ★★★ 업체 관리 모달 & SMS 전송 로직 ★★★
-        let vendorDataCache = {}; // 리스트 렌더링 시 데이터를 캐싱하여 버튼 클릭시 활용
 
         db.collection("vendors").onSnapshot(snap => {
             let html = ''; 
             vendorDataCache = {};
             snap.forEach(doc => { 
                 const v = doc.data(); 
-                vendorDataCache[doc.id] = v; // 캐싱
+                vendorDataCache[doc.id] = v;
                 
-                // 체크 여부에 따라 버튼 렌더링 조건 처리
                 let btnSms = v.useSms ? `<button onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-7 h-7 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100 hover:bg-green-100"><i class="fa-solid fa-comment-sms text-[10px]"></i></button>` : '';
                 let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md"><i class="fa-solid fa-phone text-[10px]"></i></a>` : '';
 
-                // 카드를 누르면 수정/삭제 모달이 뜨도록 onclick 배정
+                // 카드를 누르면 수정/삭제 모달 오픈
                 html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
                     <div>
                         <p class="font-bold text-[11px] text-slate-800">${v.name} <span class="text-[9px] font-normal text-slate-400 ml-1">${v.desc || ''}</span></p>
@@ -460,7 +457,6 @@
             if(document.getElementById('vendorList_detail')) document.getElementById('vendorList_detail').innerHTML = html || emptyHtml;
         });
 
-        // 업체 모달 열기 (id가 없으면 신규 등록 모드)
         window.openVendorModal = (id = null) => {
             document.getElementById('v_id').value = id || '';
             if (id && vendorDataCache[id]) {
@@ -469,7 +465,7 @@
                 document.getElementById('v_name').value = v.name || '';
                 document.getElementById('v_tel').value = v.tel || '';
                 document.getElementById('v_desc').value = v.desc || '';
-                document.getElementById('v_use_call').checked = v.useCall !== false; // 기본값 true 보장
+                document.getElementById('v_use_call').checked = v.useCall !== false; 
                 document.getElementById('v_use_sms').checked = v.useSms || false;
                 document.getElementById('v_sms_template').value = v.smsTemplate || '';
                 document.getElementById('btn_delete_vendor').classList.remove('hidden');
@@ -478,8 +474,8 @@
                 document.getElementById('v_name').value = '';
                 document.getElementById('v_tel').value = '';
                 document.getElementById('v_desc').value = '';
-                document.getElementById('v_use_call').checked = true; // 전화는 기본 On
-                document.getElementById('v_use_sms').checked = false; // 문자는 기본 Off
+                document.getElementById('v_use_call').checked = true; 
+                document.getElementById('v_use_sms').checked = false; 
                 document.getElementById('v_sms_template').value = '';
                 document.getElementById('btn_delete_vendor').classList.add('hidden');
             }
@@ -487,7 +483,6 @@
             document.getElementById('vendorModal').classList.remove('hidden');
         };
 
-        // 문자 양식 입력칸 토글
         window.toggleSmsArea = () => {
             const isChecked = document.getElementById('v_use_sms').checked;
             document.getElementById('smsTemplateArea').style.display = isChecked ? 'block' : 'none';
@@ -519,10 +514,10 @@
             }
         };
 
-        // [SMS 발송 - 자동 치환 기능]
+        // SMS 하드코딩 + 사용자 템플릿 지원
         window.sendSMS = (vendorId) => {
             const v = vendorDataCache[vendorId];
-            if (!v || !v.smsTemplate) return alert('등록된 문자 양식이 없습니다. 업체를 터치하여 양식을 등록해주세요.');
+            if (!v) return;
 
             let title = currentEventId ? document.getElementById('d_title').innerText : '';
             let info = currentEventId ? document.getElementById('d_info').innerText : '';
@@ -534,11 +529,21 @@
                 loc = parts[1] ? parts[1].trim() : '';
             }
 
-            // 사용자가 등록한 템플릿의 [일시], [장소], [행사명]을 현재 정보로 치환
-            let bodyText = v.smsTemplate
-                            .replace(/\[행사명\]/g, title)
-                            .replace(/\[일시\]/g, time)
-                            .replace(/\[장소\]/g, loc);
+            let bodyText = "";
+
+            if (v.name.includes('위드고')) {
+                bodyText = `<위드고 1800-9222> 화환 발송\n\n배송일 : ${time}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : \n*배송문구(오른쪽문구) : \n*받는이 : \n*주문자 : `;
+            } else if (v.name.includes('우영') || v.name.includes('상조용품')) {
+                bodyText = `<우영프라자 1668-5487> 상조용품 발송\n\n회사명 : 유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
+            } else if (v.name.includes('범아') || v.name.includes('관광') || v.name.includes('버스')) {
+                bodyText = `범아관광\n업체명 : 유니테스트\n출발지 : \n출발시간 : ${time}\n도착지 주소 : ${loc}`;
+            } else {
+                if(v.smsTemplate) {
+                    bodyText = v.smsTemplate.replace(/\[행사명\]/g, title).replace(/\[일시\]/g, time).replace(/\[장소\]/g, loc);
+                } else {
+                    bodyText = `[발송 요청]\n행사명: ${title}\n일시: ${time}\n장소: ${loc}`;
+                }
+            }
 
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const sep = isIOS ? '&' : '?';
