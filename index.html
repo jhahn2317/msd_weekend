@@ -9,10 +9,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
         .active-nav { color: #1d4ed8 !important; border-top: 3px solid #1d4ed8; }
         .screen { display: none; }
         .screen.active { display: block; }
+        .tab-active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
@@ -33,19 +34,11 @@
                     <h2 class="text-lg font-extrabold text-slate-800">진행중 경조사</h2>
                     <p class="text-[10px] text-slate-500">현재 관리 중인 비상상황 리스트입니다.</p>
                 </div>
-                <button onclick="openModal()" class="bg-blue-600 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-md">
+                <button onclick="openModal('registerModal')" class="bg-blue-600 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-md">
                     + 상황 등록
                 </button>
             </div>
             <div id="eventListArea" class="space-y-3"></div>
-            
-            <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mt-6">
-                <div class="flex justify-between items-center mb-2.5">
-                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-phone-volume text-blue-500 mr-1.5"></i>공통 협력업체</h2>
-                    <button onclick="addVendor()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 추가</button>
-                </div>
-                <div id="vendorList" class="space-y-2"></div>
-            </section>
         </div>
 
         <div id="screen-history" class="screen space-y-4">
@@ -68,7 +61,7 @@
 
             <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-3 shadow-md text-white">
                 <div class="flex justify-between items-center mb-1.5">
-                    <h2 class="font-bold text-[10px] opacity-90 text-blue-100">PROGRESS</h2>
+                    <h2 class="font-bold text-[10px] opacity-90 text-blue-100">TOTAL PROGRESS</h2>
                     <span id="globalPercent" class="text-xl font-black italic">0%</span>
                 </div>
                 <div class="w-full bg-blue-900/40 h-2 rounded-full overflow-hidden mb-2.5">
@@ -77,26 +70,47 @@
                 <div class="grid grid-cols-4 gap-1 text-center text-[9px]" id="memberProgress"></div>
             </section>
 
-            <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200">
-                <h2 class="font-bold text-slate-700 text-[10px] mb-1.5"><i class="fa-solid fa-calculator text-blue-500 mr-1"></i>규정 확인</h2>
-                <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2">
-                    <option value="">종류를 선택하세요</option>
-                    <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
-                    <option value="sibling_death">형제자매 상 (본인/배우자)</option>
-                    <option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option>
-                    <option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option>
-                    <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
-                    <option value="my_marriage">본인 결혼</option>
-                </select>
-                <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-1.5 font-medium">
-                    <div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
-                    <div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
-                    <div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
-                    <div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-100 bg-slate-50">
+                    <button id="tab-btn-rule" onclick="switchTab('rule')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent tab-active">
+                        <i class="fa-solid fa-calculator mr-1"></i>규정 확인
+                    </button>
+                    <button id="tab-btn-vendor" onclick="switchTab('vendor')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent">
+                        <i class="fa-solid fa-address-book mr-1"></i>업체 연락처
+                    </button>
+                </div>
+
+                <div id="tab-rule" class="p-3">
+                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none">
+                        <option value="">경조 종류를 선택하세요</option>
+                        <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
+                        <option value="sibling_death">형제자매 상 (본인/배우자)</option>
+                        <option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option>
+                        <option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option>
+                        <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
+                        <option value="my_marriage">본인 결혼</option>
+                    </select>
+                    <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-2 font-medium">
+                        <div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
+                        <div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
+                        <div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
+                        <div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
+                    </div>
+                </div>
+
+                <div id="tab-vendor" class="p-3 hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-bold text-slate-500">긴급 협력업체 리스트</span>
+                        <button onclick="addVendor()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 추가</button>
+                    </div>
+                    <div id="vendorList" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
                 </div>
             </section>
 
-            <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
+            <div>
+                <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 텍스트를 길게 꾹 누르면 수정/삭제할 수 있습니다.</p>
+                <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
+            </div>
         </div>
 
     </main>
@@ -104,16 +118,13 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[100] h-14">
         <div class="max-w-md mx-auto flex justify-around items-center h-full">
             <button onclick="switchScreen('screen-list')" id="nav-screen-list" class="flex flex-col items-center gap-0.5 text-slate-400 active-nav w-1/3">
-                <i class="fa-solid fa-house text-lg"></i>
-                <span class="text-[9px] font-bold">진행 상황</span>
+                <i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">진행 상황</span>
             </button>
             <button onclick="switchScreen('screen-history')" id="nav-screen-history" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
-                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                <span class="text-[9px] font-bold">이력 조회</span>
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">이력 조회</span>
             </button>
             <button onclick="alert('준비 중입니다.')" class="flex flex-col items-center gap-0.5 text-slate-300 w-1/3">
-                <i class="fa-solid fa-ellipsis text-lg"></i>
-                <span class="text-[9px] font-bold">기타 업무</span>
+                <i class="fa-solid fa-ellipsis text-lg"></i><span class="text-[9px] font-bold">기타 업무</span>
             </button>
         </div>
     </nav>
@@ -122,27 +133,36 @@
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center">
                 <h3 class="font-bold text-sm">새 경조사 등록</h3>
-                <button onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-3">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Event Title</label>
-                    <input type="text" id="reg_title" placeholder="예: 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Date & Time</label>
-                    <input type="text" id="reg_time" placeholder="예: 5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Location</label>
-                    <input type="text" id="reg_location" placeholder="예: 강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
-                </div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="예: 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">일시 (자유입력)</label><input type="text" id="reg_time" placeholder="예: 5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="예: 강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
                 <button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-2.5 mt-1 text-xs shadow-md">관제 시작 (방 생성)</button>
             </div>
         </div>
     </div>
 
+    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl">
+            <div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200">
+                <h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3>
+                <button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button>
+            </div>
+            <div class="p-4 space-y-3">
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label>
+                <textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] focus:outline-none focus:border-blue-500 bg-slate-50 resize-none"></textarea>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button>
+                    <button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">수정 내용 저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ★ 파이어베이스 설정 유지
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz7CDSrZ2jbuSWTkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -160,6 +180,18 @@
         let activeTasksUnsubscribe = null; 
         let activeMetaUnsubscribe = null;
 
+        // [탭 메뉴 컨트롤]
+        function switchTab(tabName) {
+            document.getElementById('tab-rule').classList.add('hidden');
+            document.getElementById('tab-vendor').classList.add('hidden');
+            document.getElementById('tab-btn-rule').classList.remove('tab-active');
+            document.getElementById('tab-btn-vendor').classList.remove('tab-active');
+            
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-btn-' + tabName).classList.add('tab-active');
+        }
+
+        // [화면 전환]
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -173,6 +205,7 @@
             }
         }
 
+        // [리스트 로드]
         function loadLists() {
             db.collection("events").where("status", "==", "active").onSnapshot(snap => {
                 let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
@@ -188,9 +221,7 @@
                                 <span><i class="fa-solid fa-location-dot mr-1 text-blue-400"></i>${e.location}</span>
                             </div>
                         </div>
-                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 text-slate-300 hover:text-red-500 p-2 transition-colors">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
+                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 text-slate-300 hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can text-sm"></i></button>
                     </div>`;
                 });
                 document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
@@ -203,40 +234,22 @@
                 events.forEach(e => {
                     const dateStr = new Date(e.createdAt).toLocaleDateString();
                     html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center group relative">
-                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer">
-                            <p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p>
-                            <h4 class="font-bold text-xs text-slate-700">${e.title}</h4>
-                        </div>
-                        <button onclick="deleteEvent('${e.id}')" class="text-slate-300 hover:text-red-500 p-2">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
+                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer"><p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p><h4 class="font-bold text-xs text-slate-700">${e.title}</h4></div>
+                        <button onclick="deleteEvent('${e.id}')" class="text-slate-300 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
                     </div>`;
                 });
                 document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">대응 이력이 없습니다.</div>';
             });
         }
 
-        // 상황(Event) 삭제 함수
         window.deleteEvent = async (eventId) => {
             if(confirm("이 경조사 상황과 관련된 모든 업무 내역이 삭제됩니다. 정말 삭제하시겠습니까?")) {
-                try {
-                    // 1. 이벤트 본체 삭제
-                    await db.collection("events").doc(eventId).delete();
-                    
-                    // 2. 관련된 tasks 삭제
-                    const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get();
-                    const batch = db.batch();
-                    taskSnap.forEach(doc => batch.delete(doc.ref));
-                    
-                    // 3. 관련된 meta 삭제
-                    const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get();
-                    metaSnap.forEach(doc => batch.delete(doc.ref));
-                    
-                    await batch.commit();
-                    alert("성공적으로 삭제되었습니다.");
-                } catch(e) {
-                    alert("삭제 중 오류 발생: " + e.message);
-                }
+                await db.collection("events").doc(eventId).delete();
+                const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get();
+                const batch = db.batch(); taskSnap.forEach(doc => batch.delete(doc.ref));
+                const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get();
+                metaSnap.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
             }
         };
 
@@ -270,8 +283,19 @@
                 total += myTasks.length; done += myTasks.filter(t => t.done).length;
                 const isAllDone = (myTasks.length > 0 && myTasks.length === myTasks.filter(t => t.done).length);
                 mHtml += `<div class="bg-blue-900/30 rounded-lg py-1.5 border border-blue-400/20"><div class="font-bold ${isAllDone ? 'text-green-300' : 'text-blue-100'}">${owner.includes('안정훈') ? '안/변' : owner}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
-                let taskHtml = myTasks.map(t => `<div class="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0" ${!isReadOnly ? `onclick="toggleTask('${t.id}', ${!t.done})"` : ''}><div class="mt-0.5 w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}">${t.done ? '<i class="fa-solid fa-check text-[8px]"></i>' : ''}</div><span class="text-[11px] leading-snug ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${t.title}</span></div>`).join('');
-                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"><div class="bg-slate-50 px-3 py-1.5 flex justify-between items-center border-b border-slate-100"><span class="text-[10px] font-bold text-slate-800">${myMeta.sub ? `${owner} <span class="text-blue-600">(${myMeta.sub} 대체)</span>` : owner}</span>${!isReadOnly ? `<button onclick="setSub('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">대체</button>` : ''}</div><div class="p-3">${taskHtml || '<p class="text-[10px] text-slate-300 italic">No tasks</p>'}</div><div class="p-2 bg-yellow-50/40 border-t border-yellow-100 flex items-center gap-1.5"><input type="text" id="note_${owner}" value="${myMeta.note || ''}" ${isReadOnly ? 'disabled' : ''} placeholder="메모..." class="text-[10px] w-full bg-white border border-yellow-200 rounded px-2 py-1.5 outline-none focus:border-yellow-400"><button onclick="saveNote('${owner}')" class="bg-yellow-400 text-yellow-900 font-bold px-3 py-1.5 rounded text-[10px] shrink-0 whitespace-nowrap">저장</button></div></div>`;
+                
+                // 롱터치(contextmenu) 이벤트 추가
+                let taskHtml = myTasks.map(t => `
+                    <div class="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0 relative">
+                        <div onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer mt-0.5 w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}">
+                            ${t.done ? '<i class="fa-solid fa-check text-[8px]"></i>' : ''}
+                        </div>
+                        <span oncontextmenu="event.preventDefault(); openTaskEditModal('${t.id}', '${t.title.replace(/'/g, "\\'")}');" onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer text-[11px] leading-snug flex-grow ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">
+                            ${t.title}
+                        </span>
+                    </div>`).join('');
+                
+                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"><div class="bg-slate-50 px-3 py-1.5 flex justify-between items-center border-b border-slate-100"><span class="text-[10px] font-bold text-slate-800">${myMeta.sub ? `${owner} <span class="text-blue-600">(${myMeta.sub} 대체)</span>` : owner}</span><div class="flex gap-1">${!isReadOnly ? `<button onclick="addTask('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">+ 추가</button><button onclick="setSub('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">대체</button>` : ''}</div></div><div class="p-3">${taskHtml || '<p class="text-[10px] text-slate-300 italic">No tasks</p>'}</div><div class="p-2 bg-yellow-50/40 border-t border-yellow-100 flex items-center gap-1.5"><input type="text" id="note_${owner}" value="${myMeta.note || ''}" ${isReadOnly ? 'disabled' : ''} placeholder="특이사항 메모..." class="text-[10px] w-full bg-white border border-yellow-200 rounded px-2 py-1.5 outline-none focus:border-yellow-400"><button onclick="saveNote('${owner}')" class="bg-yellow-400 text-yellow-900 font-bold px-3 py-1.5 rounded text-[10px] shrink-0 whitespace-nowrap">저장</button></div></div>`;
             });
             document.getElementById('memberProgress').innerHTML = mHtml;
             document.getElementById('ownerCardsArea').innerHTML = cHtml;
@@ -280,46 +304,92 @@
             document.getElementById('globalProgressBar').style.width = per + '%';
         }
 
+        // [업무 컨트롤 & 롱터치 편집기]
+        let editTargetTaskId = null;
+        window.openTaskEditModal = (id, currentTitle) => {
+            if(isReadOnly) return;
+            editTargetTaskId = id;
+            document.getElementById('edit_task_title').value = currentTitle;
+            document.getElementById('taskEditModal').classList.remove('hidden');
+        };
+        window.saveEditedTask = () => {
+            const newTitle = document.getElementById('edit_task_title').value;
+            if(!newTitle) return;
+            db.collection("tasks").doc(editTargetTaskId).update({ title: newTitle });
+            closeModal('taskEditModal');
+        };
+        window.deleteEditedTask = () => {
+            if(confirm("이 개인 업무를 완전히 삭제할까요?")) {
+                db.collection("tasks").doc(editTargetTaskId).delete();
+                closeModal('taskEditModal');
+            }
+        };
+        window.addTask = (owner) => {
+            if(isReadOnly) return;
+            const title = prompt("추가할 업무 내용을 입력하세요.");
+            if(title) db.collection("tasks").add({ eventId: currentEventId, owner, title, done: false, createdAt: Date.now() });
+        };
+
         window.toggleTask = (id, status) => { if(isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
         window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
         window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장 완료'); }); };
 
-        // ★ 업무 상세 내용 복구 완료 (submitEvent)
+        // ★ 요청하신 '매우 디테일하게 세분화된' 개인 업무 리스트
         async function submitEvent() {
             const t = document.getElementById('reg_title').value; const tm = document.getElementById('reg_time').value; const l = document.getElementById('reg_location').value;
             if(!t) return alert("상황명을 적어주세요.");
             const doc = await db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() });
             
-            // 극찬하셨던 구체적인 업무 리스트 복구
             const def = [
-                {o:'조정열', t:'경영지원 단톡방에 경조사 지원 조건(회사/사우회 경조금, 휴가, 조화 등) 공유'},
-                {o:'안정훈/변우혁', t:'사우회 경조사비 직접 전달하거나 대상자/참석자에게 확인 후 처리'},
-                {o:'안정훈/변우혁', t:'(월요일) 지출결의서 상신 준비 및 최종 금액 확인'},
-                {o:'김태석', t:'휴일 발생 시 기존대로 카톡을 이용한 비상연락망 가동 및 유니넷 게시'},
-                {o:'김태석', t:'규정상 대절버스 필요 여부 대상자에게 확인'},
-                {o:'김태석', t:'(버스 필요시) 유니넷 게시판에 버스대절 인원파악 글 게시'},
-                {o:'박유희', t:'정확한 장소, 발인시간 확인 후 화환 및 조화 업체 발주 완료'}
+                {o:'조정열', t:'경영지원 단톡방에 경조사 지원조건 (회사/사우회 경조금, 휴가, 조화여부) 요약 공유'},
+                {o:'안정훈/변우혁', t:'사우회 경조사비 직접 전달 또는 대상자/참석자에게 이체 확인'},
+                {o:'안정훈/변우혁', t:'사우회비 직접 전달 시 유류비/톨비 사우회 경조금 신청 상신'},
+                {o:'안정훈/변우혁', t:'[월요일] 회사 경조사비(회장님/사장님 금고) 지출결의서 상신 (금액 확인)'},
+                {o:'김태석', t:'휴일 비상연락망(카톡) 가동하여 상황 전파'},
+                {o:'김태석', t:'유니넷 경조사 게시판에 게시 (여건 불가 시 팀원 대리 요청)'},
+                {o:'김태석', t:'대상자에게 대절버스 필요 여부 확인 (규정상 가능 거리 시)'},
+                {o:'김태석', t:'[버스 필요시] 카톡 공지에 버스 신청안내 추가 및 유니넷 인원파악 글 게시'},
+                {o:'박유희', t:'화환/조화 발송 업체 예약 완료'},
+                {o:'박유희', t:'배송지 도착 여부 최종 확인'}
             ];
             
             const promises = def.map((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
             await Promise.all(promises);
-            closeModal(); document.getElementById('reg_title').value = ''; document.getElementById('reg_time').value = ''; document.getElementById('reg_location').value = '';
+            closeModal('registerModal'); document.getElementById('reg_title').value = ''; document.getElementById('reg_time').value = ''; document.getElementById('reg_location').value = '';
             openDetail(doc.id, t, (tm||'')+' | '+(l||''), false);
         }
 
         window.closeEvent = () => { if(confirm("종료 후 이력으로 이동하시겠습니까?")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => switchScreen('screen-history')); };
-        function closeModal() { document.getElementById('registerModal').classList.add('hidden'); }
-        function openModal() { document.getElementById('registerModal').classList.remove('hidden'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+        function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
 
         const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
+        // [업체 연락처: 수정 & 삭제 추가]
         db.collection("vendors").onSnapshot(snap => {
-            let html = ''; snap.forEach(doc => { const v = doc.data(); html += `<div class="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-lg"><div><p class="font-bold text-[11px]">${v.name}</p><p class="text-[9px] text-slate-500 font-mono">${v.tel}</p></div><div class="flex gap-1.5"><a href="tel:${v.tel}" class="w-6 h-6 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full shadow-sm"><i class="fa-solid fa-phone text-[10px]"></i></a><button onclick="delVendor('${doc.id}')" class="w-6 h-6 flex items-center justify-center bg-red-50 text-red-500 rounded-full"><i class="fa-solid fa-trash-can text-[10px]"></i></button></div></div>`; });
+            let html = ''; snap.forEach(doc => { const v = doc.data(); 
+                html += `<div class="flex justify-between items-center p-2 bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div>
+                        <p class="font-bold text-[11px] text-slate-800">${v.name}</p>
+                        <p class="text-[9px] text-slate-500 font-mono">${v.tel}</p>
+                    </div>
+                    <div class="flex gap-1">
+                        <a href="tel:${v.tel}" class="w-6 h-6 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md"><i class="fa-solid fa-phone text-[9px]"></i></a>
+                        <button onclick="editVendor('${doc.id}', '${v.name}', '${v.tel}')" class="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100"><i class="fa-solid fa-pen text-[9px]"></i></button>
+                        <button onclick="delVendor('${doc.id}')" class="w-6 h-6 flex items-center justify-center bg-red-50 text-red-500 rounded-md border border-red-100"><i class="fa-solid fa-trash-can text-[9px]"></i></button>
+                    </div>
+                </div>`; 
+            });
             document.getElementById('vendorList').innerHTML = html || '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
         });
         window.addVendor = () => { const n = prompt("업체명"); if(!n) return; const t = prompt("전화번호"); if(!t) return; db.collection("vendors").add({ name: n, tel: t }); };
-        window.delVendor = (id) => confirm("삭제할까요?") && db.collection("vendors").doc(id).delete();
+        window.delVendor = (id) => confirm("업체를 삭제할까요?") && db.collection("vendors").doc(id).delete();
+        window.editVendor = (id, oldN, oldT) => {
+            const n = prompt("업체명 수정", oldN); if(!n) return;
+            const t = prompt("전화번호 수정", oldT); if(!t) return;
+            db.collection("vendors").doc(id).update({ name: n, tel: t });
+        };
 
         loadLists();
     </script>
