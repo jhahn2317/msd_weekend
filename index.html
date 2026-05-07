@@ -54,8 +54,7 @@
                 <h2 class="text-xl font-extrabold text-slate-800">경조사 이력 조회</h2>
                 <p class="text-[11px] text-slate-500 font-medium">종료된 과거의 경조사 대응 기록입니다.</p>
             </div>
-            <div id="historyListArea" class="space-y-3">
-                </div>
+            <div id="historyListArea" class="space-y-3"></div>
         </div>
 
         <div id="screen-detail" class="screen space-y-6">
@@ -133,7 +132,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">일시 (발인/예식 등)</label>
-                    <input type="text" id="reg_time" placeholder="예: 5/15(금) 08:00" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                    <input type="datetime-local" id="reg_time" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">장소</label>
@@ -145,7 +144,7 @@
     </div>
 
     <script>
-        // ★ Firebase Config 
+        // ★ 본인의 Firebase Config 로 덮어쓰세요
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -158,17 +157,15 @@
         const db = firebase.firestore();
 
         let currentEventId = null;
-        let isReadOnly = false; // 이력 조회 모드 시 체크 불가용
+        let isReadOnly = false; 
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
         let activeTasksUnsubscribe = null; 
         let activeMetaUnsubscribe = null;
 
-        // [화면 전환 로직]
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
-            // 하단 메뉴 활성화 표시
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
             const navBtn = document.getElementById('nav-' + screenId);
             if(navBtn) navBtn.classList.add('active-nav');
@@ -180,9 +177,7 @@
             }
         }
 
-        // [이력 조회 및 진행 리스트 로드]
         function loadLists() {
-            // 진행중 리스트
             db.collection("events").where("status", "==", "active").orderBy("createdAt", "desc").onSnapshot(snap => {
                 let html = '';
                 snap.forEach(doc => {
@@ -196,16 +191,15 @@
                         </div>
                     </div>`;
                 });
-                document.getElementById('eventListArea').innerHTML = html || '<div class="py-10 text-center text-slate-300 text-xs font-bold italic">No Active Events</div>';
+                document.getElementById('eventListArea').innerHTML = html || '<div class="py-10 text-center text-slate-300 text-xs font-bold italic">진행중인 비상상황이 없습니다.</div>';
             });
 
-            // 종료된 이력 리스트
             db.collection("events").where("status", "==", "closed").orderBy("createdAt", "desc").onSnapshot(snap => {
                 let html = '';
                 snap.forEach(doc => {
                     const e = doc.data();
                     const dateStr = new Date(e.createdAt).toLocaleDateString();
-                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time}', true)" class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time}', true)" class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mt-3">
                         <div>
                             <p class="text-[9px] font-black text-slate-400 uppercase mb-0.5">${dateStr} 종료됨</p>
                             <h4 class="font-bold text-sm text-slate-700">${e.title}</h4>
@@ -217,7 +211,6 @@
             });
         }
 
-        // [상세 보기 오픈 (이력조회 모드 포함)]
         function openDetail(eventId, title, info, readOnly) {
             currentEventId = eventId;
             isReadOnly = readOnly;
@@ -272,7 +265,7 @@
 
                 cHtml += `<div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
                     <div class="bg-slate-50/80 px-5 py-3 flex justify-between items-center">
-                        <span class="text-xs font-black text-slate-800">${myMeta.sub ? `${owner} (${myMeta.sub} 대체)` : owner}</span>
+                        <span class="text-xs font-black text-slate-800">${myMeta.sub ? `${owner} <span class="text-blue-500">(${myMeta.sub} 대체)</span>` : owner}</span>
                         ${!isReadOnly ? `<button onclick="setSub('${owner}')" class="text-[9px] font-bold text-blue-600 border border-blue-200 bg-white px-2 py-1 rounded-lg">대체자</button>` : ''}
                     </div>
                     <div class="p-5">${taskHtml || '<p class="text-xs text-slate-300 italic">No tasks</p>'}</div>
@@ -290,28 +283,42 @@
             document.getElementById('globalProgressBar').style.width = per + '%';
         }
 
-        // [이벤트 처리 및 기타 기능]
         window.toggleTask = (id, status) => { if(isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
         window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
         window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장됨'); }); };
         
+        // ★ 날짜 선택 로직 변경 (달력 UI)
         function submitEvent() {
             const t = document.getElementById('reg_title').value;
-            const tm = document.getElementById('reg_time').value;
+            const tmRaw = document.getElementById('reg_time').value;
             const l = document.getElementById('reg_location').value;
-            if(!t) return alert("제목 필수");
-            db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() }).then(doc => {
+            
+            if(!t) return alert("제목을 입력해주세요.");
+            if(!tmRaw) return alert("일시를 선택해주세요.");
+
+            // 사용자가 선택한 날짜/시간을 예쁘게 변환 (예: 5/15(금) 08:00)
+            const dDate = new Date(tmRaw);
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            const formattedTime = `${dDate.getMonth()+1}/${dDate.getDate()}(${days[dDate.getDay()]}) ${dDate.getHours().toString().padStart(2,'0')}:${dDate.getMinutes().toString().padStart(2,'0')}`;
+
+            db.collection("events").add({ title: t, time: formattedTime, location: l, status: 'active', createdAt: Date.now() }).then(doc => {
                 const def = [{o:'조정열',t:'단톡방 지원조건 공유'},{o:'안정훈/변우혁',t:'사우회비 전달/확인'},{o:'안정훈/변우혁',t:'지출결의서 준비'},{o:'김태석',t:'비상연락망 가동'},{o:'김태석',t:'대절버스 수요파악'},{o:'박유희',t:'업체 발주 완료'}];
                 def.forEach((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
-                closeModal(); openDetail(doc.id, t, tm, false);
+                closeModal(); 
+                
+                // 입력 필드 초기화
+                document.getElementById('reg_title').value = '';
+                document.getElementById('reg_time').value = '';
+                document.getElementById('reg_location').value = '';
+                
+                openDetail(doc.id, t, formattedTime, false);
             });
         }
 
-        window.closeEvent = () => { if(confirm("종료하시겠습니까? 이력조회 메뉴로 이동합니다.")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => switchScreen('screen-list')); };
+        window.closeEvent = () => { if(confirm("종료하시겠습니까? 이력조회 메뉴로 이동합니다.")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => switchScreen('screen-history')); };
         function closeModal() { document.getElementById('registerModal').classList.add('hidden'); }
         function openModal() { document.getElementById('registerModal').classList.remove('hidden'); }
         
-        // 규정 계산기 데이터
         const rules = {
             parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' },
             sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' },
@@ -330,6 +337,28 @@
             document.getElementById('r_flower').innerText = rules[v].f;
             res.classList.remove('hidden');
         };
+
+        // 업체 데이터
+        db.collection("vendors").onSnapshot(snap => {
+            let html = '';
+            snap.forEach(doc => {
+                const v = doc.data();
+                html += `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <div>
+                            <p class="font-bold text-sm">${v.name}</p>
+                            <p class="text-xs text-slate-500">${v.tel}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="tel:${v.tel}" class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full"><i class="fa-solid fa-phone"></i></a>
+                            <button onclick="delVendor('${doc.id}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-full"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('vendorList').innerHTML = html || '<p class="text-xs text-slate-400">등록된 업체가 없습니다.</p>';
+        });
+        window.addVendor = () => { const n = prompt("업체명"); if(!n) return; const t = prompt("전화번호"); if(!t) return; db.collection("vendors").add({ name: n, tel: t }); };
+        window.delVendor = (id) => confirm("업체 삭제?") && db.collection("vendors").doc(id).delete();
 
         // 초기 실행
         loadLists();
