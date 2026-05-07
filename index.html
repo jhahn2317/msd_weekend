@@ -39,6 +39,14 @@
                 </button>
             </div>
             <div id="eventListArea" class="space-y-3"></div>
+            
+            <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mt-6">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-phone-volume text-blue-500 mr-1.5"></i>공통 협력업체</h2>
+                    <button onclick="addVendor()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 추가</button>
+                </div>
+                <div id="vendorList_home" class="space-y-2 max-h-48 overflow-y-auto"></div>
+            </section>
         </div>
 
         <div id="screen-history" class="screen space-y-4">
@@ -103,7 +111,7 @@
                         <span class="text-[10px] font-bold text-slate-500">긴급 협력업체 리스트</span>
                         <button onclick="addVendor()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 추가</button>
                     </div>
-                    <div id="vendorList" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+                    <div id="vendorList_detail" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
                 </div>
             </section>
 
@@ -284,7 +292,6 @@
                 const isAllDone = (myTasks.length > 0 && myTasks.length === myTasks.filter(t => t.done).length);
                 mHtml += `<div class="bg-blue-900/30 rounded-lg py-1.5 border border-blue-400/20"><div class="font-bold ${isAllDone ? 'text-green-300' : 'text-blue-100'}">${owner.includes('안정훈') ? '안/변' : owner}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
                 
-                // 롱터치(contextmenu) 이벤트 추가
                 let taskHtml = myTasks.map(t => `
                     <div class="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0 relative">
                         <div onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer mt-0.5 w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}">
@@ -334,7 +341,6 @@
         window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
         window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장 완료'); }); };
 
-        // ★ 요청하신 '매우 디테일하게 세분화된' 개인 업무 리스트
         async function submitEvent() {
             const t = document.getElementById('reg_title').value; const tm = document.getElementById('reg_time').value; const l = document.getElementById('reg_location').value;
             if(!t) return alert("상황명을 적어주세요.");
@@ -344,7 +350,7 @@
                 {o:'조정열', t:'경영지원 단톡방에 경조사 지원조건 (회사/사우회 경조금, 휴가, 조화여부) 요약 공유'},
                 {o:'안정훈/변우혁', t:'사우회 경조사비 직접 전달 또는 대상자/참석자에게 이체 확인'},
                 {o:'안정훈/변우혁', t:'사우회비 직접 전달 시 유류비/톨비 사우회 경조금 신청 상신'},
-                {o:'안정훈/변우혁', t:'[월요일] 회사 경조사비(회장님/사장님 금고) 지출결의서 상신 (금액 확인)'},
+                {o:'안정훈/변우혁', t:'[월요일] 회사 경조사비(회장/사장 금고) 지출결의서 상신 (금액 확인)'},
                 {o:'김태석', t:'휴일 비상연락망(카톡) 가동하여 상황 전파'},
                 {o:'김태석', t:'유니넷 경조사 게시판에 게시 (여건 불가 시 팀원 대리 요청)'},
                 {o:'김태석', t:'대상자에게 대절버스 필요 여부 확인 (규정상 가능 거리 시)'},
@@ -366,7 +372,46 @@
         const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
-        // [업체 연락처: 수정 & 삭제 추가]
+
+        // ★★★ SMS 자동 발송 로직 (업체명 판별 및 자동 양식 작성) ★★★
+        window.sendSMS = (vendorName, tel) => {
+            // 현재 방에 들어와있다면 상황 정보를 가져오기
+            let title = currentEventId ? document.getElementById('d_title').innerText : '';
+            let info = currentEventId ? document.getElementById('d_info').innerText : '';
+            
+            let time = '', loc = '';
+            if(info) {
+                let parts = info.split('|');
+                time = parts[0] ? parts[0].trim() : '';
+                loc = parts[1] ? parts[1].trim() : '';
+            }
+
+            let bodyText = "";
+
+            // 1. 업체 이름에 상조, 용품, 우영 등이 포함되어 있으면 상조용품 양식 사용
+            if (vendorName.includes('상조') || vendorName.includes('용품') || vendorName.includes('우영')) {
+                bodyText = `<${vendorName} 상조용품 발송>\n\n회사명 : ㈜유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
+            } 
+            // 2. 그 외에는 화환/조화 업체 양식 사용
+            else {
+                // 상인지 결혼인지 판별하여 우측 문구 자동 설정
+                let rightMsg = "";
+                if(title.includes('상') || title.includes('사망') || title.includes('부친') || title.includes('모친') || title.includes('빙부') || title.includes('빙모')) {
+                    rightMsg = "삼가 故人의 冥福을 빕니다";
+                } else if(title.includes('결혼')) {
+                    rightMsg = "祝 結 婚 (축 결혼)";
+                }
+
+                bodyText = `<${vendorName} 화환 발송>\n\n배송일 : ${time}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : ㈜유니테스트 대표이사 김종윤\n*배송문구(오른쪽문구) : ${rightMsg}\n*받는이 : \n*주문자 : 유니테스트 경영지원팀`;
+            }
+
+            // 아이폰, 안드로이드 문자앱 호출 방식(URI) 차이 보정
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const sep = isIOS ? '&' : '?';
+            window.location.href = `sms:${tel}${sep}body=${encodeURIComponent(bodyText)}`;
+        };
+
+        // [업체 연락처 동기화 및 렌더링 - SMS 템플릿 연동]
         db.collection("vendors").onSnapshot(snap => {
             let html = ''; snap.forEach(doc => { const v = doc.data(); 
                 html += `<div class="flex justify-between items-center p-2 bg-white border border-slate-200 rounded-lg shadow-sm">
@@ -375,13 +420,16 @@
                         <p class="text-[9px] text-slate-500 font-mono">${v.tel}</p>
                     </div>
                     <div class="flex gap-1">
+                        <button onclick="sendSMS('${v.name}', '${v.tel}')" class="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100 hover:bg-green-100"><i class="fa-solid fa-comment-sms text-[9px]"></i></button>
                         <a href="tel:${v.tel}" class="w-6 h-6 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md"><i class="fa-solid fa-phone text-[9px]"></i></a>
-                        <button onclick="editVendor('${doc.id}', '${v.name}', '${v.tel}')" class="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100"><i class="fa-solid fa-pen text-[9px]"></i></button>
+                        <button onclick="editVendor('${doc.id}', '${v.name}', '${v.tel}')" class="w-6 h-6 flex items-center justify-center bg-yellow-50 text-yellow-600 rounded-md border border-yellow-100"><i class="fa-solid fa-pen text-[9px]"></i></button>
                         <button onclick="delVendor('${doc.id}')" class="w-6 h-6 flex items-center justify-center bg-red-50 text-red-500 rounded-md border border-red-100"><i class="fa-solid fa-trash-can text-[9px]"></i></button>
                     </div>
                 </div>`; 
             });
-            document.getElementById('vendorList').innerHTML = html || '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
+            const emptyHtml = '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
+            if(document.getElementById('vendorList_home')) document.getElementById('vendorList_home').innerHTML = html || emptyHtml;
+            if(document.getElementById('vendorList_detail')) document.getElementById('vendorList_detail').innerHTML = html || emptyHtml;
         });
         window.addVendor = () => { const n = prompt("업체명"); if(!n) return; const t = prompt("전화번호"); if(!t) return; db.collection("vendors").add({ name: n, tel: t }); };
         window.delVendor = (id) => confirm("업체를 삭제할까요?") && db.collection("vendors").doc(id).delete();
