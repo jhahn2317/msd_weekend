@@ -68,7 +68,7 @@
 
             <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-3 shadow-md text-white">
                 <div class="flex justify-between items-center mb-1.5">
-                    <h2 class="font-bold text-[10px] opacity-90 text-blue-100 uppercase tracking-tighter">TOTAL PROGRESS</h2>
+                    <h2 class="font-bold text-[10px] opacity-90 text-blue-100">PROGRESS</h2>
                     <span id="globalPercent" class="text-xl font-black italic">0%</span>
                 </div>
                 <div class="w-full bg-blue-900/40 h-2 rounded-full overflow-hidden mb-2.5">
@@ -78,8 +78,8 @@
             </section>
 
             <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200">
-                <h2 class="font-bold text-slate-700 text-[10px] mb-1.5 uppercase"><i class="fa-solid fa-calculator text-blue-500 mr-1"></i>규정 확인</h2>
-                <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none">
+                <h2 class="font-bold text-slate-700 text-[10px] mb-1.5"><i class="fa-solid fa-calculator text-blue-500 mr-1"></i>규정 확인</h2>
+                <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2">
                     <option value="">종류를 선택하세요</option>
                     <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
                     <option value="sibling_death">형제자매 상 (본인/배우자)</option>
@@ -119,22 +119,22 @@
     </nav>
 
     <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center">
                 <h3 class="font-bold text-sm">새 경조사 등록</h3>
                 <button onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-3">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1">상황명</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Event Title</label>
                     <input type="text" id="reg_title" placeholder="예: 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1">일시 (자유입력)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Date & Time</label>
                     <input type="text" id="reg_time" placeholder="예: 5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1">장소</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Location</label>
                     <input type="text" id="reg_location" placeholder="예: 강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50">
                 </div>
                 <button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-2.5 mt-1 text-xs shadow-md">관제 시작 (방 생성)</button>
@@ -143,7 +143,6 @@
     </div>
 
     <script>
-        // ★ Firebase Config 
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz7CDSrZ2jbuSWTkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -175,44 +174,71 @@
         }
 
         function loadLists() {
-            // [수정됨] 색인 오류 방지를 위해 orderBy를 빼고 자바스크립트에서 정렬하도록 변경했습니다.
             db.collection("events").where("status", "==", "active").onSnapshot(snap => {
-                let events = [];
-                snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
-                // 클라이언트(JS) 단에서 최신순(내림차순) 정렬
+                let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
                 events.sort((a, b) => b.createdAt - a.createdAt);
-
                 let html = '';
                 events.forEach(e => {
-                    html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-300 relative transition-all active:scale-[0.98]">
-                        <div class="absolute top-0 left-4 w-6 h-1 bg-blue-500 rounded-b-md"></div>
-                        <h3 class="font-bold text-[13px] text-slate-800 mb-1 mt-0.5">${e.title}</h3>
-                        <div class="flex items-center gap-2 text-[9px] text-slate-500 font-medium italic">
-                            <span><i class="fa-solid fa-calendar-day mr-1 text-blue-400"></i>${e.time}</span>
-                            <span><i class="fa-solid fa-location-dot mr-1 text-blue-400"></i>${e.location}</span>
+                    html += `<div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 relative transition-all active:scale-[0.98] group">
+                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="flex-grow cursor-pointer pr-10">
+                            <div class="absolute top-0 left-4 w-6 h-1 bg-blue-500 rounded-b-md"></div>
+                            <h3 class="font-bold text-[13px] text-slate-800 mb-1 mt-0.5">${e.title}</h3>
+                            <div class="flex items-center gap-2 text-[9px] text-slate-500 font-medium italic">
+                                <span><i class="fa-solid fa-calendar-day mr-1 text-blue-400"></i>${e.time}</span>
+                                <span><i class="fa-solid fa-location-dot mr-1 text-blue-400"></i>${e.location}</span>
+                            </div>
                         </div>
+                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 text-slate-300 hover:text-red-500 p-2 transition-colors">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
                     </div>`;
                 });
                 document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
             });
 
-            // [수정됨] 종료된 이력 리스트도 동일하게 처리
             db.collection("events").where("status", "==", "closed").onSnapshot(snap => {
-                let events = [];
-                snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+                let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
                 events.sort((a, b) => b.createdAt - a.createdAt);
-
                 let html = '';
                 events.forEach(e => {
                     const dateStr = new Date(e.createdAt).toLocaleDateString();
-                    html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center active:bg-slate-50">
-                        <div><p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p><h4 class="font-bold text-xs text-slate-700">${e.title}</h4></div>
-                        <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
+                    html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center group relative">
+                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer">
+                            <p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p>
+                            <h4 class="font-bold text-xs text-slate-700">${e.title}</h4>
+                        </div>
+                        <button onclick="deleteEvent('${e.id}')" class="text-slate-300 hover:text-red-500 p-2">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
                     </div>`;
                 });
                 document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">대응 이력이 없습니다.</div>';
             });
         }
+
+        // 상황(Event) 삭제 함수
+        window.deleteEvent = async (eventId) => {
+            if(confirm("이 경조사 상황과 관련된 모든 업무 내역이 삭제됩니다. 정말 삭제하시겠습니까?")) {
+                try {
+                    // 1. 이벤트 본체 삭제
+                    await db.collection("events").doc(eventId).delete();
+                    
+                    // 2. 관련된 tasks 삭제
+                    const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get();
+                    const batch = db.batch();
+                    taskSnap.forEach(doc => batch.delete(doc.ref));
+                    
+                    // 3. 관련된 meta 삭제
+                    const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get();
+                    metaSnap.forEach(doc => batch.delete(doc.ref));
+                    
+                    await batch.commit();
+                    alert("성공적으로 삭제되었습니다.");
+                } catch(e) {
+                    alert("삭제 중 오류 발생: " + e.message);
+                }
+            }
+        };
 
         function openDetail(eventId, title, info, readOnly) {
             currentEventId = eventId; isReadOnly = readOnly;
@@ -258,11 +284,23 @@
         window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
         window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장 완료'); }); };
 
+        // ★ 업무 상세 내용 복구 완료 (submitEvent)
         async function submitEvent() {
             const t = document.getElementById('reg_title').value; const tm = document.getElementById('reg_time').value; const l = document.getElementById('reg_location').value;
             if(!t) return alert("상황명을 적어주세요.");
             const doc = await db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() });
-            const def = [{o:'조정열',t:'단톡방 지원조건 공유'},{o:'안정훈/변우혁',t:'사우회비 전달/확인'},{o:'안정훈/변우혁',t:'지출결의서 준비'},{o:'김태석',t:'비상연락망 가동'},{o:'김태석',t:'대절버스 수요파악'},{o:'박유희',t:'업체 발주 완료'}];
+            
+            // 극찬하셨던 구체적인 업무 리스트 복구
+            const def = [
+                {o:'조정열', t:'경영지원 단톡방에 경조사 지원 조건(회사/사우회 경조금, 휴가, 조화 등) 공유'},
+                {o:'안정훈/변우혁', t:'사우회 경조사비 직접 전달하거나 대상자/참석자에게 확인 후 처리'},
+                {o:'안정훈/변우혁', t:'(월요일) 지출결의서 상신 준비 및 최종 금액 확인'},
+                {o:'김태석', t:'휴일 발생 시 기존대로 카톡을 이용한 비상연락망 가동 및 유니넷 게시'},
+                {o:'김태석', t:'규정상 대절버스 필요 여부 대상자에게 확인'},
+                {o:'김태석', t:'(버스 필요시) 유니넷 게시판에 버스대절 인원파악 글 게시'},
+                {o:'박유희', t:'정확한 장소, 발인시간 확인 후 화환 및 조화 업체 발주 완료'}
+            ];
+            
             const promises = def.map((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
             await Promise.all(promises);
             closeModal(); document.getElementById('reg_title').value = ''; document.getElementById('reg_time').value = ''; document.getElementById('reg_location').value = '';
