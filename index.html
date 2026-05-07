@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주말 경조사 관리 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4 pb-20">
+    <div class="max-w-md mx-auto bg-slate-800 rounded-2xl p-5 mb-6 border border-lime-500/30 shadow-xl">
+        <h1 class="text-xl font-bold text-lime-400 mb-4 flex items-center">
+            <span class="mr-2">📊</span> 실시간 진행 상황
+        </h1>
+        <div class="w-full bg-slate-700 h-4 rounded-full overflow-hidden shadow-inner">
+            <div id="progressBar" class="bg-gradient-to-r from-lime-500 to-emerald-500 h-full transition-all duration-700" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-sm font-medium text-slate-400">
+            <span>황충모 전문위원 모니터링</span>
+            <span id="progressText" class="text-lime-400">0%</span>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto space-y-6">
+        <section>
+            <h2 class="text-lg font-bold mb-3 flex items-center text-slate-200">
+                <span class="mr-2">📅</span> 주말 경조사 업무
+            </h2>
+            <div id="taskList" class="space-y-3">
+                </div>
+        </section>
+
+        <section class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <h2 class="text-lg font-bold mb-4 flex items-center text-lime-400">
+                <span class="mr-2">📞</span> 업체 연락처
+            </h2>
+            <div id="vendorList" class="space-y-4">
+                </div>
+            <button onclick="editVendor('', '', '')" class="w-full mt-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors border border-slate-600">
+                + 새 업체 추가
+            </button>
+        </section>
+    </div>
+
+    <script>
+        // Firebase 설정 (이미지에서 추출한 실제 값 적용됨)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
+            authDomain: "msd-weekend.firebaseapp.com",
+            projectId: "msd-weekend",
+            storageBucket: "msd-weekend.firebasestorage.app",
+            messagingSenderId: "167933737161",
+            appId: "1:167933737161:web:3df42c755f658e19323518"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 이메일 기반 업무 데이터
+        const tasks = [
+            { id: 't1', role: '조정열', msg: '경조사 지원 조건 단톡방 공유' },
+            { id: 't2', role: '안정훈/변우혁', msg: '사우회비 직접 전달 및 확인' },
+            { id: 't3', role: '김태석', msg: '비상연락망 가동 및 유니넷 게시' },
+            { id: 't4', role: '김태석', msg: '대절버스 필요 여부 확인' },
+            { id: 't5', role: '박유희', msg: '화환 및 조화 업체 발주' }
+        ];
+
+        // 업무 동기화
+        function syncTasks() {
+            db.collection("tasks").onSnapshot((snapshot) => {
+                const data = {};
+                snapshot.forEach(doc => data[doc.id] = doc.data().done);
+                
+                let doneCount = 0;
+                const html = tasks.map(t => {
+                    const isDone = data[t.id] || false;
+                    if(isDone) doneCount++;
+                    return `
+                        <div onclick="toggleTask('${t.id}', ${!isDone})" class="flex items-center p-4 rounded-xl cursor-pointer transition-all ${isDone ? 'bg-emerald-900/20 border border-emerald-500/50' : 'bg-slate-800 border border-slate-700 shadow-lg'}">
+                            <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 ${isDone ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}">
+                                ${isDone ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">${t.role} 프로</p>
+                                <p class="text-sm ${isDone ? 'line-through text-slate-500' : 'text-slate-200'}">${t.msg}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('taskList').innerHTML = html;
+                const percent = Math.round((doneCount / tasks.length) * 100);
+                document.getElementById('progressBar').style.width = percent + '%';
+                document.getElementById('progressText').innerText = percent + '%';
+            });
+        }
+
+        window.toggleTask = (tid, status) => {
+            db.collection("tasks").doc(tid).set({ done: status });
+        };
+
+        // 업체 관리 동기화
+        function syncVendors() {
+            db.collection("vendors").onSnapshot((snapshot) => {
+                let html = '';
+                snapshot.forEach(doc => {
+                    const v = doc.data();
+                    html += `
+                        <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 shadow-sm">
+                            <div class="flex-grow">
+                                <p class="font-bold text-slate-200 text-sm">${v.name}</p>
+                                <a href="tel:${v.tel}" class="text-lime-400 font-mono text-lg font-bold">${v.tel}</a>
+                            </div>
+                            <button onclick="editVendor('${doc.id}', '${v.name}', '${v.tel}')" class="p-2 text-slate-500 hover:text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                });
+                document.getElementById('vendorList').innerHTML = html;
+            });
+        }
+
+        window.editVendor = (id, oldName, oldTel) => {
+            const name = prompt("업체명을 입력하세요 (예: 삼천리 화환)", oldName);
+            const tel = prompt("전화번호를 입력하세요 (예: 010-1234-5678)", oldTel);
+            if(name && tel) {
+                const ref = id ? db.collection("vendors").doc(id) : db.collection("vendors").doc();
+                ref.set({ name, tel });
+            }
+        };
+
+        syncTasks();
+        syncVendors();
+    </script>
+</body>
+</html>
