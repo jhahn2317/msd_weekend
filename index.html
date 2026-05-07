@@ -3,86 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>유니테스트 주말 비상 관제보드</title>
+    <title>유니테스트 통합 관제 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .active-nav { color: #1d4ed8 !important; border-top: 3px solid #1d4ed8; }
+        .screen { display: none; }
+        .screen.active { display: block; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen overflow-x-hidden pb-24">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-md mx-auto w-full px-4 py-3 flex justify-between items-center">
-            <h1 class="text-lg font-extrabold text-blue-700 flex items-center">
-                <i class="fa-solid fa-shield-halved mr-2"></i>주말 비상상황 통합 관제
+    <header class="bg-white shadow-sm sticky top-0 z-[60]">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-lg font-black text-blue-700 flex items-center">
+                <i class="fa-solid fa-layer-group mr-2"></i>UNI-CONTROL
             </h1>
-            <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">경영지원팀</span>
+            <div id="header-status" class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded border border-blue-100">실시간 연결됨</div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto w-full p-4 space-y-6">
+    <main class="max-w-md mx-auto w-full p-4">
 
-        <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-5 shadow-lg text-white">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-lg"><i class="fa-solid fa-chart-pie mr-2"></i>전체 진행 상황</h2>
-                <span id="globalPercent" class="text-2xl font-black">0%</span>
+        <div id="screen-list" class="screen active space-y-5">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-800">진행중 경조사</h2>
+                    <p class="text-[11px] text-slate-500 font-medium">현재 대응 중인 비상상황 목록입니다.</p>
+                </div>
+                <button onclick="openModal()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-plus mr-1"></i>상황 등록
+                </button>
             </div>
+            <div id="eventListArea" class="space-y-4"></div>
             
-            <div class="w-full bg-blue-900/50 h-3 rounded-full overflow-hidden mb-4">
-                <div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div>
+            <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mt-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-slate-700 text-sm flex items-center"><i class="fa-solid fa-phone-volume text-blue-500 mr-2"></i>공통 협력업체</h2>
+                    <button onclick="addVendor()" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 추가</button>
+                </div>
+                <div id="vendorList" class="space-y-3"></div>
+            </section>
+        </div>
+
+        <div id="screen-history" class="screen space-y-5">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-800">경조사 이력 조회</h2>
+                <p class="text-[11px] text-slate-500 font-medium">종료된 과거의 경조사 대응 기록입니다.</p>
+            </div>
+            <div id="historyListArea" class="space-y-3">
+                </div>
+        </div>
+
+        <div id="screen-detail" class="screen space-y-6">
+            <div class="flex items-center gap-3">
+                <button onclick="switchScreen('screen-list')" class="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 rounded-xl shadow-sm"><i class="fa-solid fa-chevron-left text-slate-600"></i></button>
+                <div class="flex-grow">
+                    <h2 id="d_title" class="text-lg font-extrabold text-slate-800 leading-tight"></h2>
+                    <p id="d_info" class="text-[10px] text-blue-600 font-bold mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded"></p>
+                </div>
+                <button id="btn-close-event" onclick="closeEvent()" class="text-[10px] bg-red-600 text-white px-3 py-2 rounded-lg font-bold shadow-md shadow-red-100">종료</button>
             </div>
 
-            <div class="grid grid-cols-4 gap-2 text-center text-xs" id="memberProgress">
+            <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-5 shadow-xl text-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-bold text-sm opacity-90">종합 진행률</h2>
+                    <span id="globalPercent" class="text-3xl font-black italic">0%</span>
                 </div>
-        </section>
-
-        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-700 mb-3 flex items-center">
-                <i class="fa-solid fa-calculator text-blue-500 mr-2"></i>경조금 & 지원내역 계산기
-            </h2>
-            <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 mb-3">
-                <option value="">경조사 종류를 선택하세요</option>
-                <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
-                <option value="sibling_death">형제자매 상 (본인/배우자)</option>
-                <option value="aunt_uncle_death">고모/삼촌 등 부모님 형제자매 상</option>
-                <option value="grandparent_death">조부모 상 (외조부모, 빙조부모 포함)</option>
-                <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
-                <option value="my_marriage">본인 결혼</option>
-            </select>
-            <div id="calcResult" class="hidden bg-blue-50 p-3 rounded-xl border border-blue-100 text-sm">
-                <div class="flex justify-between mb-1"><span class="text-slate-500">회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
-                <div class="flex justify-between mb-1"><span class="text-slate-500">사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
-                <div class="flex justify-between mb-1"><span class="text-slate-500">지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
-                <div class="flex justify-between"><span class="text-slate-500">화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
-            </div>
-        </section>
-
-        <section>
-            <h2 class="font-bold text-slate-700 mb-3 flex items-center px-1">
-                <i class="fa-solid fa-list-check text-blue-500 mr-2"></i>담당자별 상세 업무
-            </h2>
-            <div id="ownerCardsArea" class="space-y-4">
+                <div class="w-full bg-blue-900/40 h-2.5 rounded-full overflow-hidden mb-5">
+                    <div id="globalProgressBar" class="bg-white h-full transition-all duration-700 ease-out" style="width: 0%"></div>
                 </div>
-        </section>
+                <div class="grid grid-cols-4 gap-2 text-center text-[10px]" id="memberProgress"></div>
+            </section>
 
-        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-slate-700 flex items-center">
-                    <i class="fa-solid fa-phone-volume text-blue-500 mr-2"></i>긴급 협력업체
-                </h2>
-                <button onclick="addVendor()" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-200">+ 추가</button>
-            </div>
-            <div id="vendorList" class="space-y-3">
+            <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <h2 class="font-bold text-slate-700 text-sm mb-3"><i class="fa-solid fa-calculator text-blue-500 mr-2"></i>경조 규정 자동 계산기</h2>
+                <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl p-3 focus:outline-none focus:border-blue-500">
+                    <option value="">종류를 선택하면 규정이 출력됩니다.</option>
+                    <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
+                    <option value="sibling_death">형제자매 상 (본인/배우자)</option>
+                    <option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option>
+                    <option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option>
+                    <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
+                    <option value="my_marriage">본인 결혼</option>
+                </select>
+                <div id="calcResult" class="hidden bg-blue-50 p-4 rounded-xl border border-blue-100 text-[11px] space-y-2 mt-2">
+                    <div class="flex justify-between"><span class="text-slate-500">회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
                 </div>
-        </section>
+            </section>
+
+            <div id="ownerCardsArea" class="space-y-4 pb-10"></div>
+        </div>
 
     </main>
 
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[100] pb-safe">
+        <div class="max-w-md mx-auto flex justify-around items-center h-16">
+            <button onclick="switchScreen('screen-list')" id="nav-screen-list" class="flex flex-col items-center gap-1 text-slate-400 transition-all active-nav">
+                <i class="fa-solid fa-house-chimney text-xl"></i>
+                <span class="text-[10px] font-bold">진행 상황</span>
+            </button>
+            <button onclick="switchScreen('screen-history')" id="nav-screen-history" class="flex flex-col items-center gap-1 text-slate-400 transition-all">
+                <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                <span class="text-[10px] font-bold">이력 조회</span>
+            </button>
+            <button onclick="alert('사무용품/차량관리 기능은 준비중입니다.')" class="flex flex-col items-center gap-1 text-slate-300">
+                <i class="fa-solid fa-briefcase text-xl"></i>
+                <span class="text-[10px] font-bold">기타 업무</span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/70 z-[200] hidden flex items-center justify-center p-5">
+        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-slide-up">
+            <div class="bg-blue-600 px-6 py-5 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">새 경조사 상황 등록</h3>
+                <button onclick="closeModal()"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">상황명</label>
+                    <input type="text" id="reg_title" placeholder="예: 경영지원팀 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">일시 (발인/예식 등)</label>
+                    <input type="text" id="reg_time" placeholder="예: 5/15(금) 08:00" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">장소</label>
+                    <input type="text" id="reg_location" placeholder="예: 평촌 한림대 장례식장 1호실" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 bg-slate-50">
+                </div>
+                <button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-2xl py-4 mt-2 shadow-lg shadow-blue-100 hover:bg-blue-700">관제 시작</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ★ 본인의 Firebase Config 로 덮어쓰세요
+        // ★ Firebase Config 
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -94,203 +157,182 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // [경조금 계산기 로직]
-        const rules = {
-            parent_death: { c: '500,000원 (배우자부모 300,000원)', m: '500,000원', l: '7일 (배우자부모 5일)', f: '지원 (화환 O)' },
-            sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '미지원' },
-            aunt_uncle_death: { c: '지급 대상 아님', m: '200,000원', l: '휴가 없음', f: '미지원' },
-            grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원 (화환 O)' },
-            sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '미지원' },
-            my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원 (화환 O)' }
-        };
-
-        window.calculateCondolence = () => {
-            const val = document.getElementById('eventSelect').value;
-            const resBox = document.getElementById('calcResult');
-            if(!val) { resBox.classList.add('hidden'); return; }
-            document.getElementById('r_company').innerText = rules[val].c;
-            document.getElementById('r_mutual').innerText = rules[val].m;
-            document.getElementById('r_leave').innerText = rules[val].l;
-            document.getElementById('r_flower').innerText = rules[val].f;
-            resBox.classList.remove('hidden');
-        };
-
-        // ----------------------------------------------------
-        // [업무 및 개인 데이터 연동 로직]
-        // ----------------------------------------------------
+        let currentEventId = null;
+        let isReadOnly = false; // 이력 조회 모드 시 체크 불가용
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
-        
-        // 1. 처음 실행 시 DB에 데이터가 없으면 세분화된 기본값 세팅
-        const initDefaults = () => {
-            const defaultTasks = [
-                { owner: '조정열', title: '경영지원 단톡방에 지원조건 (휴가,조화,금액) 공유', done: false },
-                { owner: '안정훈/변우혁', title: '사우회비 대상자 또는 참석자에게 직접 전달 및 확인', done: false },
-                { owner: '안정훈/변우혁', title: '월요일 지출결의서 상신 준비 (최종 금액 확인)', done: false },
-                { owner: '김태석', title: '휴일 비상연락망(카톡) 가동 및 상세 내용 전파', done: false },
-                { owner: '김태석', title: '유니넷 경조사게시판 게시 (어려울 시 당일 팀원에게 요청)', done: false },
-                { owner: '김태석', title: '대상자에게 대절버스 필요 여부 확인 (규정상 가능 시)', done: false },
-                { owner: '김태석', title: '유니넷 게시판에 대절버스 신청/인원파악 글 게시 (필요시)', done: false },
-                { owner: '박유희', title: '정확한 장소, 발인시간 확인 후 화환/조화 업체 발주', done: false }
-            ];
-            db.collection("tasks").get().then(snap => {
-                if(snap.empty) {
-                    defaultTasks.forEach((t, idx) => {
-                        db.collection("tasks").add({ ...t, createdAt: Date.now() + idx });
-                    });
-                }
+        let activeTasksUnsubscribe = null; 
+        let activeMetaUnsubscribe = null;
+
+        // [화면 전환 로직]
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            // 하단 메뉴 활성화 표시
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+            const navBtn = document.getElementById('nav-' + screenId);
+            if(navBtn) navBtn.classList.add('active-nav');
+            
+            if(screenId === 'screen-list' || screenId === 'screen-history') {
+                currentEventId = null;
+                if(activeTasksUnsubscribe) activeTasksUnsubscribe();
+                if(activeMetaUnsubscribe) activeMetaUnsubscribe();
+            }
+        }
+
+        // [이력 조회 및 진행 리스트 로드]
+        function loadLists() {
+            // 진행중 리스트
+            db.collection("events").where("status", "==", "active").orderBy("createdAt", "desc").onSnapshot(snap => {
+                let html = '';
+                snap.forEach(doc => {
+                    const e = doc.data();
+                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 cursor-pointer hover:border-blue-300 relative transition-all group active:scale-[0.98]">
+                        <div class="absolute top-0 left-6 w-8 h-1.5 bg-blue-500 rounded-b-full"></div>
+                        <h3 class="font-black text-slate-800 mb-2">${e.title}</h3>
+                        <div class="flex items-center gap-3 text-[10px] text-slate-400 font-bold">
+                            <span><i class="fa-solid fa-calendar-day mr-1 text-blue-400"></i>${e.time}</span>
+                            <span><i class="fa-solid fa-location-dot mr-1 text-blue-400"></i>${e.location}</span>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('eventListArea').innerHTML = html || '<div class="py-10 text-center text-slate-300 text-xs font-bold italic">No Active Events</div>';
             });
-        };
-        initDefaults();
 
-        let allTasks = [];
-        let allUsersMeta = {}; // 대체자, 특이사항 저장
+            // 종료된 이력 리스트
+            db.collection("events").where("status", "==", "closed").orderBy("createdAt", "desc").onSnapshot(snap => {
+                let html = '';
+                snap.forEach(doc => {
+                    const e = doc.data();
+                    const dateStr = new Date(e.createdAt).toLocaleDateString();
+                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time}', true)" class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-0.5">${dateStr} 종료됨</p>
+                            <h4 class="font-bold text-sm text-slate-700">${e.title}</h4>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </div>`;
+                });
+                document.getElementById('historyListArea').innerHTML = html || '<div class="py-10 text-center text-slate-300 text-xs">종료된 이력이 없습니다.</div>';
+            });
+        }
 
-        // Firestore 실시간 리스너 (업무 & 유저정보)
-        db.collection("tasks").orderBy("createdAt").onSnapshot(snap => {
-            allTasks = [];
-            snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
-            renderAll();
-        });
+        // [상세 보기 오픈 (이력조회 모드 포함)]
+        function openDetail(eventId, title, info, readOnly) {
+            currentEventId = eventId;
+            isReadOnly = readOnly;
+            
+            document.getElementById('d_title').innerText = title;
+            document.getElementById('d_info').innerText = info;
+            document.getElementById('btn-close-event').style.display = readOnly ? 'none' : 'block';
+            
+            switchScreen('screen-detail');
+            listenToTasks(eventId);
+        }
 
-        db.collection("userMeta").onSnapshot(snap => {
-            allUsersMeta = {};
-            snap.forEach(doc => allUsersMeta[doc.id] = doc.data());
-            renderAll();
-        });
+        function listenToTasks(eventId) {
+            if(activeTasksUnsubscribe) activeTasksUnsubscribe();
+            if(activeMetaUnsubscribe) activeMetaUnsubscribe();
 
-        // ----------------------------------------------------
-        // [화면 그리기 (렌더링)]
-        // ----------------------------------------------------
-        function renderAll() {
-            let totalTasks = 0;
-            let completedTasks = 0;
-            let mHtml = ''; // 대시보드 미니 진행률
-            let cHtml = ''; // 개인별 카드
+            activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => {
+                let allTasks = [];
+                snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
+                allTasks.sort((a,b) => a.createdAt - b.createdAt);
+                
+                db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => {
+                    let allMeta = {};
+                    mSnap.forEach(mDoc => allMeta[mDoc.data().owner] = mDoc.data());
+                    renderBoard(allTasks, allMeta);
+                });
+            });
+        }
+
+        function renderBoard(tasks, meta) {
+            let total = 0, done = 0;
+            let mHtml = '', cHtml = '';
 
             owners.forEach(owner => {
-                const myTasks = allTasks.filter(t => t.owner === owner);
-                const myMeta = allUsersMeta[owner] || { sub: '', note: '' };
-                
-                let myTot = myTasks.length;
-                let myDone = myTasks.filter(t => t.done).length;
-                totalTasks += myTot;
-                completedTasks += myDone;
+                const myTasks = tasks.filter(t => t.owner === owner);
+                const myMeta = meta[owner] || { sub: '', note: '' };
+                total += myTasks.length;
+                done += myTasks.filter(t => t.done).length;
 
-                // [대시보드] 미니 진행률 생성
-                const mKey = owner.includes('안정훈') ? '안/변' : owner;
-                const isAllDone = (myTot > 0 && myTot === myDone);
-                mHtml += `
-                    <div class="bg-blue-800/50 rounded py-2">
-                        <div class="font-bold ${isAllDone ? 'text-green-300' : 'text-blue-200'}">${mKey}</div>
-                        <div class="text-white mt-1">${myDone} / ${myTot}</div>
+                const isAllDone = (myTasks.length > 0 && myTasks.length === myTasks.filter(t => t.done).length);
+                mHtml += `<div class="bg-blue-900/30 rounded-xl py-2 border border-blue-400/20">
+                    <div class="font-black ${isAllDone ? 'text-green-300' : 'text-blue-100'}">${owner.includes('안정훈') ? '안/변' : owner}</div>
+                    <div class="opacity-80">${myTasks.filter(t => t.done).length}/${myTasks.length}</div>
+                </div>`;
+
+                let taskHtml = myTasks.map(t => `<div class="flex items-start gap-3 py-2.5 border-b border-slate-50 last:border-0" ${!isReadOnly ? `onclick="toggleTask('${t.id}', ${!t.done})"` : ''}>
+                    <div class="w-5 h-5 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200'}">
+                        ${t.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
                     </div>
-                `;
+                    <span class="text-sm ${t.done ? 'text-slate-300 line-through' : 'text-slate-600 font-medium'}">${t.title}</span>
+                </div>`).join('');
 
-                // [카드영역] 개인별 카드 생성
-                const activeName = myMeta.sub ? `${owner} <span class="text-blue-500 font-bold ml-1">(${myMeta.sub} 대체)</span>` : owner;
-                
-                let taskListHtml = myTasks.map(t => `
-                    <div class="flex items-start justify-between py-2 border-b border-slate-100 last:border-0 group">
-                        <div class="flex items-start gap-3 cursor-pointer flex-grow" onclick="toggleTask('${t.id}', ${!t.done})">
-                            <div class="mt-0.5 w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors ${t.done ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 text-transparent'}">
-                                <i class="fa-solid fa-check text-[10px]"></i>
-                            </div>
-                            <span class="text-sm ${t.done ? 'line-through text-slate-400' : 'text-slate-700'}">${t.title}</span>
-                        </div>
-                        <button onclick="delTask('${t.id}')" class="ml-2 text-slate-300 hover:text-red-500 px-2 py-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                cHtml += `<div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+                    <div class="bg-slate-50/80 px-5 py-3 flex justify-between items-center">
+                        <span class="text-xs font-black text-slate-800">${myMeta.sub ? `${owner} (${myMeta.sub} 대체)` : owner}</span>
+                        ${!isReadOnly ? `<button onclick="setSub('${owner}')" class="text-[9px] font-bold text-blue-600 border border-blue-200 bg-white px-2 py-1 rounded-lg">대체자</button>` : ''}
                     </div>
-                `).join('');
-
-                if(myTasks.length === 0) taskListHtml = '<p class="text-xs text-slate-400 py-2">등록된 업무가 없습니다.</p>';
-
-                cHtml += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
-                            <h3 class="font-bold text-slate-800 text-sm">${activeName}</h3>
-                            <button onclick="setSub('${owner}')" class="text-[10px] bg-white border border-slate-300 text-slate-600 px-2 py-1 rounded hover:bg-slate-100 shadow-sm">대체자 지정</button>
-                        </div>
-                        
-                        <div class="p-4 pb-2">
-                            ${taskListHtml}
-                            <button onclick="addTask('${owner}')" class="mt-3 text-xs font-bold text-blue-500 flex items-center hover:text-blue-700">
-                                <i class="fa-solid fa-plus mr-1"></i> ${owner.includes('안정훈') ? '안/변' : owner} 업무 추가
-                            </button>
-                        </div>
-
-                        <div class="bg-yellow-50/50 p-3 border-t border-slate-100 flex gap-2">
-                            <input type="text" id="note_${owner}" value="${myMeta.note || ''}" placeholder="해당 담당자의 진행 특이사항을 적어주세요..." class="text-xs w-full bg-white border border-yellow-200 rounded px-3 py-2 focus:outline-none focus:border-yellow-400 text-slate-700">
-                            <button onclick="saveNote('${owner}')" class="text-xs bg-yellow-400 text-yellow-900 font-bold px-3 rounded whitespace-nowrap hover:bg-yellow-500 shadow-sm">저장</button>
-                        </div>
+                    <div class="p-5">${taskHtml || '<p class="text-xs text-slate-300 italic">No tasks</p>'}</div>
+                    <div class="p-4 bg-yellow-50/50 border-t border-yellow-100 flex gap-2">
+                        <input type="text" id="note_${owner}" value="${myMeta.note || ''}" ${isReadOnly ? 'disabled' : ''} placeholder="특이사항..." class="text-xs w-full bg-white border border-yellow-200 rounded-xl px-3 py-2 outline-none focus:border-yellow-400">
+                        ${!isReadOnly ? `<button onclick="saveNote('${owner}')" class="bg-yellow-400 text-yellow-900 font-black px-4 py-2 rounded-xl text-xs">저장</button>` : ''}
                     </div>
-                `;
+                </div>`;
             });
 
             document.getElementById('memberProgress').innerHTML = mHtml;
             document.getElementById('ownerCardsArea').innerHTML = cHtml;
-
-            const percent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-            document.getElementById('globalPercent').innerText = percent + '%';
-            document.getElementById('globalProgressBar').style.width = percent + '%';
+            const per = total === 0 ? 0 : Math.round((done / total) * 100);
+            document.getElementById('globalPercent').innerText = per + '%';
+            document.getElementById('globalProgressBar').style.width = per + '%';
         }
 
-        // ----------------------------------------------------
-        // [업무 컨트롤 버튼 액션]
-        // ----------------------------------------------------
-        window.toggleTask = (id, status) => db.collection("tasks").doc(id).update({ done: status });
+        // [이벤트 처리 및 기타 기능]
+        window.toggleTask = (id, status) => { if(isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
+        window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
+        window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장됨'); }); };
         
-        window.addTask = (owner) => {
-            const title = prompt(`${owner} 프로님의 새 업무를 입력하세요.`);
-            if(title) db.collection("tasks").add({ owner, title, done: false, createdAt: Date.now() });
-        };
-        
-        window.delTask = (id) => {
-            if(confirm("이 업무를 삭제하시겠습니까?")) db.collection("tasks").doc(id).delete();
-        };
-
-        window.setSub = (owner) => {
-            const subName = prompt(`${owner} 담당자의 업무를 인수인계 받을 대체자 이름을 적어주세요.\n(비워두면 원래대로 복구됩니다)`);
-            if(subName !== null) db.collection("userMeta").doc(owner).set({ sub: subName }, { merge: true });
-        };
-
-        window.saveNote = (owner) => {
-            const noteVal = document.getElementById(`note_${owner}`).value;
-            db.collection("userMeta").doc(owner).set({ note: noteVal }, { merge: true });
-            alert(`${owner.includes('안정훈') ? '안/변' : owner} 담당 파트의 특이사항이 저장되었습니다.`);
-        };
-
-        // ----------------------------------------------------
-        // [긴급 업체 연락처 액션]
-        // ----------------------------------------------------
-        db.collection("vendors").onSnapshot(snap => {
-            let html = '';
-            snap.forEach(doc => {
-                const v = doc.data();
-                html += `
-                    <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${v.name}</p>
-                            <p class="text-xs text-slate-500">${v.desc || '비고 없음'}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <a href="tel:${v.tel}" class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200"><i class="fa-solid fa-phone"></i></a>
-                            <button onclick="delVendor('${doc.id}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-full hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `;
+        function submitEvent() {
+            const t = document.getElementById('reg_title').value;
+            const tm = document.getElementById('reg_time').value;
+            const l = document.getElementById('reg_location').value;
+            if(!t) return alert("제목 필수");
+            db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() }).then(doc => {
+                const def = [{o:'조정열',t:'단톡방 지원조건 공유'},{o:'안정훈/변우혁',t:'사우회비 전달/확인'},{o:'안정훈/변우혁',t:'지출결의서 준비'},{o:'김태석',t:'비상연락망 가동'},{o:'김태석',t:'대절버스 수요파악'},{o:'박유희',t:'업체 발주 완료'}];
+                def.forEach((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
+                closeModal(); openDetail(doc.id, t, tm, false);
             });
-            document.getElementById('vendorList').innerHTML = html || '<p class="text-xs text-slate-400">등록된 업체가 없습니다.</p>';
-        });
+        }
 
-        window.addVendor = () => {
-            const name = prompt("업체명 (예: 삼천리 화환)"); if(!name) return;
-            const tel = prompt("전화번호 (예: 010-1234-5678)"); if(!tel) return;
-            const desc = prompt("비고 (예: 담당자 박부장)");
-            db.collection("vendors").add({ name, tel, desc });
+        window.closeEvent = () => { if(confirm("종료하시겠습니까? 이력조회 메뉴로 이동합니다.")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => switchScreen('screen-list')); };
+        function closeModal() { document.getElementById('registerModal').classList.add('hidden'); }
+        function openModal() { document.getElementById('registerModal').classList.remove('hidden'); }
+        
+        // 규정 계산기 데이터
+        const rules = {
+            parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' },
+            sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' },
+            aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' },
+            grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' },
+            sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' },
+            my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' }
+        };
+        window.calculateCondolence = () => {
+            const v = document.getElementById('eventSelect').value;
+            const res = document.getElementById('calcResult');
+            if(!v) return res.classList.add('hidden');
+            document.getElementById('r_company').innerText = rules[v].c;
+            document.getElementById('r_mutual').innerText = rules[v].m;
+            document.getElementById('r_leave').innerText = rules[v].l;
+            document.getElementById('r_flower').innerText = rules[v].f;
+            res.classList.remove('hidden');
         };
 
-        window.delVendor = (id) => {
-            if(confirm("정말 이 업체를 삭제하시겠습니까?")) db.collection("vendors").doc(id).delete();
-        };
+        // 초기 실행
+        loadLists();
     </script>
 </body>
 </html>
