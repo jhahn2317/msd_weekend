@@ -143,7 +143,7 @@
     </div>
 
     <script>
-        // ★ 제공해주신 Firebase Config 반영 완료 ★
+        // ★ Firebase Config 
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz7CDSrZ2jbuSWTkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -175,11 +175,16 @@
         }
 
         function loadLists() {
-            db.collection("events").where("status", "==", "active").orderBy("createdAt", "desc").onSnapshot(snap => {
+            // [수정됨] 색인 오류 방지를 위해 orderBy를 빼고 자바스크립트에서 정렬하도록 변경했습니다.
+            db.collection("events").where("status", "==", "active").onSnapshot(snap => {
+                let events = [];
+                snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+                // 클라이언트(JS) 단에서 최신순(내림차순) 정렬
+                events.sort((a, b) => b.createdAt - a.createdAt);
+
                 let html = '';
-                snap.forEach(doc => {
-                    const e = doc.data();
-                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-300 relative transition-all active:scale-[0.98]">
+                events.forEach(e => {
+                    html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-blue-300 relative transition-all active:scale-[0.98]">
                         <div class="absolute top-0 left-4 w-6 h-1 bg-blue-500 rounded-b-md"></div>
                         <h3 class="font-bold text-[13px] text-slate-800 mb-1 mt-0.5">${e.title}</h3>
                         <div class="flex items-center gap-2 text-[9px] text-slate-500 font-medium italic">
@@ -191,12 +196,16 @@
                 document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
             });
 
-            db.collection("events").where("status", "==", "closed").orderBy("createdAt", "desc").onSnapshot(snap => {
+            // [수정됨] 종료된 이력 리스트도 동일하게 처리
+            db.collection("events").where("status", "==", "closed").onSnapshot(snap => {
+                let events = [];
+                snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+                events.sort((a, b) => b.createdAt - a.createdAt);
+
                 let html = '';
-                snap.forEach(doc => {
-                    const e = doc.data();
+                events.forEach(e => {
                     const dateStr = new Date(e.createdAt).toLocaleDateString();
-                    html += `<div onclick="openDetail('${doc.id}', '${e.title}', '${e.time}', true)" class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                    html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center active:bg-slate-50">
                         <div><p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p><h4 class="font-bold text-xs text-slate-700">${e.title}</h4></div>
                         <i class="fa-solid fa-chevron-right text-slate-300 text-[10px]"></i>
                     </div>`;
