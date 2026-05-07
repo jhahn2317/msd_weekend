@@ -2,49 +2,95 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주말 경조사 관리 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>유니테스트 주말 비상 관제보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 pb-20">
-    <div class="max-w-md mx-auto bg-slate-800 rounded-2xl p-5 mb-6 border border-lime-500/30 shadow-xl">
-        <h1 class="text-xl font-bold text-lime-400 mb-4 flex items-center">
-            <span class="mr-2">📊</span> 실시간 진행 상황
-        </h1>
-        <div class="w-full bg-slate-700 h-4 rounded-full overflow-hidden shadow-inner">
-            <div id="progressBar" class="bg-gradient-to-r from-lime-500 to-emerald-500 h-full transition-all duration-700" style="width: 0%"></div>
-        </div>
-        <div class="flex justify-between mt-2 text-sm font-medium text-slate-400">
-            <span>황충모 전문위원 모니터링</span>
-            <span id="progressText" class="text-lime-400">0%</span>
-        </div>
-    </div>
+<body class="bg-slate-50 text-slate-800 min-h-screen overflow-x-hidden pb-24">
 
-    <div class="max-w-md mx-auto space-y-6">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto w-full px-4 py-3 flex justify-between items-center">
+            <h1 class="text-lg font-extrabold text-blue-700 flex items-center">
+                <i class="fa-solid fa-shield-halved mr-2"></i>주말 비상상황 통합 관제
+            </h1>
+            <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">경영지원팀</span>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto w-full p-4 space-y-6">
+
+        <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-5 shadow-lg text-white">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg"><i class="fa-solid fa-chart-pie mr-2"></i>관제 대시보드</h2>
+                <span id="globalPercent" class="text-2xl font-black">0%</span>
+            </div>
+            
+            <div class="w-full bg-blue-900/50 h-3 rounded-full overflow-hidden mb-4">
+                <div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 mb-4 text-center text-xs" id="memberProgress">
+                </div>
+
+            <div class="bg-white/10 rounded-xl p-3 text-sm">
+                <p class="font-semibold text-blue-100 mb-1">⏳ 대기중인 주요업무</p>
+                <ul id="pendingTasks" class="list-disc pl-4 text-white opacity-90 space-y-1 text-xs">
+                    <li>데이터 불러오는 중...</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+            <h2 class="font-bold text-slate-700 mb-3 flex items-center">
+                <i class="fa-solid fa-calculator text-blue-500 mr-2"></i>경조금 & 지원내역 계산기
+            </h2>
+            <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 mb-3">
+                <option value="">경조사 종류를 선택하세요</option>
+                <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
+                <option value="sibling_death">형제자매 상 (본인/배우자)</option>
+                <option value="aunt_uncle_death">고모/삼촌 등 부모님 형제자매 상</option>
+                <option value="grandparent_death">조부모 상 (외조부모, 빙조부모 포함)</option>
+                <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
+                <option value="my_marriage">본인 결혼</option>
+            </select>
+            <div id="calcResult" class="hidden bg-blue-50 p-3 rounded-xl border border-blue-100 text-sm">
+                <div class="flex justify-between mb-1"><span class="text-slate-500">회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
+                <div class="flex justify-between mb-1"><span class="text-slate-500">사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
+                <div class="flex justify-between mb-1"><span class="text-slate-500">지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
+            </div>
+        </section>
+
         <section>
-            <h2 class="text-lg font-bold mb-3 flex items-center text-slate-200">
-                <span class="mr-2">📅</span> 주말 경조사 업무
+            <h2 class="font-bold text-slate-700 mb-3 flex items-center px-1">
+                <i class="fa-solid fa-list-check text-blue-500 mr-2"></i>담당자별 업무 진행
             </h2>
-            <div id="taskList" class="space-y-3">
+            <div id="taskListArea" class="space-y-4">
                 </div>
         </section>
 
-        <section class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-            <h2 class="text-lg font-bold mb-4 flex items-center text-lime-400">
-                <span class="mr-2">📞</span> 업체 연락처
-            </h2>
-            <div id="vendorList" class="space-y-4">
+        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-slate-700 flex items-center">
+                    <i class="fa-solid fa-phone-volume text-blue-500 mr-2"></i>긴급 협력업체
+                </h2>
+                <button onclick="addVendor()" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-200">+ 추가</button>
+            </div>
+            <div id="vendorList" class="space-y-3">
                 </div>
-            <button onclick="editVendor('', '', '')" class="w-full mt-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors border border-slate-600">
-                + 새 업체 추가
-            </button>
         </section>
-    </div>
+
+    </main>
 
     <script>
-        // Firebase 설정 (이미지에서 추출한 실제 값 적용됨)
+        // ★ Firebase 설정 (고객님의 정보로 덮어쓰세요)
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -57,80 +103,178 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 이메일 기반 업무 데이터
-        const tasks = [
-            { id: 't1', role: '조정열', msg: '경조사 지원 조건 단톡방 공유' },
-            { id: 't2', role: '안정훈/변우혁', msg: '사우회비 직접 전달 및 확인' },
-            { id: 't3', role: '김태석', msg: '비상연락망 가동 및 유니넷 게시' },
-            { id: 't4', role: '김태석', msg: '대절버스 필요 여부 확인' },
-            { id: 't5', role: '박유희', msg: '화환 및 조화 업체 발주' }
+        // ----------------------------------------------------
+        // [경조금 계산기 로직 - 규정 기반]
+        // ----------------------------------------------------
+        const rules = {
+            parent_death: { c: '500,000원 (배우자부모 300,000원)', m: '500,000원', l: '7일 (배우자부모 5일)', f: '지원 (화환 O)' },
+            sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '미지원' },
+            aunt_uncle_death: { c: '지급 대상 아님', m: '200,000원', l: '휴가 없음', f: '미지원' },
+            grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원 (화환 O)' },
+            sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '미지원' },
+            my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원 (화환 O)' }
+        };
+
+        window.calculateCondolence = () => {
+            const val = document.getElementById('eventSelect').value;
+            const resBox = document.getElementById('calcResult');
+            if(!val) { resBox.classList.add('hidden'); return; }
+            const r = rules[val];
+            document.getElementById('r_company').innerText = r.c;
+            document.getElementById('r_mutual').innerText = r.m;
+            document.getElementById('r_leave').innerText = r.l;
+            document.getElementById('r_flower').innerText = r.f;
+            resBox.classList.remove('hidden');
+        };
+
+        // ----------------------------------------------------
+        // [업무 데이터 및 렌더링 로직]
+        // ----------------------------------------------------
+        const baseTasks = [
+            { id: 't1', owner: '조정열', title: '경조사 지원조건 단톡방 공유', detail: '휴가, 조화여부 등 규정 내용 요약 전파' },
+            { id: 't2', owner: '안정훈/변우혁', title: '사우회비 지급 및 상신 준비', detail: '사우회비 직접 전달 또는 이체 확인 (월요일 상신)' },
+            { id: 't3', owner: '김태석', title: '비상연락망 가동 및 유니넷 게시', detail: '카톡 연락망 가동 및 게시판 등록' },
+            { id: 't4', owner: '김태석', title: '대절버스 필요여부 확인', detail: '거리 확인 후 대상자에게 버스 대절 의사 묻기' },
+            { id: 't5', owner: '박유희', title: '화환 및 조화 업체 발주', detail: '정확한 장소, 발인시간, 수령자 확인 후 업체 연락' }
         ];
 
-        // 업무 동기화
+        let taskState = {};
+
         function syncTasks() {
             db.collection("tasks").onSnapshot((snapshot) => {
-                const data = {};
-                snapshot.forEach(doc => data[doc.id] = doc.data().done);
-                
-                let doneCount = 0;
-                const html = tasks.map(t => {
-                    const isDone = data[t.id] || false;
-                    if(isDone) doneCount++;
-                    return `
-                        <div onclick="toggleTask('${t.id}', ${!isDone})" class="flex items-center p-4 rounded-xl cursor-pointer transition-all ${isDone ? 'bg-emerald-900/20 border border-emerald-500/50' : 'bg-slate-800 border border-slate-700 shadow-lg'}">
-                            <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 ${isDone ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}">
-                                ${isDone ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">${t.role} 프로</p>
-                                <p class="text-sm ${isDone ? 'line-through text-slate-500' : 'text-slate-200'}">${t.msg}</p>
+                taskState = {};
+                snapshot.forEach(doc => taskState[doc.id] = doc.data());
+
+                let html = '';
+                let totalDone = 0;
+                let pendingHtml = '';
+                let memberStats = { '조정열': {tot:0, done:0}, '안/변': {tot:0, done:0}, '김태석': {tot:0, done:0}, '박유희': {tot:0, done:0} };
+
+                baseTasks.forEach(t => {
+                    const state = taskState[t.id] || { done: false, note: '', sub: '' };
+                    const isDone = state.done;
+                    if(isDone) totalDone++;
+                    else pendingHtml += `<li>${t.title} <span class="opacity-50">(${state.sub || t.owner})</span></li>`;
+
+                    // 멤버별 통계 계산
+                    let mKey = t.owner.includes('안정훈') ? '안/변' : t.owner;
+                    memberStats[mKey].tot++;
+                    if(isDone) memberStats[mKey].done++;
+
+                    const activeOwner = state.sub ? `${state.sub} (대체)` : t.owner;
+
+                    html += `
+                        <div class="bg-white rounded-xl shadow-sm border ${isDone ? 'border-green-400 bg-green-50' : 'border-slate-200'} overflow-hidden transition-all">
+                            <div class="p-4 flex items-start gap-3">
+                                <button onclick="toggleTask('${t.id}', ${!isDone})" class="mt-1 w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 text-transparent'}">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                </button>
+                                <div class="flex-grow">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">${activeOwner}</span>
+                                        ${!isDone ? `<button onclick="setSub('${t.id}')" class="text-[10px] text-blue-500 underline">대체자 지정</button>` : ''}
+                                    </div>
+                                    <p class="font-bold text-sm ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}">${t.title}</p>
+                                    <p class="text-xs text-slate-500 mt-1">${t.detail}</p>
+                                    
+                                    <div class="mt-3 flex gap-2">
+                                        <input type="text" id="note_${t.id}" value="${state.note || ''}" placeholder="특이사항 입력..." class="text-xs w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400">
+                                        <button onclick="saveNote('${t.id}')" class="text-xs bg-slate-200 text-slate-700 px-2 rounded whitespace-nowrap hover:bg-slate-300">저장</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
-                }).join('');
+                });
+
+                document.getElementById('taskListArea').innerHTML = html;
+                document.getElementById('pendingTasks').innerHTML = pendingHtml || '<li>🎉 모든 비상 업무가 완료되었습니다.</li>';
                 
-                document.getElementById('taskList').innerHTML = html;
-                const percent = Math.round((doneCount / tasks.length) * 100);
-                document.getElementById('progressBar').style.width = percent + '%';
-                document.getElementById('progressText').innerText = percent + '%';
+                // 대시보드 진행률 업데이트
+                const percent = Math.round((totalDone / baseTasks.length) * 100);
+                document.getElementById('globalPercent').innerText = percent + '%';
+                document.getElementById('globalProgressBar').style.width = percent + '%';
+
+                // 멤버별 미니 진행률
+                let mHtml = '';
+                for(const [name, stat] of Object.entries(memberStats)) {
+                    const isAllDone = stat.done === stat.tot;
+                    mHtml += `
+                        <div class="bg-blue-800/50 rounded py-1">
+                            <div class="font-bold ${isAllDone ? 'text-green-300' : 'text-blue-200'}">${name}</div>
+                            <div class="text-blue-100">${stat.done}/${stat.tot}</div>
+                        </div>
+                    `;
+                }
+                document.getElementById('memberProgress').innerHTML = mHtml;
             });
         }
 
         window.toggleTask = (tid, status) => {
-            db.collection("tasks").doc(tid).set({ done: status });
+            const current = taskState[tid] || {};
+            db.collection("tasks").doc(tid).set({ ...current, done: status }, { merge: true });
         };
 
-        // 업체 관리 동기화
+        window.saveNote = (tid) => {
+            const val = document.getElementById(`note_${tid}`).value;
+            const current = taskState[tid] || {};
+            db.collection("tasks").doc(tid).set({ ...current, note: val }, { merge: true });
+            alert('메모가 저장되었습니다.');
+        };
+
+        window.setSub = (tid) => {
+            const name = prompt("업무를 대신할 사람의 이름을 적어주세요.", "");
+            if(name !== null) {
+                const current = taskState[tid] || {};
+                db.collection("tasks").doc(tid).set({ ...current, sub: name }, { merge: true });
+            }
+        };
+
+        // ----------------------------------------------------
+        // [업체 연락처 로직 (추가/수정/삭제/전화)]
+        // ----------------------------------------------------
         function syncVendors() {
             db.collection("vendors").onSnapshot((snapshot) => {
                 let html = '';
                 snapshot.forEach(doc => {
                     const v = doc.data();
                     html += `
-                        <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700 shadow-sm">
-                            <div class="flex-grow">
-                                <p class="font-bold text-slate-200 text-sm">${v.name}</p>
-                                <a href="tel:${v.tel}" class="text-lime-400 font-mono text-lg font-bold">${v.tel}</a>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${v.name}</p>
+                                <p class="text-xs text-slate-500">${v.desc || '비고 없음'}</p>
                             </div>
-                            <button onclick="editVendor('${doc.id}', '${v.name}', '${v.tel}')" class="p-2 text-slate-500 hover:text-white">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <a href="tel:${v.tel}" class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                    <i class="fa-solid fa-phone"></i>
+                                </a>
+                                <button onclick="delVendor('${doc.id}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-full hover:bg-red-100">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
-                document.getElementById('vendorList').innerHTML = html;
+                document.getElementById('vendorList').innerHTML = html || '<p class="text-xs text-slate-400">등록된 업체가 없습니다.</p>';
             });
         }
 
-        window.editVendor = (id, oldName, oldTel) => {
-            const name = prompt("업체명을 입력하세요 (예: 삼천리 화환)", oldName);
-            const tel = prompt("전화번호를 입력하세요 (예: 010-1234-5678)", oldTel);
-            if(name && tel) {
-                const ref = id ? db.collection("vendors").doc(id) : db.collection("vendors").doc();
-                ref.set({ name, tel });
+        window.addVendor = () => {
+            const name = prompt("업체명 (예: 삼천리 화환)");
+            if(!name) return;
+            const tel = prompt("전화번호 (예: 010-1234-5678)");
+            if(!tel) return;
+            const desc = prompt("비고 (예: 담당자 박부장)");
+            db.collection("vendors").add({ name, tel, desc });
+        };
+
+        window.delVendor = (id) => {
+            if(confirm("정말 이 업체를 삭제하시겠습니까?")) {
+                db.collection("vendors").doc(id).delete();
             }
         };
 
+        // 초기화 실행
         syncTasks();
         syncVendors();
     </script>
