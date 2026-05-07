@@ -42,7 +42,7 @@
                     + 상황 등록
                 </button>
             </div>
-            <div id="eventListArea" class="space-y-3"></div>
+            <div id="eventListArea"></div>
             
             <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mt-6">
                 <div class="flex justify-between items-center mb-2.5">
@@ -58,7 +58,7 @@
                 <h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2>
                 <p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p>
             </div>
-            <div id="historyListArea" class="space-y-2"></div>
+            <div id="historyListArea"></div>
         </div>
 
         <div id="screen-detail" class="screen space-y-3">
@@ -181,17 +181,17 @@
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label>
-                        <input type="text" id="v_name" placeholder="예: 위드고" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
+                        <input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label>
-                        <input type="text" id="v_tel" placeholder="예: 1800-9222" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
+                        <input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 mb-1">업무 내용 (분류)</label>
-                    <input type="text" id="v_desc" placeholder="예: 대절 버스 / 화환 / 상조용품 등" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
+                    <input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                 </div>
 
                 <div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2">
@@ -212,7 +212,7 @@
 
                 <div id="smsTemplateArea" class="hidden">
                     <div class="flex justify-between items-end mb-1 mt-2">
-                        <label class="block text-[10px] font-bold text-slate-500">기타 업체 문자 양식 (위드고/우영/범아는 양식 고정됨)</label>
+                        <label class="block text-[10px] font-bold text-slate-500">문자 양식 (위드고/우영/범아 고정)</label>
                         <span class="text-[8px] text-blue-500 font-bold bg-blue-50 px-1 rounded">자동변환: [일시], [장소], [행사명]</span>
                     </div>
                     <textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none focus:border-blue-500 leading-relaxed"></textarea>
@@ -227,7 +227,6 @@
     </div>
 
     <script>
-        // ★ 파이어베이스 설정 유지
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz7CDSrZ2jbuSWTkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -246,18 +245,44 @@
         let activeMetaUnsubscribe = null;
         let vendorDataCache = {};
 
-        // [탭 메뉴 컨트롤]
+        // [행사 제목에 따른 색상/그라데이션 테마 결정 함수]
+        function getEventTheme(title) {
+            if (title.includes('결혼') || title.includes('혼인') || title.includes('웨딩')) {
+                return { // 결혼 테마 (핑크)
+                    bg: 'bg-gradient-to-br from-rose-50 to-pink-50 border-pink-200',
+                    bar: 'bg-pink-400',
+                    textMain: 'text-slate-800',
+                    textSub: 'text-pink-600',
+                    icon: 'text-pink-400'
+                };
+            } else if (title.includes('상') || title.includes('사망') || title.includes('부친') || title.includes('모친') || title.includes('빙부') || title.includes('빙모') || title.includes('조부') || title.includes('조모') || title.includes('별세') || title.includes('부고')) {
+                return { // 부고 테마 (슬레이트)
+                    bg: 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300',
+                    bar: 'bg-slate-600',
+                    textMain: 'text-slate-800',
+                    textSub: 'text-slate-600',
+                    icon: 'text-slate-500'
+                };
+            } else {
+                return { // 기타 테마 (블루)
+                    bg: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200',
+                    bar: 'bg-blue-500',
+                    textMain: 'text-slate-800',
+                    textSub: 'text-blue-600',
+                    icon: 'text-blue-400'
+                };
+            }
+        }
+
         function switchTab(tabName) {
             document.getElementById('tab-rule').classList.add('hidden');
             document.getElementById('tab-vendor').classList.add('hidden');
             document.getElementById('tab-btn-rule').classList.remove('tab-active');
             document.getElementById('tab-btn-vendor').classList.remove('tab-active');
-            
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             document.getElementById('tab-btn-' + tabName).classList.add('tab-active');
         }
 
-        // [화면 전환]
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -271,23 +296,23 @@
             }
         }
 
-        // [리스트 로드]
         function loadLists() {
             db.collection("events").where("status", "==", "active").onSnapshot(snap => {
                 let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
                 events.sort((a, b) => b.createdAt - a.createdAt);
                 let html = '';
                 events.forEach(e => {
-                    html += `<div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 relative transition-all active:scale-[0.98] group">
+                    const t = getEventTheme(e.title); // 테마 적용
+                    html += `<div class="${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] group mb-3">
                         <div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="flex-grow cursor-pointer pr-10">
-                            <div class="absolute top-0 left-4 w-6 h-1 bg-blue-500 rounded-b-md"></div>
-                            <h3 class="font-bold text-[13px] text-slate-800 mb-1 mt-0.5">${e.title}</h3>
-                            <div class="flex items-center gap-2 text-[9px] text-slate-500 font-medium italic">
-                                <span><i class="fa-solid fa-calendar-day mr-1 text-blue-400"></i>${e.time}</span>
-                                <span><i class="fa-solid fa-location-dot mr-1 text-blue-400"></i>${e.location}</span>
+                            <div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div>
+                            <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${e.title}</h3>
+                            <div class="flex items-center gap-2 text-[10px] ${t.textSub} font-bold">
+                                <span><i class="fa-solid fa-calendar-day mr-1 ${t.icon}"></i>${e.time}</span>
+                                <span><i class="fa-solid fa-location-dot mr-1 ${t.icon}"></i>${e.location}</span>
                             </div>
                         </div>
-                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 text-slate-300 hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 ${t.icon} hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can text-sm"></i></button>
                     </div>`;
                 });
                 document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
@@ -299,9 +324,13 @@
                 let html = '';
                 events.forEach(e => {
                     const dateStr = new Date(e.createdAt).toLocaleDateString();
-                    html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center group relative">
-                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer"><p class="text-[9px] font-bold text-slate-400 mb-0.5">${dateStr} 종료</p><h4 class="font-bold text-xs text-slate-700">${e.title}</h4></div>
-                        <button onclick="deleteEvent('${e.id}')" class="text-slate-300 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    const t = getEventTheme(e.title); // 이력에도 테마 적용
+                    html += `<div class="${t.bg} p-3 rounded-lg border flex justify-between items-center group relative mb-2">
+                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer">
+                            <p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 종료</p>
+                            <h4 class="font-bold text-xs ${t.textMain}">${e.title}</h4>
+                        </div>
+                        <button onclick="deleteEvent('${e.id}')" class="${t.icon} hover:text-red-500 p-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
                     </div>`;
                 });
                 document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">대응 이력이 없습니다.</div>';
@@ -428,7 +457,9 @@
         const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
+
         // ★★★ 업체 관리 모달 & SMS 전송 로직 ★★★
+        let vendorDataCache = {};
 
         db.collection("vendors").onSnapshot(snap => {
             let html = ''; 
@@ -440,8 +471,7 @@
                 let btnSms = v.useSms ? `<button onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-7 h-7 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100 hover:bg-green-100"><i class="fa-solid fa-comment-sms text-[10px]"></i></button>` : '';
                 let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md"><i class="fa-solid fa-phone text-[10px]"></i></a>` : '';
 
-                // 카드를 누르면 수정/삭제 모달 오픈
-                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
+                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors mb-2">
                     <div>
                         <p class="font-bold text-[11px] text-slate-800">${v.name} <span class="text-[9px] font-normal text-slate-400 ml-1">${v.desc || ''}</span></p>
                         <p class="text-[10px] text-slate-500 font-mono mt-0.5">${v.tel}</p>
@@ -514,7 +544,6 @@
             }
         };
 
-        // SMS 하드코딩 + 사용자 템플릿 지원
         window.sendSMS = (vendorId) => {
             const v = vendorDataCache[vendorId];
             if (!v) return;
