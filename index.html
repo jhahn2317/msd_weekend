@@ -22,9 +22,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
 
-    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2 whitespace-nowrap min-w-max">
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2">
         <i id="toast-icon" class="fa-solid fa-circle-check text-green-400 text-sm"></i>
-        <span id="toast-msg">알림 메시지</span>
+        <span id="toast-msg">메시지</span>
     </div>
 
     <header class="bg-white shadow-sm sticky top-0 z-[60]">
@@ -39,103 +39,102 @@
 
         <div id="screen-list" class="screen active space-y-4">
             <div class="flex justify-between items-end mb-1">
-                <div>
-                    <h2 class="text-lg font-extrabold text-slate-800">진행중 경조사</h2>
-                    <p class="text-[10px] text-slate-500">현재 관리 중인 비상상황 리스트입니다.</p>
-                </div>
-                <button onclick="openModal('registerModal')" class="bg-blue-600 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-md">
-                    + 상황 등록
-                </button>
+                <div><h2 class="text-lg font-extrabold text-slate-800">진행중 경조사</h2><p class="text-[10px] text-slate-500">현재 관리 중인 비상상황 리스트입니다.</p></div>
+                <button onclick="openModal('registerModal')" class="bg-blue-600 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-md">+ 상황 등록</button>
             </div>
-            <div id="eventListArea"><div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">데이터를 불러오는 중입니다...</div></div>
-            
+            <div id="eventListArea"></div>
             <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mt-6">
                 <div class="flex justify-between items-center mb-2.5">
                     <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book text-blue-500 mr-1.5"></i>협력업체 연락처</h2>
-                    <button onclick="openVendorModal()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-200 transition">+ 새 업체 등록</button>
+                    <button onclick="openVendorModal()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 새 업체 등록</button>
                 </div>
                 <div id="vendorList_home" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
             </section>
         </div>
 
         <div id="screen-history" class="screen space-y-4">
-            <div>
-                <h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2>
-                <p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p>
-            </div>
+            <div><h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
+            <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i><input type="text" id="searchInput" oninput="filterHistory()" placeholder="검색어 입력..." class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] outline-none"></div>
+            <div id="historyListArea" class="space-y-2"></div>
+        </div>
+
+        <div id="screen-bus" class="screen space-y-4">
+            <div><h2 class="text-lg font-extrabold text-slate-800 text-blue-700">버스 대절 규정 시뮬레이터</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
             
-            <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i>
-                <input type="text" id="searchInput" oninput="filterHistory()" placeholder="상황명, 장소, 일시로 검색..." class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] focus:outline-none focus:border-blue-500 shadow-sm font-medium text-slate-700">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex gap-2">
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">성수기 여부</label>
+                        <select id="bus_season" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                            <option value="normal">비수기</option>
+                            <option value="peak">성수기 (봄/가을)</option>
+                        </select>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 일자</label>
+                        <input type="date" id="bus_date" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 시간대</label>
+                        <select id="bus_ampm" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                            <option value="AM">오전 (12시 이전)</option>
+                            <option value="PM">오후 (12시 이후)</option>
+                        </select>
+                    </div>
+                    <div class="w-1/2 flex flex-col">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">휴일/연휴 여부</label>
+                        <div class="flex items-center h-full">
+                            <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span class="ml-2 text-xs font-medium text-slate-600">오늘이 휴일입니까?</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="calculateBusRule()" class="w-full bg-blue-600 text-white font-bold rounded-xl py-3 text-xs shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">규정 확인하기</button>
             </div>
 
-            <div id="historyListArea" class="space-y-2"></div>
+            <div id="busResultArea" class="hidden animate-fade-in space-y-3">
+                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                    <h3 class="text-[11px] font-bold text-blue-700 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check"></i> 계산된 대응 규정
+                    </h3>
+                    <div class="space-y-2.5">
+                        <div class="flex justify-between items-center"><span class="text-[10px] text-slate-500">인원 파악 마감</span><span id="res_p_check" class="text-xs font-black text-slate-800"></span></div>
+                        <div class="flex justify-between items-center"><span class="text-[10px] text-slate-500">대절 신청 마감</span><span id="res_b_apply" class="text-xs font-black text-blue-600"></span></div>
+                        <div class="flex justify-between items-center pt-2 border-t border-blue-100"><span class="text-[10px] text-slate-500">출발 예정 시각</span><span id="res_departure" class="text-xs font-black text-slate-800"></span></div>
+                        <div id="res_note_area" class="text-[9px] text-slate-400 bg-white/50 p-2 rounded italic hidden"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="screen-detail" class="screen space-y-3">
             <div class="flex items-center gap-2">
                 <button onclick="switchScreen('screen-list')" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg"><i class="fa-solid fa-chevron-left text-slate-600 text-xs"></i></button>
-                <div class="flex-grow">
-                    <h2 id="d_title" class="text-sm font-extrabold text-slate-800 leading-tight"></h2>
-                    <p id="d_info" class="text-[9px] text-blue-600 font-bold mt-0.5 bg-blue-50 inline-block px-1.5 py-0.5 rounded"></p>
-                </div>
-                <button id="btn-close-event" onclick="closeEvent()" class="text-[10px] bg-indigo-600 text-white px-2 py-1.5 rounded-md font-bold shadow-sm">마감(종료)</button>
+                <div class="flex-grow"><h2 id="d_title" class="text-sm font-extrabold text-slate-800 leading-tight"></h2><p id="d_info" class="text-[9px] text-blue-600 font-bold mt-0.5 bg-blue-50 inline-block px-1.5 py-0.5 rounded"></p></div>
+                <button onclick="closeEvent()" class="text-[10px] bg-indigo-600 text-white px-2 py-1.5 rounded-md font-bold shadow-sm">마감(종료)</button>
             </div>
-
             <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-3 shadow-md text-white">
-                <div class="flex justify-between items-center mb-1.5">
-                    <h2 class="font-bold text-[10px] opacity-90 text-blue-100">TOTAL PROGRESS</h2>
-                    <span id="globalPercent" class="text-xl font-black italic">0%</span>
-                </div>
-                <div class="w-full bg-blue-900/40 h-2 rounded-full overflow-hidden mb-2.5">
-                    <div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
+                <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] opacity-90 text-blue-100 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic">0%</span></div>
+                <div class="w-full bg-blue-900/40 h-2 rounded-full overflow-hidden mb-2.5"><div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div></div>
                 <div class="grid grid-cols-4 gap-1 text-center text-[9px]" id="memberProgress"></div>
             </section>
-
             <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="flex border-b border-slate-100 bg-slate-50">
                     <button id="tab-btn-rule" onclick="switchTab('rule')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent tab-active"><i class="fa-solid fa-calculator mr-1"></i>규정 확인</button>
                     <button id="tab-btn-vendor" onclick="switchTab('vendor')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent"><i class="fa-solid fa-address-book mr-1"></i>업체 연락처</button>
                 </div>
-
                 <div id="tab-rule" class="p-3">
-                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none">
-                        <option value="">경조 종류를 선택하세요</option>
-                        <option value="parent_death">부모님 상 (빙부/빙모 포함)</option>
-                        <option value="sibling_death">형제자매 상 (본인/배우자)</option>
-                        <option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option>
-                        <option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option>
-                        <option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option>
-                        <option value="my_marriage">본인 결혼</option>
-                    </select>
-                    <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-2 font-medium">
-                        <div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div>
-                        <div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div>
-                        <div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div>
-                        <div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div>
-                    </div>
+                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none"><option value="">경조 종류 선택...</option><option value="parent_death">부모님 상 (빙부/빙모 포함)</option><option value="sibling_death">형제자매 상 (본인/배우자)</option><option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option><option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option><option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option><option value="my_marriage">본인 결혼</option></select>
+                    <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-2 font-medium"><div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div><div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div></div>
                 </div>
-
-                <div id="tab-vendor" class="p-3 hidden">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-bold text-slate-500">긴급 협력업체 리스트</span>
-                        <button onclick="openVendorModal()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 새 업체 등록</button>
-                    </div>
-                    <div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
-                </div>
+                <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
             </section>
-
-            <div>
-                <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 텍스트를 길게 꾹 누르면 수정/삭제할 수 있습니다.</p>
-                <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
-            </div>
-            
-            <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6">
-                <button onclick="deleteEvent()" class="w-full flex items-center justify-center gap-1.5 bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors">
-                    <i class="fa-solid fa-triangle-exclamation"></i> 이 상황 영구 삭제하기
-                </button>
-            </div>
+            <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
+            <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6"><button onclick="deleteEvent()" class="w-full flex items-center justify-center gap-1.5 bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors"><i class="fa-solid fa-triangle-exclamation"></i> 이 상황 영구 삭제하기</button></div>
         </div>
 
     </main>
@@ -148,22 +147,19 @@
             <button onclick="switchScreen('screen-history')" id="nav-screen-history" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
                 <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">이력 조회</span>
             </button>
-            <button onclick="showToast('기타 지원 업무는 준비 중입니다.', true)" class="flex flex-col items-center gap-0.5 text-slate-300 w-1/3">
-                <i class="fa-solid fa-ellipsis text-lg"></i><span class="text-[9px] font-bold">기타 업무</span>
+            <button onclick="switchScreen('screen-bus')" id="nav-screen-bus" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
+                <i class="fa-solid fa-bus text-lg"></i><span class="text-[9px] font-bold">버스 규정</span>
             </button>
         </div>
     </nav>
 
     <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm">새 경조사 등록</h3>
-                <button onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm">새 경조사 등록</h3><button onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="p-4 space-y-3">
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="예: 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">일시 (자유입력)</label><input type="text" id="reg_time" placeholder="예: 5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="예: 강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 bg-slate-50"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">일시</label><input type="text" id="reg_time" placeholder="5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
                 <button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-2.5 mt-1 text-xs shadow-md">관제 시작 (방 생성)</button>
             </div>
         </div>
@@ -171,74 +167,20 @@
 
     <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl">
-            <div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200">
-                <h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3>
-                <button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button>
-            </div>
-            <div class="p-4 space-y-3">
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label>
-                <textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] focus:outline-none focus:border-blue-500 bg-slate-50 resize-none"></textarea>
-                <div class="flex gap-2 pt-2">
-                    <button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button>
-                    <button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">수정 내용 저장</button>
-                </div>
-            </div>
+            <div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div>
+            <div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">저장</button></div></div>
         </div>
     </div>
 
     <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center">
-                <h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3>
-                <button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
-                <input type="hidden" id="v_id">
-                <div class="flex gap-2">
-                    <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label>
-                        <input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
-                    </div>
-                    <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label>
-                        <input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-1">업무 내용 (분류)</label>
-                    <input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
-                </div>
-                <div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2">
-                    <span class="text-[11px] font-bold text-slate-700">전화 걸기 버튼 사용</span>
-                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" id="v_use_call" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                        <label for="v_use_call" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span class="text-[11px] font-bold text-slate-700">문자 발송 버튼 사용</span>
-                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                        <label for="v_use_sms" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
-                    </div>
-                </div>
-                <div id="smsTemplateArea" class="hidden">
-                    <div class="flex justify-between items-end mb-1 mt-2">
-                        <label class="block text-[10px] font-bold text-slate-500">문자 양식 (위드고/우영/범아 고정)</label>
-                        <span class="text-[8px] text-blue-500 font-bold bg-blue-50 px-1 rounded">자동변환: [일시], [장소], [행사명]</span>
-                    </div>
-                    <textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none focus:border-blue-500 leading-relaxed"></textarea>
-                </div>
-                <div class="flex gap-2 pt-2 mt-4">
-                    <button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">업체 삭제</button>
-                    <button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button>
-                </div>
-            </div>
+            <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="자동변환: [일시], [장소], [행사명]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div>
         </div>
     </div>
 
     <script>
-        // ★ 파이어베이스 설정 유지
+        // ★ 파이어베이스 설정
         const firebaseConfig = {
             apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
             authDomain: "msd-weekend.firebaseapp.com",
@@ -253,55 +195,78 @@
         let currentEventId = null;
         let isReadOnly = false; 
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
-        let activeTasksUnsubscribe = null; 
-        let activeMetaUnsubscribe = null;
+        let activeTasksUnsubscribe = null, activeMetaUnsubscribe = null;
         let vendorDataCache = {};
-        
-        let globalTasks = [];
-        let globalEventsActive = [];
-        let globalEventsClosed = []; // 검색을 위해 보관
+        let globalTasks = [], globalEventsActive = [], globalEventsClosed = [];
 
-        // ★ [토스트 알림 함수]
         window.showToast = (msg, isError = false) => {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            
             const icon = document.getElementById('toast-icon');
-            if(isError) {
-                icon.className = 'fa-solid fa-circle-exclamation text-red-400 text-sm';
-            } else {
-                icon.className = 'fa-solid fa-circle-check text-green-400 text-sm';
-            }
-
-            // 보이기 (위로 살짝 올라오면서 나타남)
-            toast.classList.remove('opacity-0', '-translate-y-4');
-            toast.classList.add('opacity-100', 'translate-y-0');
-
-            // 2.5초 뒤 숨기기
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', '-translate-y-4');
-            }, 2500);
+            icon.className = isError ? 'fa-solid fa-circle-exclamation text-red-400' : 'fa-solid fa-circle-check text-green-400';
+            toast.classList.remove('opacity-0', '-translate-y-4'); toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', '-translate-y-4'); }, 2500);
         };
 
-        // [이벤트 색상 테마]
-        function getEventTheme(title) {
-            if (title.includes('결혼') || title.includes('혼인') || title.includes('웨딩')) {
-                return { bg: 'bg-gradient-to-br from-rose-50 to-pink-50 border-pink-200', bar: 'bg-pink-400', textMain: 'text-slate-800', textSub: 'text-pink-600', icon: 'text-pink-400' };
-            } else if (title.includes('상') || title.includes('사망') || title.includes('부친') || title.includes('모친') || title.includes('빙부') || title.includes('빙모') || title.includes('조부') || title.includes('조모') || title.includes('별세') || title.includes('부고')) {
-                return { bg: 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300', bar: 'bg-slate-600', textMain: 'text-slate-800', textSub: 'text-slate-600', icon: 'text-slate-500' };
+        // [버스 대절 계산기 로직]
+        window.calculateBusRule = () => {
+            const dateVal = document.getElementById('bus_date').value;
+            const season = document.getElementById('bus_season').value;
+            const ampm = document.getElementById('bus_ampm').value;
+            const isHoliday = document.getElementById('bus_is_holiday').checked;
+
+            if(!dateVal) return showToast("접수 날짜를 선택해주세요.", true);
+
+            const date = new Date(dateVal);
+            const day = date.getDay(); // 0:일, 5:금, 6:토
+            const resArea = document.getElementById('busResultArea');
+            const resP = document.getElementById('res_p_check');
+            const resB = document.getElementById('res_b_apply');
+            const resD = document.getElementById('res_departure');
+            const resN = document.getElementById('res_note_area');
+
+            let pCheckMsg = "", bApplyMsg = "", departureMsg = "", note = "";
+
+            // 1. 요일 및 휴일 기반 로직 판단 (이미지 데이터 기반)
+            if ( (day === 5 && ampm === 'PM') || (day === 6 && ampm === 'PM') ) {
+                // 금요일 오후 or 토요일 오후 -> 내일 오전 9시 마감
+                pCheckMsg = "다음 날 오전 9시 마감";
+                departureMsg = day === 5 ? "토요일 11시" : "일요일 11시";
+                if(season === 'peak' && ampm === 'PM') departureMsg += " or 13시 (탄력)";
+            } else if ( (day === 5 && isHoliday && ampm === 'AM') || (day === 6 && ampm === 'AM') || (day === 0 && ampm === 'AM') ) {
+                // 연휴 금요일 오전 or 토요일 오전 or 일요일 오전 -> 당일 오후 6시 마감
+                pCheckMsg = "당일 오후 6시 마감";
+                departureMsg = day === 0 ? "월요일 13시/15시 (거리별)" : (day === 5 ? "토요일 10시" : "일요일 10시");
+            } else if ( day === 0 && ampm === 'PM' ) {
+                // 일요일 오후 -> 월요일 오전 9시 마감
+                pCheckMsg = "월요일 오전 9시 마감";
+                departureMsg = "월요일 13시/15시 (거리별)";
+                note = "온타임 근무시간 적용 대상 (300km 이상 13시 / 미만 15시)";
             } else {
-                return { bg: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200', bar: 'bg-blue-500', textMain: 'text-slate-800', textSub: 'text-blue-600', icon: 'text-blue-400' };
+                pCheckMsg = "평일 규정에 따름 (관리자 문의)";
+                departureMsg = "접수 후 협의";
             }
+
+            // 2. 신청 마감 (성수기 3시간 / 비수기 2시간 전)
+            bApplyMsg = season === 'peak' ? "출발 3시간 전" : "출발 2시간 전";
+
+            resP.innerText = pCheckMsg;
+            resB.innerText = bApplyMsg;
+            resD.innerText = departureMsg;
+            if(note) { resN.innerText = note; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
+            resArea.classList.remove('hidden');
+        };
+
+        function getEventTheme(title) {
+            if (title.includes('결혼') || title.includes('혼인')) return { bg: 'bg-gradient-to-br from-rose-50 to-pink-50 border-pink-200', bar: 'bg-pink-400', textMain: 'text-slate-800', textSub: 'text-pink-600', icon: 'text-pink-400' };
+            if (title.includes('상') || title.includes('사망') || title.includes('부고')) return { bg: 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300', bar: 'bg-slate-600', textMain: 'text-slate-800', textSub: 'text-slate-600', icon: 'text-slate-500' };
+            return { bg: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200', bar: 'bg-blue-500', textMain: 'text-slate-800', textSub: 'text-blue-600', icon: 'text-blue-400' };
         }
 
         function switchTab(tabName) {
-            document.getElementById('tab-rule').classList.add('hidden');
-            document.getElementById('tab-vendor').classList.add('hidden');
-            document.getElementById('tab-btn-rule').classList.remove('tab-active');
-            document.getElementById('tab-btn-vendor').classList.remove('tab-active');
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            document.getElementById('tab-btn-' + tabName).classList.add('tab-active');
+            document.getElementById('tab-rule').classList.add('hidden'); document.getElementById('tab-vendor').classList.add('hidden');
+            document.getElementById('tab-btn-rule').classList.remove('tab-active'); document.getElementById('tab-btn-vendor').classList.remove('tab-active');
+            document.getElementById('tab-' + tabName).classList.remove('hidden'); document.getElementById('tab-btn-' + tabName).classList.add('tab-active');
         }
 
         function switchScreen(screenId) {
@@ -310,31 +275,18 @@
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
             const navBtn = document.getElementById('nav-' + screenId);
             if(navBtn) navBtn.classList.add('active-nav');
-            if(screenId === 'screen-list' || screenId === 'screen-history') {
+            if(screenId === 'screen-list' || screenId === 'screen-history' || screenId === 'screen-bus') {
                 currentEventId = null;
                 if(activeTasksUnsubscribe) activeTasksUnsubscribe();
                 if(activeMetaUnsubscribe) activeMetaUnsubscribe();
-                if(screenId === 'screen-history') document.getElementById('searchInput').value = ''; // 탭 전환 시 검색창 초기화
+                if(screenId === 'screen-bus') document.getElementById('busResultArea').classList.add('hidden');
             }
         }
 
         function loadLists() {
-            db.collection("tasks").onSnapshot(snap => {
-                globalTasks = []; snap.forEach(doc => globalTasks.push({ id: doc.id, ...doc.data() }));
-                renderHomeList();
-            });
-
-            db.collection("events").where("status", "==", "active").onSnapshot(snap => {
-                globalEventsActive = []; snap.forEach(doc => globalEventsActive.push({ id: doc.id, ...doc.data() }));
-                globalEventsActive.sort((a, b) => b.createdAt - a.createdAt);
-                renderHomeList();
-            });
-
-            db.collection("events").where("status", "==", "closed").onSnapshot(snap => {
-                globalEventsClosed = []; snap.forEach(doc => globalEventsClosed.push({ id: doc.id, ...doc.data() }));
-                globalEventsClosed.sort((a, b) => b.createdAt - a.createdAt);
-                filterHistory(); // 검색어를 통과시켜 렌더링
-            });
+            db.collection("tasks").onSnapshot(snap => { globalTasks = []; snap.forEach(doc => globalTasks.push({ id: doc.id, ...doc.data() })); renderHomeList(); });
+            db.collection("events").where("status", "==", "active").onSnapshot(snap => { globalEventsActive = []; snap.forEach(doc => globalEventsActive.push({ id: doc.id, ...doc.data() })); globalEventsActive.sort((a,b)=>b.createdAt-a.createdAt); renderHomeList(); });
+            db.collection("events").where("status", "==", "closed").onSnapshot(snap => { globalEventsClosed = []; snap.forEach(doc => globalEventsClosed.push({ id: doc.id, ...doc.data() })); globalEventsClosed.sort((a,b)=>b.createdAt-a.createdAt); filterHistory(); });
         }
 
         function renderHomeList() {
@@ -342,174 +294,57 @@
             globalEventsActive.forEach(e => {
                 const t = getEventTheme(e.title);
                 const eTasks = globalTasks.filter(task => task.eventId === e.id);
-                const total = eTasks.length;
-                const done = eTasks.filter(task => task.done).length;
-                const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-
-                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] group mb-3 cursor-pointer">
-                    <div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div>
-                    <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${e.title}</h3>
-                    <div class="flex items-center gap-2 text-[10px] ${t.textSub} font-bold mb-2">
-                        <span><i class="fa-solid fa-calendar-day mr-1 ${t.icon}"></i>${e.time}</span>
-                        <span><i class="fa-solid fa-location-dot mr-1 ${t.icon}"></i>${e.location}</span>
-                    </div>
-                    <div class="w-full bg-white/60 h-1.5 rounded-full overflow-hidden flex items-center">
-                        <div class="${t.bar} h-full transition-all duration-500" style="width: ${percent}%"></div>
-                    </div>
-                    <div class="text-right text-[9px] ${t.textSub} font-bold mt-1">${percent}% 완료</div>
-                </div>`;
+                const percent = eTasks.length === 0 ? 0 : Math.round((eTasks.filter(task => task.done).length / eTasks.length) * 100);
+                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] group mb-3 cursor-pointer"><div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div><h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${e.title}</h3><div class="flex items-center gap-2 text-[10px] ${t.textSub} font-bold mb-2"><span><i class="fa-solid fa-calendar-day mr-1"></i>${e.time}</span><span><i class="fa-solid fa-location-dot mr-1"></i>${e.location}</span></div><div class="w-full bg-white/60 h-1.5 rounded-full overflow-hidden flex items-center"><div class="${t.bar} h-full transition-all duration-500" style="width: ${percent}%"></div></div><div class="text-right text-[9px] ${t.textSub} font-bold mt-1">${percent}% 완료</div></div>`;
             });
-            document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
+            document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] font-medium">진행 중인 상황이 없습니다.</div>';
         }
 
-        // ★ [이력 검색(필터링) 기능]
         window.filterHistory = () => {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = globalEventsClosed.filter(e => {
-                return (e.title && e.title.toLowerCase().includes(query)) ||
-                       (e.time && e.time.toLowerCase().includes(query)) ||
-                       (e.location && e.location.toLowerCase().includes(query));
-            });
-            renderHistoryListCustom(filtered);
-        };
-
-        function renderHistoryListCustom(eventsArray) {
+            const filtered = globalEventsClosed.filter(e => (e.title?.toLowerCase().includes(query)) || (e.location?.toLowerCase().includes(query)));
             let html = '';
-            eventsArray.forEach(e => {
-                const dateStr = new Date(e.createdAt).toLocaleDateString();
-                const t = getEventTheme(e.title);
-                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="${t.bg} p-3 rounded-lg border flex justify-between items-center group relative mb-2 cursor-pointer">
-                    <div class="flex-grow">
-                        <p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 마감</p>
-                        <h4 class="font-bold text-xs ${t.textMain}">${e.title}</h4>
-                    </div>
-                    <i class="fa-solid fa-chevron-right ${t.icon} text-[10px]"></i>
-                </div>`;
+            filtered.forEach(e => {
+                const dateStr = new Date(e.createdAt).toLocaleDateString(); const t = getEventTheme(e.title);
+                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="${t.bg} p-3 rounded-lg border flex justify-between items-center group relative mb-2 cursor-pointer"><div class="flex-grow"><p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 마감</p><h4 class="font-bold text-xs ${t.textMain}">${e.title}</h4></div><i class="fa-solid fa-chevron-right ${t.icon} text-[10px]"></i></div>`;
             });
-            document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">검색 결과가 없습니다.</div>';
-        }
-
-        window.deleteEvent = async () => {
-            if(!currentEventId) return;
-            if(confirm("🚨 경고: 이 상황을 삭제하면 과거 이력으로 보관(이관)되지 않고 영구적으로 완전히 삭제됩니다.\n\n정말 삭제하시겠습니까?")) {
-                const eventId = currentEventId;
-                switchScreen('screen-list');
-                await db.collection("events").doc(eventId).delete();
-                const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get();
-                const batch = db.batch(); taskSnap.forEach(doc => batch.delete(doc.ref));
-                const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get();
-                metaSnap.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                showToast("상황이 영구 삭제되었습니다.");
-            }
+            document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">결과 없음.</div>';
         };
 
-        function openDetail(eventId, title, info, readOnly) {
-            currentEventId = eventId; isReadOnly = readOnly;
-            document.getElementById('d_title').innerText = title;
-            document.getElementById('d_info').innerText = info;
-            document.getElementById('btn-close-event').style.display = readOnly ? 'none' : 'block';
-            switchScreen('screen-detail');
-            listenToTasks(eventId);
-        }
-
-        function listenToTasks(eventId) {
-            if(activeTasksUnsubscribe) activeTasksUnsubscribe();
-            if(activeMetaUnsubscribe) activeMetaUnsubscribe();
-            activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => {
-                let allTasks = []; snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
-                allTasks.sort((a,b) => a.createdAt - b.createdAt);
-                db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => {
-                    let allMeta = {}; mSnap.forEach(mDoc => allMeta[mDoc.data().owner] = mDoc.data());
-                    renderBoard(allTasks, allMeta);
-                });
-            });
-        }
+        window.deleteEvent = async () => { if(confirm("🚨 경고: 이 상황을 삭제하면 영구 삭제됩니다. 계속하시겠습니까?")) { const eventId = currentEventId; switchScreen('screen-list'); await db.collection("events").doc(eventId).delete(); const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get(); const batch = db.batch(); taskSnap.forEach(doc => batch.delete(doc.ref)); const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get(); metaSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); showToast("영구 삭제 완료."); } };
+        function openDetail(eventId, title, info, readOnly) { currentEventId = eventId; isReadOnly = readOnly; document.getElementById('d_title').innerText = title; document.getElementById('d_info').innerText = info; document.getElementById('btn-close-event').style.display = readOnly ? 'none' : 'block'; switchScreen('screen-detail'); listenToTasks(eventId); }
+        function listenToTasks(eventId) { if(activeTasksUnsubscribe) activeTasksUnsubscribe(); if(activeMetaUnsubscribe) activeMetaUnsubscribe(); activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => { let allTasks = []; snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() })); allTasks.sort((a,b) => a.createdAt - b.createdAt); db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => { let allMeta = {}; mSnap.forEach(mDoc => allMeta[mDoc.data().owner] = mDoc.data()); renderBoard(allTasks, allMeta); }); }); }
 
         function renderBoard(tasks, meta) {
             let total = 0, done = 0; let mHtml = '', cHtml = '';
             owners.forEach(owner => {
-                const myTasks = tasks.filter(t => t.owner === owner);
-                const myMeta = meta[owner] || { sub: '', note: '' };
+                const myTasks = tasks.filter(t => t.owner === owner); const myMeta = meta[owner] || { sub: '', note: '' };
                 total += myTasks.length; done += myTasks.filter(t => t.done).length;
                 const isAllDone = (myTasks.length > 0 && myTasks.length === myTasks.filter(t => t.done).length);
                 mHtml += `<div class="bg-blue-900/30 rounded-lg py-1.5 border border-blue-400/20"><div class="font-bold ${isAllDone ? 'text-green-300' : 'text-blue-100'}">${owner.includes('안정훈') ? '안/변' : owner}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
-                
-                let taskHtml = myTasks.map(t => `
-                    <div class="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0 relative">
-                        <div onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer mt-0.5 w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}">
-                            ${t.done ? '<i class="fa-solid fa-check text-[8px]"></i>' : ''}
-                        </div>
-                        <span oncontextmenu="event.preventDefault(); openTaskEditModal('${t.id}', '${t.title.replace(/'/g, "\\'")}');" onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer text-[11px] leading-snug flex-grow ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">
-                            ${t.title}
-                        </span>
-                    </div>`).join('');
-                
-                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"><div class="bg-slate-50 px-3 py-1.5 flex justify-between items-center border-b border-slate-100"><span class="text-[10px] font-bold text-slate-800">${myMeta.sub ? `${owner} <span class="text-blue-600">(${myMeta.sub} 대체)</span>` : owner}</span><div class="flex gap-1">${!isReadOnly ? `<button onclick="addTask('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">+ 추가</button><button onclick="setSub('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">대체</button>` : ''}</div></div><div class="p-3">${taskHtml || '<p class="text-[10px] text-slate-300 italic">No tasks</p>'}</div><div class="p-2 bg-yellow-50/40 border-t border-yellow-100 flex items-center gap-1.5"><input type="text" id="note_${owner}" value="${myMeta.note || ''}" ${isReadOnly ? 'disabled' : ''} placeholder="특이사항 메모..." class="text-[10px] w-full bg-white border border-yellow-200 rounded px-2 py-1.5 outline-none focus:border-yellow-400"><button onclick="saveNote('${owner}')" class="bg-yellow-400 text-yellow-900 font-bold px-3 py-1.5 rounded text-[10px] shrink-0 whitespace-nowrap">저장</button></div></div>`;
+                let taskHtml = myTasks.map(t => `<div class="flex items-start gap-2 py-1.5 border-b border-slate-50 last:border-0 relative"><div onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer mt-0.5 w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}">${t.done ? '<i class="fa-solid fa-check text-[8px]"></i>' : ''}</div><span oncontextmenu="event.preventDefault(); openTaskEditModal('${t.id}', '${t.title.replace(/'/g, "\\'")}');" onclick="toggleTask('${t.id}', ${!t.done})" class="cursor-pointer text-[11px] leading-snug flex-grow ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${t.title}</span></div>`).join('');
+                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"><div class="bg-slate-50 px-3 py-1.5 flex justify-between items-center border-b border-slate-100"><span class="text-[10px] font-bold text-slate-800">${myMeta.sub ? `${owner} <span class="text-blue-600">(${myMeta.sub} 대체)</span>` : owner}</span><div class="flex gap-1">${!isReadOnly ? `<button onclick="addTask('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">+ 추가</button><button onclick="setSub('${owner}')" class="text-[8px] text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-100 bg-white">대체</button>` : ''}</div></div><div class="p-3">${taskHtml || '<p class="text-[10px] text-slate-300 italic">업무 없음</p>'}</div><div class="p-2 bg-yellow-50/40 border-t border-yellow-100 flex items-center gap-1.5"><input type="text" id="note_${owner}" value="${myMeta.note || ''}" ${isReadOnly ? 'disabled' : ''} placeholder="메모..." class="text-[10px] w-full bg-white border border-yellow-200 rounded px-2 py-1.5 outline-none focus:border-yellow-400"><button onclick="saveNote('${owner}')" class="bg-yellow-400 text-yellow-900 font-bold px-3 py-1.5 rounded text-[10px] shrink-0">저장</button></div></div>`;
             });
-            document.getElementById('memberProgress').innerHTML = mHtml;
-            document.getElementById('ownerCardsArea').innerHTML = cHtml;
+            document.getElementById('memberProgress').innerHTML = mHtml; document.getElementById('ownerCardsArea').innerHTML = cHtml;
             const per = total === 0 ? 0 : Math.round((done / total) * 100);
-            document.getElementById('globalPercent').innerText = per + '%';
-            document.getElementById('globalProgressBar').style.width = per + '%';
+            document.getElementById('globalPercent').innerText = per + '%'; document.getElementById('globalProgressBar').style.width = per + '%';
         }
 
         window.toggleTask = (id, status) => { if(isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
-        window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); showToast("대체자가 지정되었습니다."); }); };
-        window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); showToast('메모가 저장되었습니다.'); }); };
-
-        let editTargetTaskId = null;
-        window.openTaskEditModal = (id, currentTitle) => {
-            if(isReadOnly) return;
-            editTargetTaskId = id;
-            document.getElementById('edit_task_title').value = currentTitle;
-            document.getElementById('taskEditModal').classList.remove('hidden');
-        };
-        window.saveEditedTask = () => {
-            const newTitle = document.getElementById('edit_task_title').value;
-            if(!newTitle) return;
-            db.collection("tasks").doc(editTargetTaskId).update({ title: newTitle });
-            closeModal('taskEditModal');
-            showToast("업무 내용이 수정되었습니다.");
-        };
-        window.deleteEditedTask = () => {
-            if(confirm("이 업무를 삭제할까요?")) {
-                db.collection("tasks").doc(editTargetTaskId).delete();
-                closeModal('taskEditModal');
-                showToast("업무가 삭제되었습니다.");
-            }
-        };
-        window.addTask = (owner) => {
-            if(isReadOnly) return;
-            const title = prompt("추가할 업무 내용을 입력하세요.");
-            if(title) { db.collection("tasks").add({ eventId: currentEventId, owner, title, done: false, createdAt: Date.now() }); showToast("새 업무가 추가되었습니다."); }
-        };
+        window.setSub = (owner) => { const s = prompt("대체자 이름:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); showToast("대체자 지정됨"); }); };
+        window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); showToast('메모 저장됨'); }); };
 
         async function submitEvent() {
             const t = document.getElementById('reg_title').value; const tm = document.getElementById('reg_time').value; const l = document.getElementById('reg_location').value;
-            if(!t) return showToast("상황명을 입력해주세요.", true);
+            if(!t) return showToast("제목 필수!", true);
             const doc = await db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() });
-            
-            const def = [
-                {o:'조정열', t:'경영지원 단톡방에 경조사 지원조건 (경조금, 휴가, 조화여부 등) 공유'},
-                {o:'안정훈/변우혁', t:'사우회 경조사비 직접 전달 또는 이체 확인'},
-                {o:'안정훈/변우혁', t:'사우회비 전달 시 유류비/톨비 사우회 경조금 신청 상신'},
-                {o:'안정훈/변우혁', t:'[월요일] 지출결의서 상신 (금액 확인)'},
-                {o:'김태석', t:'휴일 비상연락망(카톡) 가동하여 상황 전파'},
-                {o:'김태석', t:'유니넷 경조사 게시판에 게시'},
-                {o:'김태석', t:'대상자에게 대절버스 필요 여부 확인 (가능 거리 시)'},
-                {o:'김태석', t:'[버스 필요시] 카톡 공지 추가 및 인원파악 글 게시'},
-                {o:'박유희', t:'화환/조화 발송 업체 예약 완료'},
-                {o:'박유희', t:'배송지 도착 여부 최종 확인'}
-            ];
+            const def = [{o:'조정열', t:'경영지원 단톡방에 경조사 지원조건 공유'},{o:'안정훈/변우혁', t:'사우회 경조사비 전달/이체 확인'},{o:'안정훈/변우혁', t:'유류비/톨비 사우회 경조금 신청 상신'},{o:'안정훈/변우혁', t:'[월요일] 회사 경조사비 지결 상신'},{o:'김태석', t:'휴일 비상연락망(카톡) 가동 상황 전파'},{o:'김태석', t:'유니넷 경조사 게시판 게시'},{o:'김태석', t:'대상자에게 대절버스 필요 여부 확인'},{o:'김태석', t:'버스 필요시 공지 추가 및 인원파악 게시'},{o:'박유희', t:'화환/조화 업체 예약 완료'},{o:'박유희', t:'배송지 도착 여부 최종 확인'}];
             const promises = def.map((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
             await Promise.all(promises);
-            closeModal('registerModal'); document.getElementById('reg_title').value = ''; document.getElementById('reg_time').value = ''; document.getElementById('reg_location').value = '';
-            openDetail(doc.id, t, (tm||'')+' | '+(l||''), false);
-            showToast("새 상황 관제가 시작되었습니다.");
+            closeModal('registerModal'); openDetail(doc.id, t, (tm||'')+' | '+(l||''), false);
         }
 
-        window.closeEvent = () => { if(confirm("업무가 모두 마무리되었습니까? \n마감 시 이력 조회 메뉴로 보관됩니다.")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => { switchScreen('screen-history'); showToast("이력으로 보관되었습니다."); }); };
+        window.closeEvent = () => { if(confirm("업무를 종료하고 이력으로 보낼까요?")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => { switchScreen('screen-history'); showToast("이력 보관됨"); }); };
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
         function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
 
@@ -517,27 +352,14 @@
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
         db.collection("vendors").onSnapshot(snap => {
-            let html = ''; 
-            vendorDataCache = {};
+            let html = ''; vendorDataCache = {};
             snap.forEach(doc => { 
-                const v = doc.data(); 
-                vendorDataCache[doc.id] = v;
-                
-                let btnSms = v.useSms ? `<button onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-7 h-7 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100 hover:bg-green-100"><i class="fa-solid fa-comment-sms text-[10px]"></i></button>` : '';
-                let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"><i class="fa-solid fa-phone text-[10px]"></i></a>` : '';
-
-                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors mb-2">
-                    <div>
-                        <p class="font-bold text-[11px] text-slate-800">${v.name} <span class="text-[9px] font-normal text-slate-400 ml-1">${v.desc || ''}</span></p>
-                        <p class="text-[10px] text-slate-500 font-mono mt-0.5">${v.tel}</p>
-                    </div>
-                    <div class="flex gap-1.5">
-                        ${btnSms}
-                        ${btnCall}
-                    </div>
-                </div>`; 
+                const v = doc.data(); vendorDataCache[doc.id] = v;
+                let btnSms = v.useSms ? `<button onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-7 h-7 bg-green-50 text-green-600 rounded-md"><i class="fa-solid fa-comment-sms"></i></button>` : '';
+                let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 bg-blue-100 text-blue-600 rounded-md flex items-center justify-center"><i class="fa-solid fa-phone"></i></a>` : '';
+                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm mb-2"><div><p class="font-bold text-[11px]">${v.name}</p><p class="text-[10px] text-slate-500 font-mono">${v.tel}</p></div><div class="flex gap-1.5">${btnSms}${btnCall}</div></div>`; 
             });
-            const emptyHtml = '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
+            const emptyHtml = '<p class="text-[10px] text-slate-400 italic">업체 없음.</p>';
             if(document.getElementById('vendorList_home')) document.getElementById('vendorList_home').innerHTML = html || emptyHtml;
             if(document.getElementById('vendorList_detail')) document.getElementById('vendorList_detail').innerHTML = html || emptyHtml;
         });
@@ -545,95 +367,35 @@
         window.openVendorModal = (id = null) => {
             document.getElementById('v_id').value = id || '';
             if (id && vendorDataCache[id]) {
-                const v = vendorDataCache[id];
-                document.getElementById('vendorModalTitle').innerText = "업체 정보 수정";
-                document.getElementById('v_name').value = v.name || '';
-                document.getElementById('v_tel').value = v.tel || '';
-                document.getElementById('v_desc').value = v.desc || '';
-                document.getElementById('v_use_call').checked = v.useCall !== false; 
-                document.getElementById('v_use_sms').checked = v.useSms || false;
-                document.getElementById('v_sms_template').value = v.smsTemplate || '';
+                const v = vendorDataCache[id]; document.getElementById('vendorModalTitle').innerText = "업체 수정";
+                document.getElementById('v_name').value = v.name || ''; document.getElementById('v_tel').value = v.tel || '';
+                document.getElementById('v_desc').value = v.desc || ''; document.getElementById('v_use_call').checked = v.useCall !== false;
+                document.getElementById('v_use_sms').checked = v.useSms || false; document.getElementById('v_sms_template').value = v.smsTemplate || '';
                 document.getElementById('btn_delete_vendor').classList.remove('hidden');
             } else {
-                document.getElementById('vendorModalTitle').innerText = "새 업체 등록";
-                document.getElementById('v_name').value = '';
-                document.getElementById('v_tel').value = '';
-                document.getElementById('v_desc').value = '';
-                document.getElementById('v_use_call').checked = true; 
-                document.getElementById('v_use_sms').checked = false; 
-                document.getElementById('v_sms_template').value = '';
-                document.getElementById('btn_delete_vendor').classList.add('hidden');
+                document.getElementById('vendorModalTitle').innerText = "새 업체 등록"; document.getElementById('v_name').value = ''; document.getElementById('v_tel').value = '';
+                document.getElementById('v_desc').value = ''; document.getElementById('v_use_call').checked = true; document.getElementById('v_use_sms').checked = false;
+                document.getElementById('v_sms_template').value = ''; document.getElementById('btn_delete_vendor').classList.add('hidden');
             }
-            toggleSmsArea();
-            document.getElementById('vendorModal').classList.remove('hidden');
+            toggleSmsArea(); document.getElementById('vendorModal').classList.remove('hidden');
         };
 
-        window.toggleSmsArea = () => {
-            const isChecked = document.getElementById('v_use_sms').checked;
-            document.getElementById('smsTemplateArea').style.display = isChecked ? 'block' : 'none';
-        };
-
-        window.saveVendor = () => {
-            const id = document.getElementById('v_id').value;
-            const data = {
-                name: document.getElementById('v_name').value,
-                tel: document.getElementById('v_tel').value,
-                desc: document.getElementById('v_desc').value,
-                useCall: document.getElementById('v_use_call').checked,
-                useSms: document.getElementById('v_use_sms').checked,
-                smsTemplate: document.getElementById('v_sms_template').value
-            };
-            if(!data.name || !data.tel) return showToast('업체명과 전화번호는 필수입니다.', true);
-
-            if (id) db.collection("vendors").doc(id).update(data);
-            else db.collection("vendors").add(data);
-            
-            closeModal('vendorModal');
-            showToast("업체 정보가 저장되었습니다.");
-        };
-
-        window.deleteVendorAction = () => {
-            const id = document.getElementById('v_id').value;
-            if(confirm("이 업체를 리스트에서 완전히 삭제할까요?")) {
-                db.collection("vendors").doc(id).delete();
-                closeModal('vendorModal');
-                showToast("업체가 삭제되었습니다.");
-            }
-        };
+        window.toggleSmsArea = () => { document.getElementById('smsTemplateArea').style.display = document.getElementById('v_use_sms').checked ? 'block' : 'none'; };
+        window.saveVendor = () => { const id = document.getElementById('v_id').value; const data = { name: document.getElementById('v_name').value, tel: document.getElementById('v_tel').value, desc: document.getElementById('v_desc').value, useCall: document.getElementById('v_use_call').checked, useSms: document.getElementById('v_use_sms').checked, smsTemplate: document.getElementById('v_sms_template').value }; if(!data.name || !data.tel) return alert('필수 입력'); if (id) db.collection("vendors").doc(id).update(data); else db.collection("vendors").add(data); closeModal('vendorModal'); showToast("저장됨"); };
+        window.deleteVendorAction = () => { if(confirm("삭제?")) { db.collection("vendors").doc(document.getElementById('v_id').value).delete(); closeModal('vendorModal'); showToast("삭제됨"); } };
 
         window.sendSMS = (vendorId) => {
-            const v = vendorDataCache[vendorId];
-            if (!v) return;
-
+            const v = vendorDataCache[vendorId]; if (!v) return;
             let title = currentEventId ? document.getElementById('d_title').innerText : '';
             let info = currentEventId ? document.getElementById('d_info').innerText : '';
-            
-            let time = '', loc = '';
-            if(info) {
-                let parts = info.split('|');
-                time = parts[0] ? parts[0].trim() : '';
-                loc = parts[1] ? parts[1].trim() : '';
-            }
-
-            let bodyText = "";
-
-            if (v.name.includes('위드고')) {
-                bodyText = `<위드고 1800-9222> 화환 발송\n\n배송일 : ${time}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : \n*배송문구(오른쪽문구) : \n*받는이 : \n*주문자 : `;
-            } else if (v.name.includes('우영') || v.name.includes('상조용품')) {
-                bodyText = `<우영프라자 1668-5487> 상조용품 발송\n\n회사명 : 유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
-            } else if (v.name.includes('범아') || v.name.includes('관광') || v.name.includes('버스')) {
-                bodyText = `범아관광\n업체명 : 유니테스트\n출발지 : \n출발시간 : ${time}\n도착지 주소 : ${loc}`;
-            } else {
-                if(v.smsTemplate) {
-                    bodyText = v.smsTemplate.replace(/\[행사명\]/g, title).replace(/\[일시\]/g, time).replace(/\[장소\]/g, loc);
-                } else {
-                    bodyText = `[발송 요청]\n행사명: ${title}\n일시: ${time}\n장소: ${loc}`;
-                }
-            }
-
+            let time = info.split('|')[0]?.trim(), loc = info.split('|')[1]?.trim();
+            let body = "";
+            if (v.name.includes('위드고')) body = `<위드고 화환>\n배송일: ${time}\n배송지: ${loc}\n보내는이: \n받는이: `;
+            else if (v.name.includes('우영')) body = `<우영 상조용품>\n회사명: 유니테스트\n장례식장: ${loc}\n고인명: ${title}`;
+            else if (v.name.includes('범아')) body = `범아관광\n업체명: 유니테스트\n출발시간: ${time}\n도착지: ${loc}`;
+            else body = v.smsTemplate?.replace(/\[행사명\]/g, title).replace(/\[일시\]/g, time).replace(/\[장소\]/g, loc) || "";
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const sep = isIOS ? '&' : '?';
-            window.location.href = `sms:${v.tel}${sep}body=${encodeURIComponent(bodyText)}`;
+            window.location.href = `sms:${v.tel}${isIOS ? '&' : '?'}body=${encodeURIComponent(body)}`;
         };
 
         loadLists();
