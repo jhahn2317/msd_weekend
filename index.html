@@ -20,7 +20,12 @@
         .toggle-label { background-color: #cbd5e1; transition: all 0.3s; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
+
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2 whitespace-nowrap min-w-max">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-green-400 text-sm"></i>
+        <span id="toast-msg">알림 메시지</span>
+    </div>
 
     <header class="bg-white shadow-sm sticky top-0 z-[60]">
         <div class="max-w-md mx-auto px-3 py-2 flex justify-between items-center">
@@ -58,7 +63,13 @@
                 <h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2>
                 <p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p>
             </div>
-            <div id="historyListArea"></div>
+            
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i>
+                <input type="text" id="searchInput" oninput="filterHistory()" placeholder="상황명, 장소, 일시로 검색..." class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] focus:outline-none focus:border-blue-500 shadow-sm font-medium text-slate-700">
+            </div>
+
+            <div id="historyListArea" class="space-y-2"></div>
         </div>
 
         <div id="screen-detail" class="screen space-y-3">
@@ -68,7 +79,7 @@
                     <h2 id="d_title" class="text-sm font-extrabold text-slate-800 leading-tight"></h2>
                     <p id="d_info" class="text-[9px] text-blue-600 font-bold mt-0.5 bg-blue-50 inline-block px-1.5 py-0.5 rounded"></p>
                 </div>
-                <button id="btn-close-event" onclick="closeEvent()" class="text-[10px] bg-red-600 text-white px-2 py-1.5 rounded-md font-bold">종료</button>
+                <button id="btn-close-event" onclick="closeEvent()" class="text-[10px] bg-indigo-600 text-white px-2 py-1.5 rounded-md font-bold shadow-sm">마감(종료)</button>
             </div>
 
             <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-3 shadow-md text-white">
@@ -119,6 +130,12 @@
                 <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 텍스트를 길게 꾹 누르면 수정/삭제할 수 있습니다.</p>
                 <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
             </div>
+            
+            <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6">
+                <button onclick="deleteEvent()" class="w-full flex items-center justify-center gap-1.5 bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 이 상황 영구 삭제하기
+                </button>
+            </div>
         </div>
 
     </main>
@@ -131,7 +148,7 @@
             <button onclick="switchScreen('screen-history')" id="nav-screen-history" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
                 <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">이력 조회</span>
             </button>
-            <button onclick="alert('준비 중입니다.')" class="flex flex-col items-center gap-0.5 text-slate-300 w-1/3">
+            <button onclick="showToast('기타 지원 업무는 준비 중입니다.', true)" class="flex flex-col items-center gap-0.5 text-slate-300 w-1/3">
                 <i class="fa-solid fa-ellipsis text-lg"></i><span class="text-[9px] font-bold">기타 업무</span>
             </button>
         </div>
@@ -177,7 +194,6 @@
             </div>
             <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
                 <input type="hidden" id="v_id">
-                
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label>
@@ -188,12 +204,10 @@
                         <input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 mb-1">업무 내용 (분류)</label>
                     <input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none focus:border-blue-500">
                 </div>
-
                 <div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2">
                     <span class="text-[11px] font-bold text-slate-700">전화 걸기 버튼 사용</span>
                     <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -201,7 +215,6 @@
                         <label for="v_use_call" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
                     </div>
                 </div>
-
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-[11px] font-bold text-slate-700">문자 발송 버튼 사용</span>
                     <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -209,7 +222,6 @@
                         <label for="v_use_sms" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
                     </div>
                 </div>
-
                 <div id="smsTemplateArea" class="hidden">
                     <div class="flex justify-between items-end mb-1 mt-2">
                         <label class="block text-[10px] font-bold text-slate-500">문자 양식 (위드고/우영/범아 고정)</label>
@@ -217,9 +229,8 @@
                     </div>
                     <textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none focus:border-blue-500 leading-relaxed"></textarea>
                 </div>
-
                 <div class="flex gap-2 pt-2 mt-4">
-                    <button id="btn_delete_vendor" onclick="deleteVendor()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">업체 삭제</button>
+                    <button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">업체 삭제</button>
                     <button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button>
                 </div>
             </div>
@@ -227,9 +238,9 @@
     </div>
 
     <script>
-        // ★ [핵심] 오타가 수정된 100% 정확한 진짜 파이어베이스 키값 적용 ★
+        // ★ 파이어베이스 설정 유지
         const firebaseConfig = {
-            apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4", // 오타 수정 완료
+            apiKey: "AIzaSyBqu8g0wPkRDG4zrNz/CDSrZZjbuSWlkc4",
             authDomain: "msd-weekend.firebaseapp.com",
             projectId: "msd-weekend",
             storageBucket: "msd-weekend.firebasestorage.app",
@@ -245,6 +256,33 @@
         let activeTasksUnsubscribe = null; 
         let activeMetaUnsubscribe = null;
         let vendorDataCache = {};
+        
+        let globalTasks = [];
+        let globalEventsActive = [];
+        let globalEventsClosed = []; // 검색을 위해 보관
+
+        // ★ [토스트 알림 함수]
+        window.showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            const icon = document.getElementById('toast-icon');
+            if(isError) {
+                icon.className = 'fa-solid fa-circle-exclamation text-red-400 text-sm';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-green-400 text-sm';
+            }
+
+            // 보이기 (위로 살짝 올라오면서 나타남)
+            toast.classList.remove('opacity-0', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            // 2.5초 뒤 숨기기
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-4');
+            }, 2500);
+        };
 
         // [이벤트 색상 테마]
         function getEventTheme(title) {
@@ -276,62 +314,93 @@
                 currentEventId = null;
                 if(activeTasksUnsubscribe) activeTasksUnsubscribe();
                 if(activeMetaUnsubscribe) activeMetaUnsubscribe();
+                if(screenId === 'screen-history') document.getElementById('searchInput').value = ''; // 탭 전환 시 검색창 초기화
             }
         }
 
-        // [데이터 로드 - 에러 핸들링 추가]
         function loadLists() {
+            db.collection("tasks").onSnapshot(snap => {
+                globalTasks = []; snap.forEach(doc => globalTasks.push({ id: doc.id, ...doc.data() }));
+                renderHomeList();
+            });
+
             db.collection("events").where("status", "==", "active").onSnapshot(snap => {
-                let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
-                events.sort((a, b) => b.createdAt - a.createdAt);
-                let html = '';
-                events.forEach(e => {
-                    const t = getEventTheme(e.title);
-                    html += `<div class="${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] group mb-3">
-                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="flex-grow cursor-pointer pr-10">
-                            <div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div>
-                            <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${e.title}</h3>
-                            <div class="flex items-center gap-2 text-[10px] ${t.textSub} font-bold">
-                                <span><i class="fa-solid fa-calendar-day mr-1 ${t.icon}"></i>${e.time}</span>
-                                <span><i class="fa-solid fa-location-dot mr-1 ${t.icon}"></i>${e.location}</span>
-                            </div>
-                        </div>
-                        <button onclick="deleteEvent('${e.id}')" class="absolute top-4 right-3 ${t.icon} hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can text-sm"></i></button>
-                    </div>`;
-                });
-                document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
-            }, error => {
-                // DB 연결 실패 시 에러 표시
-                document.getElementById('eventListArea').innerHTML = `<div class="p-4 bg-red-50 text-red-500 text-xs rounded-lg border border-red-200">데이터베이스 연결 오류입니다. 잠시 후 다시 시도해주세요.<br><br>에러 내용: ${error.message}</div>`;
+                globalEventsActive = []; snap.forEach(doc => globalEventsActive.push({ id: doc.id, ...doc.data() }));
+                globalEventsActive.sort((a, b) => b.createdAt - a.createdAt);
+                renderHomeList();
             });
 
             db.collection("events").where("status", "==", "closed").onSnapshot(snap => {
-                let events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
-                events.sort((a, b) => b.createdAt - a.createdAt);
-                let html = '';
-                events.forEach(e => {
-                    const dateStr = new Date(e.createdAt).toLocaleDateString();
-                    const t = getEventTheme(e.title);
-                    html += `<div class="${t.bg} p-3 rounded-lg border flex justify-between items-center group relative mb-2">
-                        <div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="flex-grow cursor-pointer">
-                            <p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 종료</p>
-                            <h4 class="font-bold text-xs ${t.textMain}">${e.title}</h4>
-                        </div>
-                        <button onclick="deleteEvent('${e.id}')" class="${t.icon} hover:text-red-500 p-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                    </div>`;
-                });
-                document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">대응 이력이 없습니다.</div>';
+                globalEventsClosed = []; snap.forEach(doc => globalEventsClosed.push({ id: doc.id, ...doc.data() }));
+                globalEventsClosed.sort((a, b) => b.createdAt - a.createdAt);
+                filterHistory(); // 검색어를 통과시켜 렌더링
             });
         }
 
-        window.deleteEvent = async (eventId) => {
-            if(confirm("이 상황과 관련된 업무 내역이 모두 삭제됩니다. 계속하시겠습니까?")) {
+        function renderHomeList() {
+            let html = '';
+            globalEventsActive.forEach(e => {
+                const t = getEventTheme(e.title);
+                const eTasks = globalTasks.filter(task => task.eventId === e.id);
+                const total = eTasks.length;
+                const done = eTasks.filter(task => task.done).length;
+                const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time} | ${e.location}', false)" class="${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] group mb-3 cursor-pointer">
+                    <div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div>
+                    <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${e.title}</h3>
+                    <div class="flex items-center gap-2 text-[10px] ${t.textSub} font-bold mb-2">
+                        <span><i class="fa-solid fa-calendar-day mr-1 ${t.icon}"></i>${e.time}</span>
+                        <span><i class="fa-solid fa-location-dot mr-1 ${t.icon}"></i>${e.location}</span>
+                    </div>
+                    <div class="w-full bg-white/60 h-1.5 rounded-full overflow-hidden flex items-center">
+                        <div class="${t.bar} h-full transition-all duration-500" style="width: ${percent}%"></div>
+                    </div>
+                    <div class="text-right text-[9px] ${t.textSub} font-bold mt-1">${percent}% 완료</div>
+                </div>`;
+            });
+            document.getElementById('eventListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px] italic font-medium">현재 진행 중인 상황이 없습니다.</div>';
+        }
+
+        // ★ [이력 검색(필터링) 기능]
+        window.filterHistory = () => {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = globalEventsClosed.filter(e => {
+                return (e.title && e.title.toLowerCase().includes(query)) ||
+                       (e.time && e.time.toLowerCase().includes(query)) ||
+                       (e.location && e.location.toLowerCase().includes(query));
+            });
+            renderHistoryListCustom(filtered);
+        };
+
+        function renderHistoryListCustom(eventsArray) {
+            let html = '';
+            eventsArray.forEach(e => {
+                const dateStr = new Date(e.createdAt).toLocaleDateString();
+                const t = getEventTheme(e.title);
+                html += `<div onclick="openDetail('${e.id}', '${e.title}', '${e.time}', true)" class="${t.bg} p-3 rounded-lg border flex justify-between items-center group relative mb-2 cursor-pointer">
+                    <div class="flex-grow">
+                        <p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 마감</p>
+                        <h4 class="font-bold text-xs ${t.textMain}">${e.title}</h4>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ${t.icon} text-[10px]"></i>
+                </div>`;
+            });
+            document.getElementById('historyListArea').innerHTML = html || '<div class="py-8 text-center text-slate-400 text-[11px]">검색 결과가 없습니다.</div>';
+        }
+
+        window.deleteEvent = async () => {
+            if(!currentEventId) return;
+            if(confirm("🚨 경고: 이 상황을 삭제하면 과거 이력으로 보관(이관)되지 않고 영구적으로 완전히 삭제됩니다.\n\n정말 삭제하시겠습니까?")) {
+                const eventId = currentEventId;
+                switchScreen('screen-list');
                 await db.collection("events").doc(eventId).delete();
                 const taskSnap = await db.collection("tasks").where("eventId", "==", eventId).get();
                 const batch = db.batch(); taskSnap.forEach(doc => batch.delete(doc.ref));
                 const metaSnap = await db.collection("eventMeta").where("eventId", "==", eventId).get();
                 metaSnap.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
+                showToast("상황이 영구 삭제되었습니다.");
             }
         };
 
@@ -386,8 +455,8 @@
         }
 
         window.toggleTask = (id, status) => { if(isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
-        window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); }); };
-        window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); alert('저장 완료'); }); };
+        window.setSub = (owner) => { const s = prompt("대체자 성함:"); if(s !== null) db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, sub: s }); else snap.forEach(d => d.ref.update({ sub: s })); showToast("대체자가 지정되었습니다."); }); };
+        window.saveNote = (owner) => { const n = document.getElementById('note_'+owner).value; db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => { if(snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n }); else snap.forEach(d => d.ref.update({ note: n })); showToast('메모가 저장되었습니다.'); }); };
 
         let editTargetTaskId = null;
         window.openTaskEditModal = (id, currentTitle) => {
@@ -401,22 +470,24 @@
             if(!newTitle) return;
             db.collection("tasks").doc(editTargetTaskId).update({ title: newTitle });
             closeModal('taskEditModal');
+            showToast("업무 내용이 수정되었습니다.");
         };
         window.deleteEditedTask = () => {
             if(confirm("이 업무를 삭제할까요?")) {
                 db.collection("tasks").doc(editTargetTaskId).delete();
                 closeModal('taskEditModal');
+                showToast("업무가 삭제되었습니다.");
             }
         };
         window.addTask = (owner) => {
             if(isReadOnly) return;
             const title = prompt("추가할 업무 내용을 입력하세요.");
-            if(title) db.collection("tasks").add({ eventId: currentEventId, owner, title, done: false, createdAt: Date.now() });
+            if(title) { db.collection("tasks").add({ eventId: currentEventId, owner, title, done: false, createdAt: Date.now() }); showToast("새 업무가 추가되었습니다."); }
         };
 
         async function submitEvent() {
             const t = document.getElementById('reg_title').value; const tm = document.getElementById('reg_time').value; const l = document.getElementById('reg_location').value;
-            if(!t) return alert("상황명을 적어주세요.");
+            if(!t) return showToast("상황명을 입력해주세요.", true);
             const doc = await db.collection("events").add({ title: t, time: tm, location: l, status: 'active', createdAt: Date.now() });
             
             const def = [
@@ -435,16 +506,16 @@
             await Promise.all(promises);
             closeModal('registerModal'); document.getElementById('reg_title').value = ''; document.getElementById('reg_time').value = ''; document.getElementById('reg_location').value = '';
             openDetail(doc.id, t, (tm||'')+' | '+(l||''), false);
+            showToast("새 상황 관제가 시작되었습니다.");
         }
 
-        window.closeEvent = () => { if(confirm("종료 후 이력으로 이동하시겠습니까?")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => switchScreen('screen-history')); };
+        window.closeEvent = () => { if(confirm("업무가 모두 마무리되었습니까? \n마감 시 이력 조회 메뉴로 보관됩니다.")) db.collection("events").doc(currentEventId).update({ status: 'closed' }).then(() => { switchScreen('screen-history'); showToast("이력으로 보관되었습니다."); }); };
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
         function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
 
         const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
-        // [업체 관리 모달 및 렌더링]
         db.collection("vendors").onSnapshot(snap => {
             let html = ''; 
             vendorDataCache = {};
@@ -453,7 +524,7 @@
                 vendorDataCache[doc.id] = v;
                 
                 let btnSms = v.useSms ? `<button onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-7 h-7 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-100 hover:bg-green-100"><i class="fa-solid fa-comment-sms text-[10px]"></i></button>` : '';
-                let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md"><i class="fa-solid fa-phone text-[10px]"></i></a>` : '';
+                let btnCall = v.useCall ? `<a href="tel:${v.tel}" onclick="event.stopPropagation();" class="w-7 h-7 flex items-center justify-center bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"><i class="fa-solid fa-phone text-[10px]"></i></a>` : '';
 
                 html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors mb-2">
                     <div>
@@ -512,19 +583,21 @@
                 useSms: document.getElementById('v_use_sms').checked,
                 smsTemplate: document.getElementById('v_sms_template').value
             };
-            if(!data.name || !data.tel) return alert('업체명과 전화번호는 필수입니다.');
+            if(!data.name || !data.tel) return showToast('업체명과 전화번호는 필수입니다.', true);
 
             if (id) db.collection("vendors").doc(id).update(data);
             else db.collection("vendors").add(data);
             
             closeModal('vendorModal');
+            showToast("업체 정보가 저장되었습니다.");
         };
 
-        window.deleteVendor = () => {
+        window.deleteVendorAction = () => {
             const id = document.getElementById('v_id').value;
-            if(confirm("이 업체를 삭제하시겠습니까?")) {
+            if(confirm("이 업체를 리스트에서 완전히 삭제할까요?")) {
                 db.collection("vendors").doc(id).delete();
                 closeModal('vendorModal');
+                showToast("업체가 삭제되었습니다.");
             }
         };
 
