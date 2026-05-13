@@ -18,6 +18,9 @@
         .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
         .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
         .toggle-label { background-color: #cbd5e1; transition: all 0.3s; }
+        /* 스크롤바 숨기기 (표 부분) */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
@@ -61,36 +64,41 @@
         <div id="screen-bus" class="screen space-y-4">
             <div><h2 class="text-lg font-extrabold text-slate-800 text-blue-700">버스 대절 규정 시뮬레이터</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
             
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">성수기 여부</label>
-                        <select id="bus_season" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                        <select id="bus_season" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium">
                             <option value="normal">비수기</option>
                             <option value="peak">성수기 (봄/가을)</option>
                         </select>
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 일자</label>
-                        <input type="date" id="bus_date" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                        <input type="date" id="bus_date" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium text-center">
                     </div>
                 </div>
 
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 시간대</label>
-                        <select id="bus_ampm" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none">
+                        <select id="bus_ampm" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium">
                             <option value="AM">오전 (12시 이전)</option>
                             <option value="PM">오후 (12시 이후)</option>
                         </select>
                     </div>
-                    <div class="w-1/2 flex flex-col">
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">휴일/연휴 여부</label>
-                        <div class="flex items-center h-full">
-                            <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <span class="ml-2 text-xs font-medium text-slate-600">오늘이 휴일입니까?</span>
-                        </div>
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">이동 거리</label>
+                        <select id="bus_dist" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium text-blue-700">
+                            <option value="under">300km 이내</option>
+                            <option value="over">300km 이상</option>
+                        </select>
                     </div>
+                </div>
+
+                <div class="flex items-center justify-end py-1">
+                    <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="bus_is_holiday" class="ml-2 text-[11px] font-bold text-red-500">오늘이 휴일(연휴/공휴일) 입니까?</label>
                 </div>
 
                 <button onclick="calculateBusRule()" class="w-full bg-blue-600 text-white font-bold rounded-xl py-3 text-xs shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">규정 확인하기</button>
@@ -99,16 +107,20 @@
             <div id="busResultArea" class="hidden animate-fade-in space-y-3">
                 <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4">
                     <h3 class="text-[11px] font-bold text-blue-700 mb-3 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-check"></i> 계산된 대응 규정
+                        <i class="fa-solid fa-check-double"></i> 계산된 대응 규정 <span id="res_day_badge" class="ml-auto text-[9px] bg-white px-2 py-0.5 rounded text-slate-500 border border-slate-200"></span>
                     </h3>
-                    <div class="space-y-2.5">
-                        <div class="flex justify-between items-center"><span class="text-[10px] text-slate-500">인원 파악 마감</span><span id="res_p_check" class="text-xs font-black text-slate-800"></span></div>
-                        <div class="flex justify-between items-center"><span class="text-[10px] text-slate-500">대절 신청 마감</span><span id="res_b_apply" class="text-xs font-black text-blue-600"></span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-blue-100"><span class="text-[10px] text-slate-500">출발 예정 시각</span><span id="res_departure" class="text-xs font-black text-slate-800"></span></div>
-                        <div id="res_note_area" class="text-[9px] text-slate-400 bg-white/50 p-2 rounded italic hidden"></div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center"><span class="text-[11px] text-slate-500 font-bold">인원 파악 마감</span><span id="res_p_check" class="text-[12px] font-black text-slate-800"></span></div>
+                        <div class="flex justify-between items-center"><span class="text-[11px] text-slate-500 font-bold">출발 일정</span><span id="res_departure" class="text-[12px] font-black text-slate-800"></span></div>
+                        <div class="flex justify-between items-center pt-2 border-t border-blue-100"><span class="text-[11px] text-slate-500 font-bold">대절 신청 마감</span><span id="res_b_apply" class="text-[12px] font-black text-blue-600"></span></div>
+                        <div id="res_note_area" class="text-[9px] text-slate-500 bg-white p-2 rounded-lg border border-slate-200 italic hidden flex items-start gap-1"></div>
                     </div>
                 </div>
             </div>
+
+            <button onclick="openModal('busTableModal')" class="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-xl py-3 text-[11px] shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50">
+                <i class="fa-solid fa-table text-blue-500"></i> 세부 규정표 원본 보기
+            </button>
         </div>
 
         <div id="screen-detail" class="screen space-y-3">
@@ -153,31 +165,66 @@
         </div>
     </nav>
 
-    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm">새 경조사 등록</h3><button onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="p-4 space-y-3">
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">일시</label><input type="text" id="reg_time" placeholder="5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div>
-                <button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-2.5 mt-1 text-xs shadow-md">관제 시작 (방 생성)</button>
+    <div id="busTableModal" class="fixed inset-0 bg-slate-900/80 z-[300] hidden flex items-center justify-center p-2">
+        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm"><i class="fa-solid fa-table"></i> 버스 대절 세부 규정표</h3>
+                <button onclick="closeModal('busTableModal')"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-2 max-h-[80vh] overflow-auto no-scrollbar">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse border border-slate-300 text-center text-[8px] sm:text-[9px] whitespace-nowrap">
+                        <thead class="bg-[#d9e8f5] font-bold text-slate-800">
+                            <tr>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">구분</th>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">조문 접수</th>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">조문버스 인원파악</th>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">버스 대절 신청</th>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">출발일</th>
+                                <th class="border border-slate-300 p-1.5" colspan="2">출발시간</th>
+                                <th class="border border-slate-300 p-1.5" rowspan="2">비고</th>
+                            </tr>
+                            <tr>
+                                <th class="border border-slate-300 p-1">300km이내</th>
+                                <th class="border border-slate-300 p-1">300km이상</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr>
+                                <td class="border border-slate-300 p-1" rowspan="7">비수기</td>
+                                <td class="border border-slate-300 p-1">금요일 오후</td><td class="border border-slate-300 p-1">토요일 오전 9시 마감</td>
+                                <td class="border border-slate-300 p-1" rowspan="7">출발 2시간전</td>
+                                <td class="border border-slate-300 p-1">토요일</td><td class="border border-slate-300 p-1" colspan="2">11시</td><td class="border border-slate-300 p-1"></td>
+                            </tr>
+                            <tr><td class="border border-slate-300 p-1">연휴 금요일 오전</td><td class="border border-slate-300 p-1">금요일 오후 6시 마감</td><td class="border border-slate-300 p-1">토요일</td><td class="border border-slate-300 p-1" colspan="2">10시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">연휴 금요일 오후</td><td class="border border-slate-300 p-1">토요일 오전 9시 마감</td><td class="border border-slate-300 p-1">토요일</td><td class="border border-slate-300 p-1" colspan="2">11시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">토요일 오전</td><td class="border border-slate-300 p-1">토요일 오후 6시 마감</td><td class="border border-slate-300 p-1">일요일</td><td class="border border-slate-300 p-1" colspan="2">10시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">토요일 오후</td><td class="border border-slate-300 p-1">일요일 오전 9시 마감</td><td class="border border-slate-300 p-1">일요일</td><td class="border border-slate-300 p-1" colspan="2">11시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">일요일 오전</td><td class="border border-slate-300 p-1">일요일 오후 6시 마감</td><td class="border border-slate-300 p-1">월요일</td><td class="border border-slate-300 p-1" rowspan="2">15시</td><td class="border border-slate-300 p-1" rowspan="2">13시</td><td class="border border-slate-300 p-1" rowspan="2">온타임 근무시간 적용</td></tr>
+                            <tr><td class="border border-slate-300 p-1">일요일 오후</td><td class="border border-slate-300 p-1">월요일 오전 9시 마감</td><td class="border border-slate-300 p-1">월요일</td></tr>
+                            
+                            <tr>
+                                <td class="border border-slate-300 p-1 border-t-2 border-t-slate-400" rowspan="7">성수기(봄,가율)</td>
+                                <td class="border border-slate-300 p-1 border-t-2 border-t-slate-400">금요일 오후</td><td class="border border-slate-300 p-1 border-t-2 border-t-slate-400">토요일 오전 9시 마감</td>
+                                <td class="border border-slate-300 p-1 border-t-2 border-t-slate-400" rowspan="7">최소 출발 3시간전</td>
+                                <td class="border border-slate-300 p-1 border-t-2 border-t-slate-400">토요일</td><td class="border border-slate-300 p-1 border-t-2 border-t-slate-400" colspan="2">12시 or 13시</td><td class="border border-slate-300 p-1 border-t-2 border-t-slate-400"></td>
+                            </tr>
+                            <tr><td class="border border-slate-300 p-1">연휴 금요일 오전</td><td class="border border-slate-300 p-1">금요일 오후 6시 마감</td><td class="border border-slate-300 p-1">토요일</td><td class="border border-slate-300 p-1" colspan="2">10시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">연휴 금요일 오후</td><td class="border border-slate-300 p-1">토요일 오전 9시 마감</td><td class="border border-slate-300 p-1">토요일</td><td class="border border-slate-300 p-1" colspan="2">12시 or 13시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">토요일 오전</td><td class="border border-slate-300 p-1">토요일 오후 6시 마감</td><td class="border border-slate-300 p-1">일요일</td><td class="border border-slate-300 p-1" colspan="2">10시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">토요일 오후</td><td class="border border-slate-300 p-1">일요일 오전 9시 마감</td><td class="border border-slate-300 p-1">일요일</td><td class="border border-slate-300 p-1" colspan="2">12시 or 13시</td><td class="border border-slate-300 p-1"></td></tr>
+                            <tr><td class="border border-slate-300 p-1">일요일 오전</td><td class="border border-slate-300 p-1">일요일 오후 6시 마감</td><td class="border border-slate-300 p-1">월요일</td><td class="border border-slate-300 p-1" rowspan="2">15시</td><td class="border border-slate-300 p-1" rowspan="2">13시</td><td class="border border-slate-300 p-1" rowspan="2">온타임 근무시간 적용</td></tr>
+                            <tr><td class="border border-slate-300 p-1">일요일 오후</td><td class="border border-slate-300 p-1">월요일 오전 9시 마감</td><td class="border border-slate-300 p-1">월요일</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl">
-            <div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div>
-            <div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">저장</button></div></div>
-        </div>
-    </div>
-
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="자동변환: [일시], [장소], [행사명]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div>
-        </div>
-    </div>
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm">새 경조사 등록</h3><button onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">일시</label><input type="text" id="reg_time" placeholder="5/15(금) / 발인 08:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><button onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-2.5 mt-1 text-xs shadow-md">관제 시작 (방 생성)</button></div></div></div>
+    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="text" id="v_tel" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="자동변환: [일시], [장소], [행사명]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -208,52 +255,72 @@
             setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', '-translate-y-4'); }, 2500);
         };
 
-        // [버스 대절 계산기 로직]
+        // [★ 업데이트된 버스 대절 계산기 로직 ★]
         window.calculateBusRule = () => {
             const dateVal = document.getElementById('bus_date').value;
             const season = document.getElementById('bus_season').value;
             const ampm = document.getElementById('bus_ampm').value;
+            const dist = document.getElementById('bus_dist').value;
             const isHoliday = document.getElementById('bus_is_holiday').checked;
 
-            if(!dateVal) return showToast("접수 날짜를 선택해주세요.", true);
+            if(!dateVal) return showToast("접수 일자를 선택해주세요.", true);
 
-            const date = new Date(dateVal);
-            const day = date.getDay(); // 0:일, 5:금, 6:토
+            const dateObj = new Date(dateVal);
+            const day = dateObj.getDay(); // 0:일, 5:금, 6:토
+            const daysArr = ['일', '월', '화', '수', '목', '금', '토'];
+            
             const resArea = document.getElementById('busResultArea');
             const resP = document.getElementById('res_p_check');
             const resB = document.getElementById('res_b_apply');
             const resD = document.getElementById('res_departure');
+            const resBadge = document.getElementById('res_day_badge');
             const resN = document.getElementById('res_note_area');
 
-            let pCheckMsg = "", bApplyMsg = "", departureMsg = "", note = "";
+            let pCheckMsg = "", bApplyMsg = "", depDay = "", depTime = "", note = "";
+            let isKnownCase = true;
 
-            // 1. 요일 및 휴일 기반 로직 판단 (이미지 데이터 기반)
-            if ( (day === 5 && ampm === 'PM') || (day === 6 && ampm === 'PM') ) {
-                // 금요일 오후 or 토요일 오후 -> 내일 오전 9시 마감
-                pCheckMsg = "다음 날 오전 9시 마감";
-                departureMsg = day === 5 ? "토요일 11시" : "일요일 11시";
-                if(season === 'peak' && ampm === 'PM') departureMsg += " or 13시 (탄력)";
-            } else if ( (day === 5 && isHoliday && ampm === 'AM') || (day === 6 && ampm === 'AM') || (day === 0 && ampm === 'AM') ) {
-                // 연휴 금요일 오전 or 토요일 오전 or 일요일 오전 -> 당일 오후 6시 마감
-                pCheckMsg = "당일 오후 6시 마감";
-                departureMsg = day === 0 ? "월요일 13시/15시 (거리별)" : (day === 5 ? "토요일 10시" : "일요일 10시");
-            } else if ( day === 0 && ampm === 'PM' ) {
-                // 일요일 오후 -> 월요일 오전 9시 마감
-                pCheckMsg = "월요일 오전 9시 마감";
-                departureMsg = "월요일 13시/15시 (거리별)";
-                note = "온타임 근무시간 적용 대상 (300km 이상 13시 / 미만 15시)";
+            // 로직 분기
+            if (day === 5 && ampm === 'PM' && !isHoliday) {
+                pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
+            } else if (day === 5 && ampm === 'AM' && isHoliday) {
+                pCheckMsg = "금요일 오후 6시 마감"; depDay = "토요일"; depTime = "10시";
+            } else if (day === 5 && ampm === 'PM' && isHoliday) {
+                pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
+            } else if (day === 6 && ampm === 'AM') {
+                pCheckMsg = "토요일 오후 6시 마감"; depDay = "일요일"; depTime = "10시";
+            } else if (day === 6 && ampm === 'PM') {
+                pCheckMsg = "일요일 오전 9시 마감"; depDay = "일요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
+            } else if (day === 0 && ampm === 'AM') {
+                pCheckMsg = "일요일 오후 6시 마감"; depDay = "월요일"; depTime = dist === 'under' ? "15시" : "13시"; note = "온타임 근무시간 적용";
+            } else if (day === 0 && ampm === 'PM') {
+                pCheckMsg = "월요일 오전 9시 마감"; depDay = "월요일"; depTime = dist === 'under' ? "15시" : "13시"; note = "온타임 근무시간 적용";
             } else {
-                pCheckMsg = "평일 규정에 따름 (관리자 문의)";
-                departureMsg = "접수 후 협의";
+                isKnownCase = false;
             }
 
-            // 2. 신청 마감 (성수기 3시간 / 비수기 2시간 전)
-            bApplyMsg = season === 'peak' ? "출발 3시간 전" : "출발 2시간 전";
+            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${daysArr[day]}) 접수건`;
 
-            resP.innerText = pCheckMsg;
-            resB.innerText = bApplyMsg;
-            resD.innerText = departureMsg;
-            if(note) { resN.innerText = note; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
+            if(isKnownCase) {
+                let offset = season === 'peak' ? 3 : 2;
+                bApplyMsg = `출발 ${offset}시간 전`;
+                
+                // 역산 시간 계산
+                if (depTime === "10시") bApplyMsg += ` (${10 - offset}시 마감)`;
+                else if (depTime === "11시") bApplyMsg += ` (${11 - offset}시 마감)`;
+                else if (depTime === "13시") bApplyMsg += ` (${13 - offset}시 마감)`;
+                else if (depTime === "15시") bApplyMsg += ` (${15 - offset}시 마감)`;
+                else if (depTime === "12시 or 13시") bApplyMsg += ` (${12 - offset}시 or ${13 - offset}시 마감)`;
+
+                resP.innerText = pCheckMsg;
+                resB.innerText = bApplyMsg;
+                resD.innerText = `${depDay} ${depTime}`;
+            } else {
+                resP.innerText = "평일 규정에 따름 (관리자 문의)";
+                resB.innerText = season === 'peak' ? "최소 출발 3시간 전" : "출발 2시간 전";
+                resD.innerText = "접수 후 협의";
+            }
+
+            if(note) { resN.innerHTML = `<i class="fa-solid fa-circle-exclamation text-blue-500 mt-0.5"></i> ${note}`; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
             resArea.classList.remove('hidden');
         };
 
@@ -279,7 +346,6 @@
                 currentEventId = null;
                 if(activeTasksUnsubscribe) activeTasksUnsubscribe();
                 if(activeMetaUnsubscribe) activeMetaUnsubscribe();
-                if(screenId === 'screen-bus') document.getElementById('busResultArea').classList.add('hidden');
             }
         }
 
@@ -397,6 +463,9 @@
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             window.location.href = `sms:${v.tel}${isIOS ? '&' : '?'}body=${encodeURIComponent(body)}`;
         };
+
+        // 초기 날짜 세팅 (오늘 날짜)
+        document.getElementById('bus_date').valueAsDate = new Date();
 
         loadLists();
     </script>
