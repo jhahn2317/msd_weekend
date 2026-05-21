@@ -3,20 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>주말 업무 대응 시스템</title>
+    <title>위크 · 주말·휴일 업무</title>
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-title" content="위크">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-        .active-nav { color: #1d4ed8 !important; border-top: 3px solid #1d4ed8; }
+        :root {
+            --wk-bg: #ffffff;
+            --wk-muted: #f8fafc;
+            --wk-border: #e2e8f0;
+            --wk-text: #0f172a;
+            --wk-text-muted: #64748b;
+            --wk-accent: #1e293b;
+            --wk-accent-hover: #0f172a;
+            --wk-radius: 0.75rem;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", sans-serif;
+            -webkit-tap-highlight-color: transparent; user-select: none;
+            background: var(--wk-bg); color: var(--wk-text);
+        }
+        .week-logo {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--wk-accent); color: #fff; font-weight: 800; letter-spacing: -0.06em;
+            border-radius: 0.625rem; padding: 0.38rem 0.65rem; font-size: 1.2rem; line-height: 1;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+        }
+        .week-logo-sm { font-size: 0.95rem; padding: 0.28rem 0.5rem; border-radius: 0.45rem; }
+        .week-header-bar { background: var(--wk-bg); border-bottom: 1px solid var(--wk-border); }
+        .week-modal-head { background: var(--wk-accent); }
+        .active-nav { color: var(--wk-accent) !important; border-top: 2px solid var(--wk-accent) !important; }
         .screen { display: none; }
         .screen.active { display: block; }
-        .tab-active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
-        .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
+        .tab-active { color: var(--wk-accent) !important; border-bottom: 2px solid var(--wk-accent) !important; }
+        .wk-card { background: var(--wk-bg); border: 1px solid var(--wk-border); border-radius: var(--wk-radius); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+        .wk-panel { background: var(--wk-muted); border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
+        .wk-section-title { font-size: 10px; font-weight: 700; color: var(--wk-text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+        .wk-btn-primary { background: var(--wk-accent); color: #fff; font-weight: 700; border-radius: var(--wk-radius); transition: background 0.15s; }
+        .wk-btn-primary:active { background: var(--wk-accent-hover); }
+        .wk-btn-secondary { background: var(--wk-bg); color: var(--wk-text); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
+        .wk-btn-ghost { background: transparent; color: var(--wk-text-muted); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
+        .wk-input { border: 1px solid var(--wk-border); border-radius: 0.5rem; background: var(--wk-bg); outline: none; }
+        .wk-input:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2); }
+        .wk-pill-on { border: 1.5px solid var(--wk-accent) !important; background: var(--wk-accent) !important; color: #fff !important; }
+        .wk-pill-off { border: 1px solid var(--wk-border) !important; background: var(--wk-bg) !important; color: var(--wk-text-muted) !important; }
+        .toggle-checkbox:checked { right: 0; border-color: var(--wk-accent); }
+        .toggle-checkbox:checked + .toggle-label { background-color: var(--wk-accent); }
         .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
         .toggle-label { background-color: #cbd5e1; transition: all 0.3s; }
         /* 스크롤바 숨기기 (표 부분) */
@@ -25,9 +61,10 @@
         .owner-card-done { border-color: #86efac !important; box-shadow: 0 0 0 1px #bbf7d0; }
         .owner-card-body.collapsed { display: none; }
         .bus-timeline-step { position: relative; padding-left: 1.25rem; }
-        .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #2563eb; }
-        .bus-timeline-step:not(:last-child)::after { content: ''; position: absolute; left: 0.42rem; top: 1rem; bottom: -0.5rem; width: 2px; background: #bfdbfe; }
-        .bus-rule-highlight { background-color: #dbeafe !important; }
+        .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #475569; }
+        .bus-timeline-step:not(:last-child)::after { content: ''; position: absolute; left: 0.42rem; top: 1rem; bottom: -0.5rem; width: 2px; background: #e2e8f0; }
+        .bus-rule-highlight { background-color: #f1f5f9 !important; }
+        .bus-col-highlight { background-color: #e2e8f0 !important; outline: 1px solid #94a3b8; }
         .field-error { border-color: #f87171 !important; }
         .field-error-msg { color: #ef4444; font-size: 10px; font-weight: 700; margin-top: 2px; }
         input[type="date"].picker-input, input[type="time"].picker-input {
@@ -77,36 +114,37 @@
         .hr-ac-dropdown {
             position: fixed; left: 0; right: auto; top: 0; width: 12rem;
             max-height: 11rem; overflow-y: auto; z-index: 250;
-            background: #fff; border: 1px solid #fcd34d; border-radius: 0.75rem;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+            background: var(--wk-bg); border: 1px solid var(--wk-border); border-radius: 0.75rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
         }
         .hr-ac-item {
             display: block; width: 100%; text-align: left; padding: 0.55rem 0.65rem;
             border-bottom: 1px solid #f1f5f9; font-size: 11px;
         }
         .hr-ac-item:last-child { border-bottom: none; }
-        .hr-ac-item:active, .hr-ac-item:hover { background: #fffbeb; }
+        .hr-ac-item:active, .hr-ac-item:hover { background: var(--wk-muted); }
         #registerModal .reg-modal-body { max-height: calc(90vh - 3.25rem); overflow-y: auto; }
-        .deceased-gender-on { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; border: 2px solid #2563eb; background: #eff6ff; color: #1d4ed8; }
-        .deceased-gender-off { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; border: 1px solid #e2e8f0; background: #fff; color: #64748b; }
+        .deceased-gender-on { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
+        .deceased-gender-off { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
         .deceased-age-wrap { display: flex; align-items: center; gap: 0.125rem; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0 0.35rem; min-height: 40px; }
         .deceased-age-wrap input { width: 2.25rem; text-align: center; border: none; background: transparent; font-size: 16px; font-weight: 700; outline: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
+<body class="min-h-screen pb-20 relative">
 
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2">
-        <i id="toast-icon" class="fa-solid fa-circle-check text-green-400 text-sm"></i>
+        <i id="toast-icon" class="fa-solid fa-circle-check text-slate-300 text-sm"></i>
         <span id="toast-msg">메시지</span>
     </div>
 
-    <header class="bg-white shadow-sm sticky top-0 z-[60]">
-        <div class="max-w-md mx-auto px-3 py-2 flex justify-between items-center gap-2">
-            <div class="min-w-0">
-                <h1 class="text-sm font-black text-blue-700 flex items-center gap-1.5 leading-tight">
-                    <i class="fa-solid fa-square-poll-vertical shrink-0"></i>주말 업무 대응
-                </h1>
-                <p class="text-[10px] text-slate-500 font-bold mt-0.5">유니테스트 경영지원팀</p>
+    <header class="week-header-bar sticky top-0 z-[60] shadow-sm">
+        <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center gap-2">
+            <div class="min-w-0 flex items-center gap-2.5">
+                <div class="week-logo shrink-0" aria-hidden="true">위크</div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-semibold text-slate-600 leading-tight tracking-tight">주말·휴일 업무</p>
+                    <p class="text-[9px] text-slate-500 font-bold mt-0.5 truncate">유니테스트 경영지원팀</p>
+                </div>
             </div>
             <button type="button" onclick="openModal('settingsModal')" class="shrink-0 w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center active:scale-95 hover:bg-slate-100" aria-label="설정">
                 <i class="fa-solid fa-gear text-base"></i>
@@ -118,32 +156,32 @@
 
         <div id="screen-list" class="screen active space-y-4">
             <div class="flex justify-between items-end mb-1">
-                <div><h2 class="text-lg font-extrabold text-slate-800">진행중 경조사</h2><p class="text-[10px] text-slate-500">현재 관리 중인 비상상황 리스트입니다.</p></div>
-                <button onclick="openModal('registerModal')" class="bg-blue-600 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-md">+ 상황 등록</button>
+                <div><h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 진행중</h2><p class="text-[10px] text-slate-500">주말·휴일 업무 카드입니다.</p></div>
+                <button onclick="openModal('registerModal')" class="wk-btn-primary text-[11px] px-3 py-2 shadow-sm">+ 상황 등록</button>
             </div>
             <div id="eventListArea"></div>
 
-            <section id="kakaoSection" class="bg-white rounded-xl p-3 shadow-sm border border-yellow-300 mt-4">
+            <section id="kakaoSection" class="wk-card p-3 mt-4">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-bold text-slate-800 text-xs flex items-center"><i class="fa-solid fa-comment-dots text-yellow-600 mr-1.5"></i>본사 조사 · 카톡 문구</h2>
-                    <button type="button" onclick="loadKakaoFromEvent()" class="text-[9px] bg-yellow-50 text-yellow-800 px-2 py-1 rounded font-bold border border-yellow-200">경조사에서 불러오기</button>
+                    <h2 class="font-bold text-slate-800 text-xs flex items-center"><i class="fa-solid fa-comment-dots text-slate-500 mr-1.5"></i>본사 조사 · 카톡 문구</h2>
+                    <button type="button" onclick="loadKakaoFromEvent()" class="text-[9px] text-slate-600 px-2 py-1 rounded font-bold border border-slate-200 bg-slate-50">경조사에서 불러오기</button>
                 </div>
-                <select id="kakao_event_select" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 mb-2 outline-none font-medium"></select>
+                <select id="kakao_event_select" class="wk-input w-full p-2 text-[10px] mb-2 font-medium"></select>
 
                 <p class="text-[9px] text-slate-500 mb-2 flex flex-wrap items-center gap-1">
                     <i class="fa-solid fa-users text-slate-400"></i>
                     <span id="hr_roster_hint_kakao">인사 명단 미등록</span>
-                    <button type="button" onclick="openModal('settingsModal')" class="text-blue-600 font-bold underline">설정</button>
+                    <button type="button" onclick="openModal('settingsModal')" class="text-slate-800 font-bold underline">설정</button>
                 </p>
 
-                <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 mb-2 space-y-2">
-                    <p class="text-[10px] font-bold text-amber-900">한 줄 제목 자동 만들기</p>
+                <div class="wk-panel p-2.5 mb-2 space-y-2">
+                    <p class="wk-section-title mb-1">한 줄 제목 자동 만들기</p>
                     <div class="flex gap-2">
                         <div class="hr-ac-wrap flex-grow min-w-0">
-                            <input type="text" id="hr_name_search" placeholder="이름 (예: 홍길동)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none">
+                            <input type="text" id="hr_name_search" placeholder="이름 (예: 홍길동)" autocomplete="off" class="wk-input w-full p-2 text-[11px]">
                             <div id="hr_search_dropdown" class="hr-ac-dropdown hidden"></div>
                         </div>
-                        <select id="kt_event_suffix" onchange="onEventSuffixChange('kt')" class="w-[5.5rem] shrink-0 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none font-bold text-center">
+                        <select id="kt_event_suffix" onchange="onEventSuffixChange('kt')" class="w-[5.5rem] shrink-0 wk-input p-2 text-[11px] font-bold text-center">
                             <option value="부친상" selected>부친상</option>
                             <option value="모친상">모친상</option>
                             <option value="빙부상">빙부상</option>
@@ -154,47 +192,48 @@
                             <option value="__custom__">직접입력</option>
                         </select>
                     </div>
-                    <input type="text" id="kt_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="예: 고모상">
-                    <button type="button" onclick="generateHeadlineFromName()" class="w-full bg-amber-500 text-white font-bold rounded-lg py-2 text-[10px]">이름으로 한 줄 제목 만들기</button>
+                    <input type="text" id="kt_event_suffix_custom" class="hidden w-full wk-input p-2 text-[11px] font-bold" placeholder="예: 고모상">
+                    <button type="button" onclick="generateHeadlineFromName()" class="w-full wk-btn-secondary py-2 text-[10px]">이름으로 한 줄 제목 만들기</button>
                 </div>
 
                 <div class="space-y-2 text-[10px]">
-                    <div><label class="font-bold text-slate-500 block mb-0.5">한 줄 제목 (필수)</label><input type="text" id="kt_headline" placeholder="○○사업부 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">장례식장 (필수)</label><input type="text" id="kt_hall" placeholder="서울 ○○장례식장 1호실" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">한 줄 제목 (필수)</label><input type="text" id="kt_headline" placeholder="○○사업부 홍길동 프로 부친상" class="wk-input w-full p-2"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">장례식장 (필수)</label><input type="text" id="kt_hall" placeholder="서울 ○○장례식장 1호실" class="wk-input w-full p-2"></div>
                     <div id="kt_deceased_block">
                         <label class="font-bold text-slate-500 block mb-0.5">고인 (필수)</label>
                         <div class="flex gap-1.5 items-stretch mt-0.5">
-                            <input type="text" id="kt_deceased_name" placeholder="성함" autocomplete="off" class="flex-grow min-w-0 border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none">
+                            <input type="text" id="kt_deceased_name" placeholder="성함" autocomplete="off" class="flex-grow min-w-0 wk-input p-2">
                             <div class="deceased-age-wrap">
                                 <input type="number" id="kt_deceased_age" min="1" max="150" inputmode="numeric" placeholder="72" aria-label="나이">
                                 <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
                             </div>
                             <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
-                                <button type="button" id="kt_deceased_gender_m" onclick="setDeceasedGender('kt','남')" class="deceased-gender-on">남</button>
-                                <button type="button" id="kt_deceased_gender_f" onclick="setDeceasedGender('kt','여')" class="deceased-gender-off">여</button>
+                            <button type="button" id="kt_deceased_gender_m" onclick="setDeceasedGender('kt','남')" class="deceased-gender-on wk-pill-on">남</button>
+                            <button type="button" id="kt_deceased_gender_f" onclick="setDeceasedGender('kt','여')" class="deceased-gender-off wk-pill-off">여</button>
                             </div>
                         </div>
                         <p id="kt_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
                     </div>
                     <div><label class="font-bold text-slate-500 block mb-0.5">발인 일시 (필수)</label>
+                        <p class="text-[8px] text-slate-400 mb-1">06:00 ~ 20:00</p>
                         <div class="flex gap-2">
-                            <input type="date" id="kt_funeral_date" class="picker-input flex-[1.2] border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none">
-                            <select id="kt_funeral_time" class="picker-input flex-1 border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none font-medium"></select>
+                            <input type="date" id="kt_funeral_date" class="picker-input wk-input flex-[1.2] p-2">
+                            <select id="kt_funeral_time" class="picker-input wk-input flex-1 p-2 font-bold text-slate-800"></select>
                         </div>
                     </div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">장지</label><input type="text" id="kt_burial" placeholder="○○군 ○○면 선영" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">마음전할곳</label><input type="text" id="kt_account" placeholder="○○은행 123-456-789 홍길동" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">장지</label><input type="text" id="kt_burial" placeholder="○○군 ○○면 선영" class="wk-input w-full p-2"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">마음전할곳</label><input type="text" id="kt_account" placeholder="○○은행 123-456-789 홍길동" class="wk-input w-full p-2"></div>
                 </div>
                 <div class="flex gap-2 mt-3">
-                    <button type="button" id="kt_bus_yes" onclick="setKakaoBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600">버스 대절 <span class="text-red-500">필요</span></button>
-                    <button type="button" id="kt_bus_no" onclick="setKakaoBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700">버스 <span class="text-slate-500">불필요</span></button>
+                    <button type="button" id="kt_bus_yes" onclick="setKakaoBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-off wk-pill-off">버스 대절 <span class="text-slate-600">필요</span></button>
+                    <button type="button" id="kt_bus_no" onclick="setKakaoBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-on wk-pill-on">버스 <span class="opacity-80">불필요</span></button>
                 </div>
-                <button type="button" onclick="openKakaoPreview()" class="w-full mt-3 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold rounded-xl py-3 text-xs shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 카톡 발송</button>
+                <button type="button" onclick="openKakaoPreview()" class="w-full mt-3 wk-btn-primary py-3 text-xs shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 카톡 발송</button>
             </section>
 
-            <section class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mt-6">
+            <section class="wk-card p-3 mt-6">
                 <div class="flex justify-between items-center mb-2.5">
-                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book text-blue-500 mr-1.5"></i>협력업체 연락처</h2>
+                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book text-slate-500 mr-1.5"></i>협력업체 연락처</h2>
                     <button onclick="openVendorModal()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 새 업체 등록</button>
                 </div>
                 <div id="vendorList_home" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
@@ -202,15 +241,15 @@
         </div>
 
         <div id="screen-history" class="screen space-y-4">
-            <div><h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
+            <div><h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 이력</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
             <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i><input type="text" id="searchInput" oninput="filterHistory()" placeholder="예: 홍길동 부친상" class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] outline-none"></div>
             <div id="historyListArea" class="space-y-2"></div>
         </div>
 
         <div id="screen-bus" class="screen space-y-4">
-            <div><h2 class="text-lg font-extrabold text-slate-800 text-blue-700">버스 대절 규정 시뮬레이터</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
+            <div><h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 버스 규정</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
             
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+            <div class="wk-card p-4 space-y-3">
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">성수기 여부</label>
@@ -233,7 +272,7 @@
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">이동 거리</label>
-                        <select id="bus_dist" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium text-blue-700">
+                        <select id="bus_dist" class="wk-input w-full p-2.5 text-[11px] font-medium text-slate-800">
                             <option value="under">300km 이내</option>
                             <option value="over">300km 이상</option>
                         </select>
@@ -242,18 +281,18 @@
 
                 <div class="py-1">
                     <div class="flex items-center justify-end">
-                        <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="bus_is_holiday" class="ml-2 text-[11px] font-bold text-red-500">연휴·공휴일 접수인가요?</label>
+                        <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-slate-700 border-gray-300 rounded focus:ring-slate-400">
+                        <label for="bus_is_holiday" class="ml-2 text-[11px] font-bold text-slate-700">연휴·공휴일 접수인가요?</label>
                     </div>
                     <p class="text-[8px] text-slate-400 text-right mt-0.5">달력이 월~목이어도 연휴 접수면 체크 (연휴 금요일 규정 적용)</p>
                 </div>
 
-                <button onclick="calculateBusRule()" class="w-full bg-blue-600 text-white font-bold rounded-xl py-3 text-xs shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">규정 확인하기</button>
+                <button onclick="calculateBusRule()" class="w-full wk-btn-primary py-3 text-xs shadow-sm">규정 확인하기</button>
             </div>
 
             <div id="busResultArea" class="hidden space-y-3">
-                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-                    <h3 class="text-[11px] font-bold text-blue-700 mb-2 flex items-center gap-1.5">
+                <div class="wk-panel rounded-2xl p-4">
+                    <h3 class="text-[11px] font-bold text-slate-800 mb-2 flex items-center gap-1.5">
                         <i class="fa-solid fa-route"></i> 대응 타임라인
                         <span id="res_day_badge" class="ml-auto text-[9px] bg-white px-2 py-0.5 rounded text-slate-500 border border-slate-200"></span>
                     </h3>
@@ -262,39 +301,39 @@
                 </div>
                 <div class="bg-white border border-slate-200 rounded-xl p-3 text-[10px] text-slate-500 space-y-1">
                     <div class="flex justify-between"><span class="font-bold">인원 파악</span><span id="res_p_check" class="font-bold text-slate-800"></span></div>
-                    <div class="flex justify-between"><span class="font-bold">대절 신청</span><span id="res_b_apply" class="font-bold text-blue-600"></span></div>
+                    <div class="flex justify-between"><span class="font-bold">대절 신청</span><span id="res_b_apply" class="font-bold text-slate-800"></span></div>
                     <div class="flex justify-between"><span class="font-bold">출발</span><span id="res_departure" class="font-bold text-slate-800"></span></div>
                 </div>
             </div>
 
             <button onclick="openModal('busTableModal')" class="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-xl py-3 text-[11px] shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50">
-                <i class="fa-solid fa-table text-blue-500"></i> 세부 규정표 원본 보기
+                <i class="fa-solid fa-table text-slate-500"></i> 세부 규정표 원본 보기
             </button>
         </div>
 
         <div id="screen-detail" class="screen space-y-3">
             <div class="flex items-center gap-2">
                 <button type="button" onclick="goBack()" aria-label="뒤로" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg"><i class="fa-solid fa-chevron-left text-slate-600 text-xs"></i></button>
-                <div class="flex-grow min-w-0"><h2 id="d_title" class="text-sm font-extrabold text-slate-800 leading-tight truncate"></h2><p id="d_info" class="text-[9px] text-blue-600 font-bold mt-0.5 bg-blue-50 inline-block px-1.5 py-0.5 rounded max-w-full truncate"></p></div>
-                <button id="btn-close-event" type="button" onclick="closeEvent()" class="text-[10px] bg-indigo-600 text-white px-2 py-1.5 rounded-md font-bold shadow-sm shrink-0">마감(종료)</button>
+                <div class="flex-grow min-w-0"><h2 id="d_title" class="text-sm font-extrabold text-slate-900 leading-tight truncate"></h2><p id="d_info" class="text-[9px] text-slate-600 font-medium mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded max-w-full truncate"></p></div>
+                <button id="btn-close-event" type="button" onclick="closeEvent()" class="text-[10px] wk-btn-primary px-2 py-1.5 shadow-sm shrink-0">마감(종료)</button>
             </div>
-            <section class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-3 shadow-md text-white">
-                <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] opacity-90 text-blue-100 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic">0%</span></div>
-                <div class="w-full bg-blue-900/40 h-2 rounded-full overflow-hidden mb-2.5"><div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div></div>
+            <section class="rounded-xl p-3 shadow-sm text-white" style="background: var(--wk-accent);">
+                <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] opacity-90 text-slate-300 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic">0%</span></div>
+                <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden mb-2.5"><div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div></div>
                 <div class="grid grid-cols-4 gap-1 text-center text-[9px]" id="memberProgress"></div>
             </section>
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <section class="wk-card overflow-hidden">
                 <div class="flex border-b border-slate-100 bg-slate-50">
                     <button id="tab-btn-rule" onclick="switchTab('rule')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent tab-active"><i class="fa-solid fa-calculator mr-1"></i>규정 확인</button>
                     <button id="tab-btn-vendor" onclick="switchTab('vendor')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent"><i class="fa-solid fa-address-book mr-1"></i>업체 연락처</button>
                 </div>
                 <div id="tab-rule" class="p-3">
                     <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none"><option value="">경조 종류 선택...</option><option value="parent_death">부모님 상 (빙부/빙모 포함)</option><option value="sibling_death">형제자매 상 (본인/배우자)</option><option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option><option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option></select>
-                    <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-2 font-medium"><div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div><div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div></div>
+                    <div id="calcResult" class="hidden wk-panel p-2 text-[10px] space-y-1 mt-2 font-medium"><div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-slate-800"></span></div><div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-slate-800"></span></div><div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div><div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div></div>
                 </div>
-                <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
+                <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] wk-btn-ghost px-2 py-1 text-[9px]">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
             </section>
-            <button type="button" onclick="fillKakaoFromDetail()" class="w-full bg-yellow-50 border border-yellow-200 text-yellow-900 font-bold py-2.5 rounded-xl text-[11px] flex items-center justify-center gap-2"><i class="fa-solid fa-comment-dots"></i>본사 조사 카톡 문구 (현재 경조사)</button>
+            <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-secondary py-2.5 text-[11px] flex items-center justify-center gap-2"><i class="fa-solid fa-comment-dots text-slate-500"></i>본사 조사 카톡 문구 (현재 경조사)</button>
             <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 <b>⋯</b> 수정·삭제 · <b>대체</b> 버튼으로 담당자 변경</p>
             <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
             <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6"><button onclick="deleteEvent()" class="w-full flex items-center justify-center gap-1.5 bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors"><i class="fa-solid fa-triangle-exclamation"></i> 이 상황 영구 삭제하기</button></div>
@@ -318,11 +357,11 @@
 
     <div id="busTableModal" class="fixed inset-0 bg-slate-900/80 z-[300] hidden flex items-center justify-center p-2">
         <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-table"></i> 버스 대절 세부 규정표</h3>
                 <button onclick="closeModal('busTableModal')"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-center text-[10px] text-blue-600 font-bold py-2 bg-blue-50 border-b border-blue-100"><i class="fa-solid fa-arrows-left-right mr-1"></i>좌우로 밀어서 전체 표를 확인하세요</p>
+            <p class="text-center text-[10px] text-slate-600 font-bold py-2 bg-slate-50 border-b border-slate-200"><i class="fa-solid fa-arrows-left-right mr-1"></i>좌우로 밀어서 전체 표를 확인하세요</p>
             <div class="p-2 max-h-[80vh] overflow-auto no-scrollbar">
                 <div class="overflow-x-auto">
                     <table id="busRulesTable" class="min-w-full border-collapse border border-slate-300 text-center text-[8px] sm:text-[9px] whitespace-nowrap">
@@ -376,20 +415,20 @@
 
     <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm">새 경조사 등록</h3>
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm bg-white/20 shadow-none">위크</span> 경조사 등록</h3>
                 <button type="button" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-3 reg-modal-body">
-                <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2.5 space-y-2">
-                    <p class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-user text-amber-600 mr-1"></i>대상 직원 · 한 줄 제목</p>
+                <div class="wk-panel p-2.5 space-y-2">
+                    <p class="wk-section-title"><i class="fa-solid fa-user text-slate-400 mr-1"></i>대상 직원 · 한 줄 제목</p>
                     <div class="hr-ac-wrap">
-                        <input type="text" id="reg_employee_name" placeholder="이름 (예: 홍길동)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2.5 text-xs bg-white outline-none font-bold">
+                        <input type="text" id="reg_employee_name" placeholder="이름 (예: 홍길동)" autocomplete="off" class="wk-input w-full p-2.5 text-xs font-bold">
                         <div id="reg_hr_dropdown" class="hr-ac-dropdown hidden"></div>
                     </div>
-                    <p id="reg_employee_hint" class="text-[9px] text-green-800 font-bold hidden"></p>
+                    <p id="reg_employee_hint" class="text-[9px] text-slate-600 font-bold hidden"></p>
                     <div class="flex gap-2">
-                        <select id="reg_event_suffix" onchange="onEventSuffixChange('reg')" class="w-[5.5rem] shrink-0 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none font-bold">
+                        <select id="reg_event_suffix" onchange="onEventSuffixChange('reg')" class="w-[5.5rem] shrink-0 wk-input p-2 text-[11px] font-bold">
                             <option value="부친상" selected>부친상</option>
                             <option value="모친상">모친상</option>
                             <option value="빙부상">빙부상</option>
@@ -399,17 +438,22 @@
                             <option value="배우자상">배우자상</option>
                             <option value="__custom__">직접입력</option>
                         </select>
-                        <input type="text" id="reg_title" placeholder="○○사업부 홍길동 프로 부친상" class="flex-grow border border-slate-200 rounded-lg p-2 text-[11px] bg-white outline-none font-medium">
+                        <input type="text" id="reg_title" placeholder="○○사업부 홍길동 프로 부친상" class="flex-grow wk-input p-2 text-[11px] font-medium">
                     </div>
-                    <input type="text" id="reg_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="예: 고모상">
+                    <input type="text" id="reg_event_suffix_custom" class="hidden w-full wk-input p-2 text-[11px] font-bold" placeholder="예: 고모상">
                     <p id="reg_title_err" class="field-error-msg hidden"></p>
                 </div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-0.5 uppercase">별세일</label><p class="text-[8px] text-slate-400 mb-1">임종·작고일</p><input type="date" id="reg_death_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
-                <p id="reg_death_date_err" class="field-error-msg hidden"></p>
-                <div class="flex gap-2">
-                    <div class="w-3/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인일</label><input type="date" id="reg_funeral_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
-                    <div class="w-2/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인 시각</label><select id="reg_funeral_time" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none font-medium"></select></div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">별세 · 발인 일정</label>
+                    <p class="text-[8px] text-slate-400 mb-1.5">별세일 → 발인일 · 시각 (06:00~20:00)</p>
+                    <div class="flex gap-1 items-center">
+                        <input type="date" id="reg_death_date" title="별세일" class="picker-input flex-1 min-w-0 border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none">
+                        <span class="text-slate-300 font-bold text-[10px] shrink-0">→</span>
+                        <input type="date" id="reg_funeral_date" title="발인일" class="picker-input flex-1 min-w-0 border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none">
+                        <select id="reg_funeral_time" title="발인 시각" class="picker-input w-[5.25rem] shrink-0 wk-input p-2 text-[11px] font-bold text-slate-800"></select>
+                    </div>
                 </div>
+                <p id="reg_death_date_err" class="field-error-msg hidden"></p>
                 <p id="reg_funeral_date_err" class="field-error-msg hidden"></p>
                 <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장례식장</label><input type="text" id="reg_location" placeholder="서울 ○○장례식장 1호실" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
                 <div id="reg_deceased_block">
@@ -421,8 +465,8 @@
                             <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
                         </div>
                         <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
-                            <button type="button" id="reg_deceased_gender_m" onclick="setDeceasedGender('reg','남')" class="deceased-gender-on">남</button>
-                            <button type="button" id="reg_deceased_gender_f" onclick="setDeceasedGender('reg','여')" class="deceased-gender-off">여</button>
+                            <button type="button" id="reg_deceased_gender_m" onclick="setDeceasedGender('reg','남')" class="deceased-gender-on wk-pill-on">남</button>
+                            <button type="button" id="reg_deceased_gender_f" onclick="setDeceasedGender('reg','여')" class="deceased-gender-off wk-pill-off">여</button>
                         </div>
                     </div>
                     <p id="reg_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
@@ -431,26 +475,26 @@
                 <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장지</label><input type="text" id="reg_burial" placeholder="○○군 ○○면 선영" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
                 <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">마음전할곳</label><input type="text" id="reg_account" placeholder="○○은행 123-456-789 홍길동" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
                 <div class="flex gap-2">
-                    <button type="button" id="reg_bus_yes" onclick="setRegBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600">버스 대절 <span class="text-red-500">필요</span></button>
-                    <button type="button" id="reg_bus_no" onclick="setRegBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700">버스 <span class="text-slate-500">불필요</span></button>
+                    <button type="button" id="reg_bus_yes" onclick="setRegBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold wk-pill-off deceased-gender-off">버스 대절 <span class="text-slate-600">필요</span></button>
+                    <button type="button" id="reg_bus_no" onclick="setRegBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold wk-pill-on deceased-gender-on">버스 <span class="opacity-80">불필요</span></button>
                 </div>
-                <button type="button" onclick="submitEvent(false)" class="w-full bg-blue-600 text-white font-bold rounded-lg py-3 text-xs shadow-md">업무카드 등록</button>
-                <button type="button" onclick="submitEvent(true)" class="w-full bg-yellow-400 text-yellow-900 font-bold rounded-lg py-2.5 text-xs border border-yellow-500">등록 후 카톡 미리보기</button>
+                <button type="button" onclick="submitEvent(false)" class="w-full wk-btn-primary py-3 text-xs shadow-sm">업무카드 등록</button>
+                <button type="button" onclick="submitEvent(true)" class="w-full wk-btn-secondary py-2.5 text-xs mt-2">등록 후 카톡 미리보기</button>
             </div>
         </div>
     </div>
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-[370] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="bg-slate-700 px-4 py-3 text-white flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-gear"></i>설정</h3>
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm bg-white/20 shadow-none">위크</span> 설정</h3>
                 <button type="button" onclick="closeModal('settingsModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-4 overflow-y-auto">
-                <section class="bg-amber-50/90 border border-amber-200 rounded-xl p-3 space-y-2">
-                    <p class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-file-excel text-green-600 mr-1"></i>인사 기본정보 엑셀</p>
-                    <p class="text-[9px] text-amber-800/90 leading-relaxed">한글 · 사업부 · 본부 · 실 · 팀 · 직책 열이 있는 파일을 업로드합니다. (담당: 박유희 프로)</p>
-                    <p id="hr_roster_status" class="text-[10px] text-slate-700 font-bold bg-white/80 rounded-lg px-2 py-1.5 border border-amber-100">명단 미등록 — 엑셀을 업로드해 주세요</p>
-                    <label class="flex w-full items-center justify-center gap-2 bg-green-600 text-white font-bold rounded-xl py-3 text-xs cursor-pointer active:scale-[0.98]">
+                <section class="wk-panel p-3 space-y-2">
+                    <p class="text-[11px] font-bold text-slate-800"><i class="fa-solid fa-file-excel text-slate-500 mr-1"></i>인사 기본정보 엑셀</p>
+                    <p class="text-[9px] text-slate-500 leading-relaxed">한글 · 사업부 · 본부 · 실 · 팀 · 직책 열이 있는 파일을 업로드합니다. (담당: 박유희 프로)</p>
+                    <p id="hr_roster_status" class="text-[10px] text-slate-700 font-bold bg-white rounded-lg px-2 py-1.5 border border-slate-200">명단 미등록 — 엑셀을 업로드해 주세요</p>
+                    <label class="flex w-full items-center justify-center gap-2 wk-btn-primary py-3 text-xs cursor-pointer active:scale-[0.98]">
                         <i class="fa-solid fa-upload"></i>엑셀 업로드
                         <input type="file" id="hr_excel_file" accept=".xls,.xlsx,.xlsm" class="hidden" onchange="handleHrExcelUpload(this)">
                     </label>
@@ -462,7 +506,7 @@
 
     <div id="hrDuplicateModal" class="fixed inset-0 bg-slate-900/60 z-[360] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-amber-500 px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
                 <h3 class="font-bold text-sm">동명이인 선택</h3>
                 <button type="button" onclick="closeModal('hrDuplicateModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -473,7 +517,7 @@
 
     <div id="subPickerModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
                 <h3 class="font-bold text-sm">대체자 지정</h3>
                 <button type="button" onclick="closeModal('subPickerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -487,21 +531,21 @@
 
     <div id="kakaoPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="bg-yellow-400 px-4 py-3 text-yellow-900 flex justify-between items-center shrink-0">
+            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-comment-dots mr-1"></i>카톡 문구 확인</h3>
                 <button type="button" onclick="closeModal('kakaoPreviewModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="kakao_preview_body" class="kakao-preview-text overflow-y-auto flex-grow max-h-[50vh] border-b border-stone-200"></div>
+            <div id="kakao_preview_body" class="kakao-preview-text overflow-y-auto flex-grow max-h-[50vh] border-b border-slate-200"></div>
             <div class="p-4 space-y-2 shrink-0">
                 <p class="text-[9px] text-slate-500 text-center">발송 시 카톡에서 <b>채팅방·수신자</b>를 선택합니다</p>
-                <button type="button" id="kakao_preview_send" class="w-full bg-yellow-400 text-yellow-900 font-bold rounded-lg py-3 text-xs">카카오톡으로 보내기</button>
+                <button type="button" id="kakao_preview_send" class="w-full wk-btn-primary py-3 text-xs">카카오톡으로 보내기</button>
             </div>
         </div>
     </div>
 
-    <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-green-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full bg-green-600 text-white font-bold rounded-lg py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
-    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">저장</button></div></div></div></div>
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div></div></div>
+    <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
+    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -521,6 +565,7 @@
         let editingTaskId = null;
         let pendingSms = null;
         let lastBusCaseKey = null;
+        let lastBusDist = 'under';
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
         const SUB_CANDIDATES = ['황충모 전문위원', '조정열 프로', '안정훈 프로', '변우혁 프로', '김태석 프로', '박유희 프로'];
         let subPickerOwner = null;
@@ -561,7 +606,7 @@
             document.getElementById('sub_picker_hint').innerText = `${ownerDisplayName(owner)} 담당 → 대체자 선택 (본인 제외)`;
             const list = document.getElementById('sub_picker_list');
             list.innerHTML = getSubCandidates(owner).map(name =>
-                `<button type="button" data-sub-name="${escapeHtml(name)}" class="sub-pick-btn w-full text-left px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 text-[12px] font-bold text-slate-800 active:scale-[0.98]">${escapeHtml(name)}</button>`
+                `<button type="button" data-sub-name="${escapeHtml(name)}" class="sub-pick-btn w-full text-left px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-[12px] font-bold text-slate-800 active:scale-[0.98]">${escapeHtml(name)}</button>`
             ).join('');
             openModal('subPickerModal');
         };
@@ -611,17 +656,17 @@
             });
         }
 
+        const BUS_PILL_BASE = 'flex-1 py-2 rounded-lg text-[10px] font-bold';
+        const BUS_PILL_ON = `${BUS_PILL_BASE} deceased-gender-on wk-pill-on`;
+        const BUS_PILL_OFF = `${BUS_PILL_BASE} deceased-gender-off wk-pill-off`;
+
         window.setKakaoBusMode = (needed) => {
             kakaoBusNeeded = needed;
             const yes = document.getElementById('kt_bus_yes');
             const no = document.getElementById('kt_bus_no');
-            if (needed) {
-                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
-                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
-            } else {
-                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
-                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
-            }
+            if (!yes || !no) return;
+            yes.className = needed ? BUS_PILL_ON : BUS_PILL_OFF;
+            no.className = needed ? BUS_PILL_OFF : BUS_PILL_ON;
         };
 
         function cleanHrCell(v) {
@@ -760,7 +805,7 @@
                 const safeIdx = idx >= 0 ? idx : findHrRosterIndex(person);
                 return `<button type="button" class="hr-ac-item" data-hr-idx="${safeIdx}">
                     <span class="font-black text-slate-800">${escapeHtml(person.name)}</span>
-                    <span class="text-blue-600 font-bold ml-1">${escapeHtml(person.rank || '')}</span>
+                    <span class="text-slate-600 font-bold ml-1">${escapeHtml(person.rank || '')}</span>
                     <span class="block text-[9px] text-slate-500 mt-0.5">${escapeHtml(personDetailLabel(person))}</span>
                 </button>`;
             }).join('');
@@ -856,13 +901,8 @@
             const yes = document.getElementById('reg_bus_yes');
             const no = document.getElementById('reg_bus_no');
             if (!yes || !no) return;
-            if (needed) {
-                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
-                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
-            } else {
-                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
-                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
-            }
+            yes.className = needed ? BUS_PILL_ON : BUS_PILL_OFF;
+            no.className = needed ? BUS_PILL_OFF : BUS_PILL_ON;
         };
 
         function formatDeceasedDisplay(name, age, gender) {
@@ -893,8 +933,8 @@
             const m = document.getElementById(`${prefix}_deceased_gender_m`);
             const f = document.getElementById(`${prefix}_deceased_gender_f`);
             const isF = gender === '여';
-            if (m) { m.className = isF ? 'deceased-gender-off' : 'deceased-gender-on'; m.dataset.selected = isF ? '0' : '1'; }
-            if (f) { f.className = isF ? 'deceased-gender-on' : 'deceased-gender-off'; f.dataset.selected = isF ? '1' : '0'; }
+            if (m) { m.className = isF ? 'deceased-gender-off wk-pill-off' : 'deceased-gender-on wk-pill-on'; m.dataset.selected = isF ? '0' : '1'; }
+            if (f) { f.className = isF ? 'deceased-gender-on wk-pill-on' : 'deceased-gender-off wk-pill-off'; f.dataset.selected = isF ? '1' : '0'; }
             updateDeceasedPreview(prefix);
         };
 
@@ -967,7 +1007,7 @@
             setKakaoBusMode(!!e.busNeeded);
             if (e.funeralDate) {
                 document.getElementById('kt_funeral_date').value = e.funeralDate;
-                fillTimeSelect30('kt_funeral_time', e.funeralTime || '09:00');
+                fillFuneralTimeSelect('kt_funeral_time', e.funeralTime || '10:00');
             } else if (e.time) {
                 const 발인Match = String(e.time).match(/발인[^·|]*/);
                 setPickerFromText('kt_funeral_date', 'kt_funeral_time', 발인Match ? 발인Match[0] : e.time);
@@ -985,7 +1025,7 @@
             document.getElementById('reg_account').value = '';
             document.getElementById('reg_death_date').value = '';
             document.getElementById('reg_funeral_date').value = '';
-            fillTimeSelect30('reg_funeral_time', '09:00');
+            fillFuneralTimeSelect('reg_funeral_time', '10:00');
             setRegBusMode(false);
             document.getElementById('reg_event_suffix').value = '부친상';
             const rc = document.getElementById('reg_event_suffix_custom');
@@ -1011,11 +1051,11 @@
 
         function updateHrStatusUI() {
             let text = '인사 명단 미등록';
-            let statusClass = 'text-[10px] text-slate-700 font-bold bg-white/80 rounded-lg px-2 py-1.5 border border-amber-100';
+            let statusClass = 'text-[10px] text-slate-600 font-bold bg-white rounded-lg px-2 py-1.5 border border-slate-200';
             if (hrRoster.length) {
                 const d = hrRosterMeta.updatedAt ? new Date(hrRosterMeta.updatedAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                 text = `${hrRoster.length}명 등록됨${d ? ' · ' + d + ' 갱신' : ''}`;
-                statusClass = 'text-[10px] text-green-800 font-bold bg-green-50 rounded-lg px-2 py-1.5 border border-green-200';
+                statusClass = 'text-[10px] text-slate-700 font-bold bg-slate-50 rounded-lg px-2 py-1.5 border border-slate-200';
             } else {
                 text = '명단 미등록 — 아래에서 엑셀 업로드';
             }
@@ -1091,10 +1131,10 @@
                     x.office === p.office && x.team === p.team && x.rank === p.rank
                 );
                 const idx = useIdx >= 0 ? useIdx : 0;
-                return `<button type="button" onclick="applyHeadlineForPerson(${idx})" class="w-full text-left p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-amber-50 active:scale-[0.98]">
-                    <p class="text-[12px] font-black text-slate-800">${escapeHtml(p.name)} <span class="text-blue-600 font-bold">${escapeHtml(p.rank)}</span></p>
+                return `<button type="button" onclick="applyHeadlineForPerson(${idx})" class="w-full text-left p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 active:scale-[0.98]">
+                    <p class="text-[12px] font-black text-slate-800">${escapeHtml(p.name)} <span class="text-slate-600 font-bold">${escapeHtml(p.rank)}</span></p>
                     <p class="text-[10px] text-slate-500 mt-1">${escapeHtml(personDetailLabel(p))}</p>
-                    <p class="text-[9px] text-amber-700 mt-1 font-bold">${escapeHtml(buildHeadlineFromPerson(p, suffix))}</p>
+                    <p class="text-[9px] text-slate-600 mt-1 font-bold">${escapeHtml(buildHeadlineFromPerson(p, suffix))}</p>
                 </button>`;
             }).join('');
             openModal('hrDuplicateModal');
@@ -1259,6 +1299,19 @@
             return slots;
         })();
 
+        const FUNERAL_TIME_MIN = 6;
+        const FUNERAL_TIME_MAX = 20;
+        const FUNERAL_TIME_SLOTS = (() => {
+            const slots = [];
+            for (let h = FUNERAL_TIME_MIN; h <= FUNERAL_TIME_MAX; h++) {
+                for (const m of [0, 30]) {
+                    if (h === FUNERAL_TIME_MAX && m === 30) break;
+                    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+            }
+            return slots;
+        })();
+
         function roundTimeTo30(timeStr) {
             if (!timeStr) return '09:00';
             const [h, m] = timeStr.split(':').map(x => parseInt(x, 10));
@@ -1268,12 +1321,32 @@
             return `${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}`;
         }
 
+        function clampFuneralTime(timeStr) {
+            let v = roundTimeTo30(timeStr || '10:00');
+            let [h, m] = v.split(':').map(x => parseInt(x, 10));
+            const mins = h * 60 + m;
+            const minMins = FUNERAL_TIME_MIN * 60;
+            const maxMins = FUNERAL_TIME_MAX * 60;
+            if (mins < minMins) v = '06:00';
+            else if (mins > maxMins) v = '20:00';
+            if (!FUNERAL_TIME_SLOTS.includes(v)) v = '10:00';
+            return v;
+        }
+
         function fillTimeSelect30(selectId, preferred) {
             const el = document.getElementById(selectId);
             if (!el || el.tagName !== 'SELECT') return;
             el.innerHTML = TIME_SLOTS_30.map(t => `<option value="${t}">${t}</option>`).join('');
             const val = roundTimeTo30(preferred || nowTimeHM());
             el.value = TIME_SLOTS_30.includes(val) ? val : '09:00';
+        }
+
+        function fillFuneralTimeSelect(selectId, preferred) {
+            const el = document.getElementById(selectId);
+            if (!el || el.tagName !== 'SELECT') return;
+            el.innerHTML = FUNERAL_TIME_SLOTS.map(t => `<option value="${t}">${t}</option>`).join('');
+            const val = clampFuneralTime(preferred || nowTimeHM());
+            el.value = val;
         }
 
         function formatDateShort(dateStr) {
@@ -1329,8 +1402,10 @@
             if (colon) {
                 const te = document.getElementById(timeElId);
                 const v = roundTimeTo30(`${colon[1]}:${colon[2]}`);
-                if (te?.tagName === 'SELECT') te.value = TIME_SLOTS_30.includes(v) ? v : '09:00';
-                else if (te) te.value = v;
+                if (te?.tagName === 'SELECT') {
+                    const slots = (timeElId === 'reg_funeral_time' || timeElId === 'kt_funeral_time') ? FUNERAL_TIME_SLOTS : TIME_SLOTS_30;
+                    te.value = slots.includes(v) ? v : (slots === FUNERAL_TIME_SLOTS ? clampFuneralTime(v) : '09:00');
+                } else if (te) te.value = v;
             }
         }
 
@@ -1341,8 +1416,8 @@
                 const el = document.getElementById(id);
                 if (el && !el.value) el.value = today;
             });
-            fillTimeSelect30('reg_funeral_time', now);
-            fillTimeSelect30('kt_funeral_time', now);
+            fillFuneralTimeSelect('reg_funeral_time', '10:00');
+            fillFuneralTimeSelect('kt_funeral_time', '10:00');
             fillTimeSelect30('bus_time', now);
         }
 
@@ -1385,11 +1460,34 @@
             if (!target) return { text: noSchedule ? '규정표 외 (자동 계산 없음)' : '시간 계산 불가', overdue: false };
             const diff = target.getTime() - Date.now();
             if (diff <= 0) return { text: '마감 지남', overdue: true };
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            if (h >= 48) return { text: `약 ${Math.floor(h/24)}일 남음`, overdue: false };
-            if (h >= 1) return { text: `약 ${h}시간 ${m}분 남음`, overdue: false };
-            return { text: `약 ${m}분 남음`, overdue: false };
+            const totalMin = Math.floor(diff / 60000);
+            const days = Math.floor(totalMin / (24 * 60));
+            const hours = Math.floor((totalMin % (24 * 60)) / 60);
+            const mins = totalMin % 60;
+            const parts = [];
+            if (days > 0) parts.push(`${days}일`);
+            if (hours > 0) parts.push(`${hours}시간`);
+            parts.push(`${mins}분`);
+            return { text: `${parts.join(' ')} 남음`, overdue: false };
+        }
+
+        function busDistLabel(dist) {
+            return dist === 'over' ? '300km 이상' : '300km 이내';
+        }
+
+        /** 규정표: 성수기 「12시 or 13시」→ 이내 12시 / 이상 13시, 일요일 접수→ 월요일 15시·13시 */
+        function resolveBusDepTime(depTimeRule, dist) {
+            if (depTimeRule === '12시 or 13시') return dist === 'under' ? '12시' : '13시';
+            return depTimeRule;
+        }
+
+        function parseDepHour(depTime) {
+            if (!depTime) return 10;
+            if (depTime.includes('15')) return 15;
+            if (depTime.includes('13')) return 13;
+            if (depTime.includes('12')) return 12;
+            if (depTime.includes('11')) return 11;
+            return 10;
         }
 
         function addDaysAt(dateStr, dayOffset, hour, min = 0) {
@@ -1417,10 +1515,7 @@
             else if (pCheckMsg.includes('일요일 오후 6시')) personnel = addDaysAt(dateVal, day === 0 ? 0 : daysUntilWeekday(day, '일요일'), 18);
             else if (pCheckMsg.includes('월요일 오전 9시')) personnel = personnelDayOffset('월요일', 9);
 
-            const depHour = depTime?.includes('13') && !depTime.includes('or') ? 13
-                : depTime?.includes('15') ? 15
-                : depTime?.includes('12') ? 12
-                : depTime?.includes('11') ? 11 : 10;
+            const depHour = parseDepHour(depTime);
             const depOffset = daysUntilWeekday(day, depDay);
             depart = addDaysAt(dateVal, depOffset, depHour);
 
@@ -1436,15 +1531,30 @@
             ];
             document.getElementById('bus_timeline').innerHTML = steps.map(s => {
                 const cd = formatCountdown(s.at, noSchedule);
-                const cdCls = cd.overdue ? 'text-red-600' : 'text-blue-600';
+                const cdCls = cd.overdue ? 'text-red-600' : 'text-slate-700';
                 return `<div class="bus-timeline-step"><p class="text-[10px] font-bold text-slate-500">${s.label}</p><p class="text-[12px] font-black text-slate-800">${escapeHtml(s.value)}</p><p class="text-[9px] font-bold ${cdCls} mt-0.5">${cd.text}</p></div>`;
             }).join('');
         }
 
-        function highlightBusTable(caseKey) {
-            document.querySelectorAll('.bus-rule-row').forEach(r => r.classList.remove('bus-rule-highlight'));
+        function highlightBusTable(caseKey, dist) {
+            document.querySelectorAll('.bus-rule-row').forEach(r => {
+                r.classList.remove('bus-rule-highlight');
+                r.querySelectorAll('td').forEach(td => td.classList.remove('bus-col-highlight'));
+            });
             if (!caseKey) return;
-            document.querySelectorAll(`.bus-rule-row[data-bus-case="${caseKey}"]`).forEach(r => r.classList.add('bus-rule-highlight'));
+            document.querySelectorAll(`.bus-rule-row[data-bus-case="${caseKey}"]`).forEach(row => {
+                row.classList.add('bus-rule-highlight');
+                row.querySelectorAll('td').forEach(td => {
+                    const t = td.textContent.trim();
+                    if (!/시/.test(t)) return;
+                    if (td.colSpan > 1) {
+                        td.classList.add('bus-col-highlight');
+                        return;
+                    }
+                    if (dist === 'under' && (t === '15시' || t === '12시' || t === '11시' || t === '10시')) td.classList.add('bus-col-highlight');
+                    if (dist === 'over' && t === '13시') td.classList.add('bus-col-highlight');
+                });
+            });
         }
 
         function getBusCaseKey(day, ampm, isHoliday) {
@@ -1463,7 +1573,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             const icon = document.getElementById('toast-icon');
-            icon.className = isError ? 'fa-solid fa-circle-exclamation text-red-400' : 'fa-solid fa-circle-check text-green-400';
+            icon.className = isError ? 'fa-solid fa-circle-exclamation text-red-400' : 'fa-solid fa-circle-check text-slate-300';
             toast.classList.remove('opacity-0', '-translate-y-4'); toast.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', '-translate-y-4'); }, 2500);
         };
@@ -1517,34 +1627,31 @@
             }
 
             const dayLabel = daysArr[day] + (isHoliday && day >= 1 && day <= 4 ? '·연휴' : isHoliday && day === 5 ? '·연휴' : '');
-            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${dayLabel}) 접수건`;
+            const depTimeResolved = resolveBusDepTime(depTime, dist);
+            const distText = busDistLabel(dist);
+            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${dayLabel}) · ${distText}`;
 
             if(isKnownCase) {
-                let offset = season === 'peak' ? 3 : 2;
-                bApplyMsg = `출발 ${offset}시간 전`;
-                
-                // 역산 시간 계산
-                if (depTime === "10시") bApplyMsg += ` (${10 - offset}시 마감)`;
-                else if (depTime === "11시") bApplyMsg += ` (${11 - offset}시 마감)`;
-                else if (depTime === "13시") bApplyMsg += ` (${13 - offset}시 마감)`;
-                else if (depTime === "15시") bApplyMsg += ` (${15 - offset}시 마감)`;
-                else if (depTime === "12시 or 13시") bApplyMsg += ` (${12 - offset}시 or ${13 - offset}시 마감)`;
+                const offset = season === 'peak' ? 3 : 2;
+                const depH = parseDepHour(depTimeResolved);
+                bApplyMsg = `출발 ${offset}시간 전 (${depH - offset}시 마감)`;
 
                 resP.innerText = pCheckMsg;
                 resB.innerText = bApplyMsg;
-                resD.innerText = `${depDay} ${depTime}`;
+                resD.innerText = `${depDay} ${depTimeResolved} (${distText})`;
             } else {
                 resP.innerText = "평일 규정에 따름 (관리자 문의)";
                 resB.innerText = season === 'peak' ? "최소 출발 3시간 전" : "출발 2시간 전";
                 resD.innerText = "접수 후 협의";
             }
 
-            if(note) { resN.innerHTML = `<i class="fa-solid fa-circle-exclamation text-blue-500 mt-0.5"></i> ${note}`; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
+            if(note) { resN.innerHTML = `<i class="fa-solid fa-circle-exclamation text-slate-500 mt-0.5"></i> ${note}`; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
 
             lastBusCaseKey = getBusCaseKey(day, ampm, isHoliday);
-            highlightBusTable(lastBusCaseKey);
-            const depText = isKnownCase ? `${depDay} ${depTime}` : '접수 후 협의';
-            const deadlines = isKnownCase ? estimateBusDeadlines(dateVal, day, ampm, isHoliday, dist, season, pCheckMsg, depDay, depTime) : { personnel: null, apply: null, depart: null };
+            lastBusDist = dist;
+            highlightBusTable(lastBusCaseKey, dist);
+            const depText = isKnownCase ? `${depDay} ${depTimeResolved} · ${distText}` : '접수 후 협의';
+            const deadlines = isKnownCase ? estimateBusDeadlines(dateVal, day, ampm, isHoliday, dist, season, pCheckMsg, depDay, depTimeResolved) : { personnel: null, apply: null, depart: null };
             renderBusTimeline(
                 isKnownCase ? pCheckMsg : '평일 규정 (관리자 문의)',
                 isKnownCase ? bApplyMsg : (season === 'peak' ? '최소 출발 3시간 전' : '출발 2시간 전'),
@@ -1560,9 +1667,10 @@
 
         function getEventTheme(title) {
             const t = title || '';
-            if (t.includes('결혼') || t.includes('혼인') || t.includes('웨딩')) return { bg: 'bg-gradient-to-br from-rose-50 to-pink-50 border-pink-200', bar: 'bg-pink-400', textMain: 'text-slate-800', textSub: 'text-pink-600', icon: 'text-pink-400' };
-            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { bg: 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-300', bar: 'bg-slate-600', textMain: 'text-slate-800', textSub: 'text-slate-600', icon: 'text-slate-500' };
-            return { bg: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200', bar: 'bg-blue-500', textMain: 'text-slate-800', textSub: 'text-blue-600', icon: 'text-blue-400' };
+            const base = { bg: 'wk-card', textMain: 'text-slate-800', textSub: 'text-slate-500', icon: 'text-slate-400' };
+            if (t.includes('결혼') || t.includes('혼인') || t.includes('웨딩')) return { ...base, bar: 'bg-rose-300' };
+            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { ...base, bar: 'bg-slate-600' };
+            return { ...base, bar: 'bg-slate-500' };
         }
 
         function switchTab(tabName) {
@@ -1653,22 +1761,22 @@
                 const percent = eTasks.length === 0 ? 0 : Math.round((done / eTasks.length) * 100);
                 const nextTask = eTasks.find(task => !task.done);
                 const nextLine = nextTask ? `<p class="text-[9px] ${t.textSub} font-bold mt-1 truncate"><i class="fa-solid fa-circle-dot mr-1"></i>다음: ${escapeHtml(nextTask.title)}</p>` : '';
-                html += `<div data-event-id="${e.id}" class="event-card ${t.bg} p-3.5 rounded-xl shadow-sm border relative transition-all active:scale-[0.98] mb-3 cursor-pointer">
+                html += `<div data-event-id="${e.id}" class="event-card ${t.bg} p-3.5 relative transition-all active:scale-[0.98] mb-3 cursor-pointer">
                     <div onclick="openDetailById('${e.id}', false)" class="pr-9">
-                        <div class="absolute top-0 left-4 w-6 h-1.5 ${t.bar} rounded-b-md"></div>
-                        <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1">${escapeHtml(e.title)}</h3>
+                        <div class="absolute top-0 left-4 w-6 h-1 ${t.bar} rounded-b-md opacity-90"></div>
+                        <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1.5">${escapeHtml(e.title)}</h3>
                         <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] ${t.textSub} font-bold mb-2">
                             <span><i class="fa-solid fa-calendar-day mr-1"></i>${escapeHtml(e.time || '-')}</span>
                             <span class="truncate max-w-[55%]"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(e.location || '-')}</span>
                         </div>
-                        <p class="text-[10px] font-black ${pending > 0 ? 'text-orange-600' : 'text-green-600'}">미완료 ${pending}건 · ${percent}%</p>
+                        <p class="text-[10px] font-bold ${pending > 0 ? 'text-slate-700' : 'text-slate-500'}">미완료 ${pending}건 · ${percent}%</p>
                         ${nextLine}
-                        <div class="w-full bg-white/60 h-1.5 rounded-full overflow-hidden flex items-center mt-1.5"><div class="${t.bar} h-full transition-all duration-500" style="width:${percent}%"></div></div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex items-center mt-1.5"><div class="${t.bar} h-full transition-all duration-500" style="width:${percent}%"></div></div>
                     </div>
                     <button type="button" onclick="event.stopPropagation(); deleteEvent('${e.id}')" class="btn-delete-event absolute top-3 right-2 ${t.icon} hover:text-red-500 p-2" aria-label="삭제"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>`;
             });
-            document.getElementById('eventListArea').innerHTML = html || `<div class="py-10 text-center"><i class="fa-solid fa-inbox text-3xl text-slate-300 mb-3"></i><p class="text-[11px] text-slate-500 font-bold mb-4">진행 중인 경조사가 없습니다</p><button type="button" onclick="openModal('registerModal')" class="bg-blue-600 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-lg">+ 첫 경조사 등록</button></div>`;
+            document.getElementById('eventListArea').innerHTML = html || `<div class="py-10 text-center"><i class="fa-solid fa-inbox text-3xl text-slate-300 mb-3"></i><p class="text-[11px] text-slate-500 font-bold mb-4">진행 중인 경조사가 없습니다</p><button type="button" onclick="openModal('registerModal')" class="wk-btn-primary text-xs px-5 py-3 shadow-sm">+ 첫 경조사 등록</button></div>`;
             updateKakaoEventSelect();
         }
 
@@ -1752,14 +1860,14 @@
                 else if (collapsedOwners.has(owner)) collapsed = true;
                 else collapsed = isAllDone && !hasPending;
                 const cardCls = isAllDone ? 'owner-card-done' : '';
-                const ok = isAllDone ? 'text-green-300' : 'text-blue-100';
+                const ok = isAllDone ? 'text-emerald-200' : 'text-slate-300';
 
                 const progLabel = ownerDisplayName(owner);
-                mHtml += `<div class="bg-blue-900/30 rounded-lg py-1.5 border border-blue-400/20"><div class="font-bold ${ok} text-[8px] leading-tight">${escapeHtml(progLabel)}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
+                mHtml += `<div class="bg-white/10 rounded-lg py-1.5 border border-white/15"><div class="font-bold ${ok} text-[8px] leading-tight">${escapeHtml(progLabel)}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
 
                 let taskHtml = myTasks.map(t => `
                     <div class="flex items-center gap-2 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
-                        <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'}" data-done="${t.done}">
+                        <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'bg-slate-800 border-slate-800 text-white' : 'border-slate-300 bg-white'}" data-done="${t.done}">
                             ${t.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
                         </button>
                         <span class="task-label flex-grow text-[11px] leading-snug ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${escapeHtml(t.title)}</span>
@@ -1767,7 +1875,7 @@
                     </div>`).join('');
 
                 const disp = ownerDisplayName(owner);
-                const subLabel = myMeta.sub ? `${escapeHtml(disp)} <span class="text-blue-600">(${escapeHtml(myMeta.sub)} 대체)</span>` : escapeHtml(disp);
+                const subLabel = myMeta.sub ? `${escapeHtml(disp)} <span class="text-slate-500">(${escapeHtml(myMeta.sub)} 대체)</span>` : escapeHtml(disp);
                 cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${cardCls}" data-owner="${escapeHtml(owner)}">
                     <button type="button" class="owner-toggle w-full bg-slate-50 px-3 py-2.5 flex justify-between items-center border-b border-slate-100 text-left">
                         <span class="text-[11px] font-bold text-slate-800">${subLabel} <span class="text-slate-400 font-bold">(${myTasks.filter(t=>t.done).length}/${myTasks.length})</span></span>
@@ -1775,12 +1883,12 @@
                     </button>
                     <div class="owner-card-body ${collapsed ? 'collapsed' : ''}">
                         <div class="px-3 py-1 flex justify-end gap-1 border-b border-slate-50">
-                            ${!isReadOnly ? `<button type="button" class="btn-add-task text-[9px] text-blue-600 font-bold px-2 py-1 rounded border border-blue-100 bg-white" data-owner="${escapeHtml(owner)}">+ 추가</button><button type="button" class="btn-set-sub text-[9px] text-blue-600 font-bold px-2 py-1 rounded border border-blue-100 bg-white" data-owner="${escapeHtml(owner)}">대체</button>` : ''}
+                            ${!isReadOnly ? `<button type="button" class="btn-add-task text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">+ 추가</button><button type="button" class="btn-set-sub text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">대체</button>` : ''}
                         </div>
                         <div class="px-3 pb-2">${taskHtml || '<p class="text-[10px] text-slate-300 italic py-2">업무 없음</p>'}</div>
-                        <div class="p-2 bg-yellow-50/40 border-t border-yellow-100 flex items-center gap-1.5">
-                            <input type="text" id="note_${ownerKey(owner)}" value="${escapeHtml(myMeta.note || '')}" ${isReadOnly ? 'disabled' : ''} placeholder="메모..." class="text-[10px] w-full bg-white border border-yellow-200 rounded px-2 py-2 outline-none focus:border-yellow-400">
-                            ${!isReadOnly ? `<button type="button" class="btn-save-note bg-yellow-400 text-yellow-900 font-bold px-3 py-2 rounded text-[10px] shrink-0" data-owner="${escapeHtml(owner)}">저장</button>` : ''}
+                        <div class="p-2 bg-slate-50 border-t border-slate-100 flex items-center gap-1.5">
+                            <input type="text" id="note_${ownerKey(owner)}" value="${escapeHtml(myMeta.note || '')}" ${isReadOnly ? 'disabled' : ''} placeholder="메모..." class="text-[10px] w-full wk-input px-2 py-2">
+                            ${!isReadOnly ? `<button type="button" class="btn-save-note wk-btn-primary px-3 py-2 text-[10px] shrink-0" data-owner="${escapeHtml(owner)}">저장</button>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -1968,7 +2076,7 @@
                 setRegBusMode(regBusNeeded);
                 onEventSuffixChange('reg');
             }
-            if (modalId === 'busTableModal') highlightBusTable(lastBusCaseKey);
+            if (modalId === 'busTableModal') highlightBusTable(lastBusCaseKey, lastBusDist);
             document.getElementById(modalId).classList.remove('hidden');
         }
 
@@ -1995,9 +2103,9 @@
                 const v = doc.data(); vendorDataCache[doc.id] = v;
                 const telFmt = formatPhoneDisplay(v.tel);
                 const descBadge = v.desc ? `<span class="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">${escapeHtml(v.desc)}</span>` : '';
-                let btnSms = v.useSms ? `<button type="button" onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-9 h-9 bg-green-50 text-green-600 rounded-md flex items-center justify-center"><i class="fa-solid fa-comment-sms"></i></button>` : '';
-                let btnCall = v.useCall ? `<a href="tel:${normalizePhone(v.tel) || v.tel}" onclick="event.stopPropagation();" class="w-9 h-9 bg-blue-100 text-blue-600 rounded-md flex items-center justify-center"><i class="fa-solid fa-phone"></i></a>` : '';
-                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm mb-2 active:scale-[0.98] hover:border-blue-300"><div class="min-w-0 flex-grow pr-2"><div class="flex items-center gap-1 flex-wrap mb-0.5"><p class="font-bold text-[11px]">${escapeHtml(v.name)}</p>${descBadge}</div><p class="text-[10px] text-slate-500 font-mono">${escapeHtml(telFmt)}</p></div><div class="flex gap-1.5 shrink-0">${btnSms}${btnCall}</div></div>`; 
+                let btnSms = v.useSms ? `<button type="button" onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-9 h-9 bg-slate-100 text-slate-700 rounded-md flex items-center justify-center"><i class="fa-solid fa-comment-sms"></i></button>` : '';
+                let btnCall = v.useCall ? `<a href="tel:${normalizePhone(v.tel) || v.tel}" onclick="event.stopPropagation();" class="w-9 h-9 bg-slate-800 text-white rounded-md flex items-center justify-center"><i class="fa-solid fa-phone"></i></a>` : '';
+                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 wk-card mb-2 active:scale-[0.98] hover:border-slate-300"><div class="min-w-0 flex-grow pr-2"><div class="flex items-center gap-1 flex-wrap mb-0.5"><p class="font-bold text-[11px]">${escapeHtml(v.name)}</p>${descBadge}</div><p class="text-[10px] text-slate-500 font-mono">${escapeHtml(telFmt)}</p></div><div class="flex gap-1.5 shrink-0">${btnSms}${btnCall}</div></div>`; 
             });
             const emptyHtml = '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
             ['vendorList_home', 'vendorList_detail'].forEach(id => {
