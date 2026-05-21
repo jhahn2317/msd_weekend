@@ -73,6 +73,20 @@
             line-height: 2.1;
             color: #44403c;
         }
+        .hr-ac-wrap { position: relative; }
+        .hr-ac-dropdown {
+            position: fixed; left: 0; right: auto; top: 0; width: 12rem;
+            max-height: 11rem; overflow-y: auto; z-index: 250;
+            background: #fff; border: 1px solid #fcd34d; border-radius: 0.75rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        }
+        .hr-ac-item {
+            display: block; width: 100%; text-align: left; padding: 0.55rem 0.65rem;
+            border-bottom: 1px solid #f1f5f9; font-size: 11px;
+        }
+        .hr-ac-item:last-child { border-bottom: none; }
+        .hr-ac-item:active, .hr-ac-item:hover { background: #fffbeb; }
+        #registerModal .reg-modal-body { max-height: calc(90vh - 3.25rem); overflow-y: auto; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
@@ -120,9 +134,22 @@
                     </div>
                     <p id="hr_roster_status" class="text-[9px] text-slate-600 font-medium">명단 미등록 — 엑셀을 업로드해 주세요</p>
                     <div class="flex gap-2">
-                        <input type="text" id="hr_name_search" placeholder="이름 (예: 정수현)" class="flex-grow border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none">
-                        <input type="text" id="kt_event_suffix" value="부친상" placeholder="부친상" class="w-16 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none text-center font-bold">
+                        <div class="hr-ac-wrap flex-grow min-w-0">
+                            <input type="text" id="hr_name_search" placeholder="이름 (예: 안정)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none">
+                            <div id="hr_search_dropdown" class="hr-ac-dropdown hidden"></div>
+                        </div>
+                        <select id="kt_event_suffix" onchange="onEventSuffixChange('kt')" class="w-[5.5rem] shrink-0 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none font-bold text-center">
+                            <option value="부친상" selected>부친상</option>
+                            <option value="모친상">모친상</option>
+                            <option value="빙부상">빙부상</option>
+                            <option value="빙모상">빙모상</option>
+                            <option value="조부상">조부상</option>
+                            <option value="조모상">조모상</option>
+                            <option value="배우자상">배우자상</option>
+                            <option value="__custom__">직접입력</option>
+                        </select>
                     </div>
+                    <input type="text" id="kt_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="직접 입력 (예: 고모상)">
                     <button type="button" onclick="generateHeadlineFromName()" class="w-full bg-amber-500 text-white font-bold rounded-lg py-2 text-[10px]">이름으로 한 줄 제목 만들기</button>
                 </div>
 
@@ -194,9 +221,12 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end py-1">
-                    <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                    <label for="bus_is_holiday" class="ml-2 text-[11px] font-bold text-red-500">오늘이 휴일(연휴/공휴일) 입니까?</label>
+                <div class="py-1">
+                    <div class="flex items-center justify-end">
+                        <input type="checkbox" id="bus_is_holiday" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="bus_is_holiday" class="ml-2 text-[11px] font-bold text-red-500">연휴·공휴일 접수인가요?</label>
+                    </div>
+                    <p class="text-[8px] text-slate-400 text-right mt-0.5">달력이 월~목이어도 연휴 접수면 체크 (연휴 금요일 규정 적용)</p>
                 </div>
 
                 <button onclick="calculateBusRule()" class="w-full bg-blue-600 text-white font-bold rounded-xl py-3 text-xs shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">규정 확인하기</button>
@@ -240,7 +270,7 @@
                     <button id="tab-btn-vendor" onclick="switchTab('vendor')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent"><i class="fa-solid fa-address-book mr-1"></i>업체 연락처</button>
                 </div>
                 <div id="tab-rule" class="p-3">
-                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none"><option value="">경조 종류 선택...</option><option value="parent_death">부모님 상 (빙부/빙모 포함)</option><option value="sibling_death">형제자매 상 (본인/배우자)</option><option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option><option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option><option value="sibling_marriage">형제자매 결혼 (본인/배우자)</option><option value="my_marriage">본인 결혼</option></select>
+                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none"><option value="">경조 종류 선택...</option><option value="parent_death">부모님 상 (빙부/빙모 포함)</option><option value="sibling_death">형제자매 상 (본인/배우자)</option><option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option><option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option></select>
                     <div id="calcResult" class="hidden bg-blue-50 p-2 rounded-lg border border-blue-100 text-[10px] space-y-1 mt-2 font-medium"><div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-blue-700"></span></div><div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div><div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div></div>
                 </div>
                 <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
@@ -325,8 +355,57 @@
         </div>
     </div>
 
-    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm">새 경조사 등록</h3><button type="button" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">상황명</label><input type="text" id="reg_title" placeholder="홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"><p id="reg_title_err" class="field-error-msg hidden"></p></div><div><label class="block text-[10px] font-bold text-slate-400 mb-0.5 uppercase">별세일</label><p class="text-[8px] text-slate-400 mb-1">임종·작고일 (사망일보다 정중한 표현)</p><input type="date" id="reg_death_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div><p id="reg_death_date_err" class="field-error-msg hidden"></p>
-                <div class="flex gap-2"><div class="w-3/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인일</label><input type="date" id="reg_funeral_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div><div class="w-2/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인 시각</label><select id="reg_funeral_time" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none font-medium"></select></div></div><p id="reg_funeral_date_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장소</label><input type="text" id="reg_location" placeholder="강남 성모병원 1호실" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div><button type="button" onclick="submitEvent()" class="w-full bg-blue-600 text-white font-bold rounded-lg py-3 mt-1 text-xs shadow-md">업무카드등록</button></div></div></div>
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="bg-blue-600 px-4 py-3 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm">새 경조사 등록</h3>
+                <button type="button" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 space-y-3 reg-modal-body">
+                <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2.5 space-y-2">
+                    <p class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-user text-amber-600 mr-1"></i>대상 직원 · 한 줄 제목</p>
+                    <div class="hr-ac-wrap">
+                        <input type="text" id="reg_employee_name" placeholder="이름 입력 (예: 안정)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2.5 text-xs bg-white outline-none font-bold">
+                        <div id="reg_hr_dropdown" class="hr-ac-dropdown hidden"></div>
+                    </div>
+                    <p id="reg_employee_hint" class="text-[9px] text-green-800 font-bold hidden"></p>
+                    <div class="flex gap-2">
+                        <select id="reg_event_suffix" onchange="onEventSuffixChange('reg')" class="w-[5.5rem] shrink-0 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none font-bold">
+                            <option value="부친상" selected>부친상</option>
+                            <option value="모친상">모친상</option>
+                            <option value="빙부상">빙부상</option>
+                            <option value="빙모상">빙모상</option>
+                            <option value="조부상">조부상</option>
+                            <option value="조모상">조모상</option>
+                            <option value="배우자상">배우자상</option>
+                            <option value="__custom__">직접입력</option>
+                        </select>
+                        <input type="text" id="reg_title" placeholder="한 줄 제목 (자동 생성)" class="flex-grow border border-slate-200 rounded-lg p-2 text-[11px] bg-white outline-none font-medium">
+                    </div>
+                    <input type="text" id="reg_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="직접 입력 (예: 고모상)">
+                    <p id="reg_title_err" class="field-error-msg hidden"></p>
+                </div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-0.5 uppercase">별세일</label><p class="text-[8px] text-slate-400 mb-1">임종·작고일</p><input type="date" id="reg_death_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <p id="reg_death_date_err" class="field-error-msg hidden"></p>
+                <div class="flex gap-2">
+                    <div class="w-3/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인일</label><input type="date" id="reg_funeral_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                    <div class="w-2/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인 시각</label><select id="reg_funeral_time" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none font-medium"></select></div>
+                </div>
+                <p id="reg_funeral_date_err" class="field-error-msg hidden"></p>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장례식장</label><input type="text" id="reg_location" placeholder="광주 … 장례식장 3호실" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">고인 <span class="text-red-500">*</span></label><input type="text" id="reg_deceased" placeholder="정문수(69세/남)" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <p id="reg_deceased_err" class="field-error-msg hidden"></p>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장지</label><input type="text" id="reg_burial" placeholder="선택" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">마음전할곳</label><input type="text" id="reg_account" placeholder="선택" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div class="flex gap-2">
+                    <button type="button" id="reg_bus_yes" onclick="setRegBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600">버스 대절 <span class="text-red-500">필요</span></button>
+                    <button type="button" id="reg_bus_no" onclick="setRegBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700">버스 <span class="text-slate-500">불필요</span></button>
+                </div>
+                <button type="button" onclick="submitEvent(false)" class="w-full bg-blue-600 text-white font-bold rounded-lg py-3 text-xs shadow-md">업무카드 등록</button>
+                <button type="button" onclick="submitEvent(true)" class="w-full bg-yellow-400 text-yellow-900 font-bold rounded-lg py-2.5 text-xs border border-yellow-500">등록 후 카톡 미리보기</button>
+            </div>
+        </div>
+    </div>
     <div id="hrDuplicateModal" class="fixed inset-0 bg-slate-900/60 z-[360] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div class="bg-amber-500 px-4 py-3 text-white flex justify-between items-center">
@@ -392,6 +471,9 @@
         const SUB_CANDIDATES = ['황충모 전문위원', '조정열 프로', '안정훈 프로', '변우혁 프로', '김태석 프로', '박유희 프로'];
         let subPickerOwner = null;
         let kakaoBusNeeded = false;
+        let regBusNeeded = false;
+        let regSelectedHrIdx = -1;
+        const HR_CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
         let hrRoster = [];
         let hrRosterMeta = { updatedAt: null, count: 0 };
         let activeTasksUnsubscribe = null, activeMetaUnsubscribe = null;
@@ -431,27 +513,23 @@
         };
 
         window.fillKakaoFromDetail = () => {
-            const e = globalEventsActive.find(x => x.id === currentEventId);
-            document.getElementById('kt_headline').value = document.getElementById('d_title').innerText.trim();
-            if (e?.location) document.getElementById('kt_hall').value = e.location;
-            if (e?.funeralDate) {
-                document.getElementById('kt_funeral_date').value = e.funeralDate;
-                fillTimeSelect30('kt_funeral_time', e.funeralTime || '09:00');
-            } else {
+            const e = globalEventsActive.find(x => x.id === currentEventId) || globalEventsClosed.find(x => x.id === currentEventId);
+            if (e) populateKakaoFromEvent(e);
+            else {
+                document.getElementById('kt_headline').value = document.getElementById('d_title').innerText.trim();
                 const info = document.getElementById('d_info').innerText;
                 const parts = info.split('|').map(s => s.trim());
-                const timePart = parts[0] || '';
-                const 발인Match = timePart.match(/발인[^·]*/);
-                setPickerFromText('kt_funeral_date', 'kt_funeral_time', 발인Match ? 발인Match[0] : timePart);
                 if (parts[1]) document.getElementById('kt_hall').value = parts[1];
+                const 발인Match = (parts[0] || '').match(/발인[^·]*/);
+                if (발인Match) setPickerFromText('kt_funeral_date', 'kt_funeral_time', 발인Match[0]);
             }
             if (!document.getElementById('kt_deceased').value.trim()) {
-                showToast('고인을 입력한 뒤 미리보기 하세요', true);
+                showToast('등록 시 고인을 입력하거나, 홈에서 고인을 입력하세요', true);
                 switchScreen('screen-list', { skipHistory: true });
                 return;
             }
             if (!document.getElementById('kt_funeral_date').value) {
-                showToast('발인 일시를 선택해 주세요', true);
+                showToast('발인 일시를 확인하세요', true);
                 switchScreen('screen-list', { skipHistory: true });
                 return;
             }
@@ -533,6 +611,245 @@
             return employees;
         }
 
+        window.onEventSuffixChange = (prefix = 'kt') => {
+            const isCustom = document.getElementById(`${prefix}_event_suffix`).value === '__custom__';
+            const customEl = document.getElementById(`${prefix}_event_suffix_custom`);
+            if (!customEl) return;
+            customEl.classList.toggle('hidden', !isCustom);
+            if (isCustom) customEl.focus();
+            else customEl.value = '';
+            if (prefix === 'reg') updateRegTitleFromSelection();
+        };
+
+        function getEventSuffix(prefix = 'kt') {
+            const sel = document.getElementById(`${prefix}_event_suffix`);
+            if (!sel) return '부친상';
+            const v = sel.value;
+            if (v === '__custom__') {
+                const c = document.getElementById(`${prefix}_event_suffix_custom`);
+                return c ? c.value.trim() : '';
+            }
+            return v || '부친상';
+        }
+
+        function setEventSuffixSelect(prefix, suffix) {
+            const sel = document.getElementById(`${prefix}_event_suffix`);
+            const custom = document.getElementById(`${prefix}_event_suffix_custom`);
+            if (!sel) return;
+            const opts = [...sel.options].map(o => o.value).filter(v => v !== '__custom__');
+            if (suffix && opts.includes(suffix)) {
+                sel.value = suffix;
+                if (custom) { custom.classList.add('hidden'); custom.value = ''; }
+            } else if (suffix) {
+                sel.value = '__custom__';
+                if (custom) { custom.classList.remove('hidden'); custom.value = suffix; }
+            }
+            onEventSuffixChange(prefix);
+        }
+
+        function getChosung(str) {
+            return [...String(str || '')].map(c => {
+                const code = c.charCodeAt(0);
+                if (code >= 0xAC00 && code <= 0xD7A3) return HR_CHO[Math.floor((code - 0xAC00) / 588)];
+                return c;
+            }).join('');
+        }
+
+        function hrMatchScore(person, query) {
+            const q = query.trim();
+            if (!q) return 0;
+            const name = person.name || '';
+            if (name === q) return 100;
+            if (name.startsWith(q)) return 85;
+            if (name.includes(q)) return 70;
+            const cho = getChosung(name);
+            if (cho.startsWith(q)) return 65;
+            if (cho.includes(q)) return 55;
+            const blob = [person.division, person.hq, person.office, person.team, person.rank, name].filter(Boolean).join(' ');
+            if (blob.includes(q)) return 35;
+            return 0;
+        }
+
+        function findHrRosterIndex(person) {
+            return hrRoster.findIndex(x =>
+                x.name === person.name && x.division === person.division && x.hq === person.hq &&
+                x.office === person.office && x.team === person.team && x.rank === person.rank
+            );
+        }
+
+        function searchHrRoster(query, limit = 12) {
+            const q = query.trim();
+            if (!q || !hrRoster.length) return [];
+            return hrRoster
+                .map((p, idx) => ({ p, idx, score: hrMatchScore(p, q) }))
+                .filter(x => x.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit)
+                .map(x => ({ person: x.p, idx: x.idx >= 0 ? x.idx : findHrRosterIndex(x.p) }));
+        }
+
+        function positionHrDropdown(inputEl, dropdownEl) {
+            const r = inputEl.getBoundingClientRect();
+            dropdownEl.style.top = `${Math.min(r.bottom + 2, window.innerHeight - 120)}px`;
+            dropdownEl.style.left = `${r.left}px`;
+            dropdownEl.style.width = `${r.width}px`;
+        }
+
+        function renderHrAcDropdown(dropdownEl, matches, onPick, inputEl) {
+            if (inputEl) positionHrDropdown(inputEl, dropdownEl);
+            if (!matches.length) {
+                dropdownEl.innerHTML = '<p class="p-2 text-[10px] text-slate-400">일치하는 인원이 없습니다</p>';
+                dropdownEl.classList.remove('hidden');
+                return;
+            }
+            dropdownEl.innerHTML = matches.map(({ person, idx }) => {
+                const safeIdx = idx >= 0 ? idx : findHrRosterIndex(person);
+                return `<button type="button" class="hr-ac-item" data-hr-idx="${safeIdx}">
+                    <span class="font-black text-slate-800">${escapeHtml(person.name)}</span>
+                    <span class="text-blue-600 font-bold ml-1">${escapeHtml(person.rank || '')}</span>
+                    <span class="block text-[9px] text-slate-500 mt-0.5">${escapeHtml(personDetailLabel(person))}</span>
+                </button>`;
+            }).join('');
+            dropdownEl.querySelectorAll('.hr-ac-item').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const i = parseInt(btn.dataset.hrIdx, 10);
+                    if (hrRoster[i]) onPick(hrRoster[i], i);
+                    dropdownEl.classList.add('hidden');
+                });
+            });
+            dropdownEl.classList.remove('hidden');
+        }
+
+        function bindHrAutocomplete(inputId, dropdownId, onPick, opts = {}) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            if (!input || !dropdown) return;
+            const refresh = () => {
+                if (!hrRoster.length) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+                const q = input.value.trim();
+                if (q.length < 1) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+                renderHrAcDropdown(dropdown, searchHrRoster(q), onPick, input);
+            };
+            input.addEventListener('input', refresh);
+            input.addEventListener('focus', refresh);
+            input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    dropdown.classList.add('hidden');
+                    if (!opts.autoExactOnBlur) return;
+                    const q = input.value.trim();
+                    if (!q) return;
+                    const exact = hrRoster.filter(p => p.name === q);
+                    if (exact.length === 1) {
+                        const idx = findHrRosterIndex(exact[0]);
+                        if (idx >= 0) onPick(hrRoster[idx], idx);
+                    }
+                }, 200);
+            });
+        }
+
+        function updateRegTitleFromSelection() {
+            const suffix = getEventSuffix('reg');
+            if (regSelectedHrIdx < 0 || !suffix) return;
+            const person = hrRoster[regSelectedHrIdx];
+            if (!person) return;
+            document.getElementById('reg_title').value = buildHeadlineFromPerson(person, suffix);
+        }
+
+        function setRegEmployeeHint(person) {
+            const el = document.getElementById('reg_employee_hint');
+            if (!el) return;
+            if (!person) {
+                el.classList.add('hidden');
+                el.textContent = '';
+                return;
+            }
+            el.textContent = personDetailLabel(person);
+            el.classList.remove('hidden');
+        }
+
+        window.selectRegEmployee = (idx) => {
+            const person = hrRoster[idx];
+            if (!person) return;
+            regSelectedHrIdx = idx;
+            document.getElementById('reg_employee_name').value = person.name;
+            setRegEmployeeHint(person);
+            updateRegTitleFromSelection();
+            document.getElementById('reg_hr_dropdown')?.classList.add('hidden');
+        };
+
+        window.selectKakaoHrEmployee = (idx) => {
+            const person = hrRoster[idx];
+            if (!person) return;
+            document.getElementById('hr_name_search').value = person.name;
+            document.getElementById('hr_search_dropdown')?.classList.add('hidden');
+            const suffix = getEventSuffix('kt');
+            if (!suffix) return showToast('경조 구분을 선택하세요', true);
+            document.getElementById('kt_headline').value = buildHeadlineFromPerson(person, suffix);
+            const regTitle = document.getElementById('reg_title');
+            if (regTitle && !regTitle.value.trim()) regTitle.value = document.getElementById('kt_headline').value;
+            showToast('한 줄 제목 적용');
+        };
+
+        window.setRegBusMode = (needed) => {
+            regBusNeeded = needed;
+            const yes = document.getElementById('reg_bus_yes');
+            const no = document.getElementById('reg_bus_no');
+            if (!yes || !no) return;
+            if (needed) {
+                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
+                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
+            } else {
+                no.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700';
+                yes.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600';
+            }
+        };
+
+        function populateKakaoFromEvent(e) {
+            if (!e) return;
+            document.getElementById('kt_headline').value = e.title || '';
+            document.getElementById('kt_hall').value = e.location || '';
+            document.getElementById('kt_deceased').value = e.deceased || '';
+            document.getElementById('kt_burial').value = e.burial || '';
+            document.getElementById('kt_account').value = e.account || '';
+            if (e.employeeName) document.getElementById('hr_name_search').value = e.employeeName;
+            if (e.eventSuffix) setEventSuffixSelect('kt', e.eventSuffix);
+            setKakaoBusMode(!!e.busNeeded);
+            if (e.funeralDate) {
+                document.getElementById('kt_funeral_date').value = e.funeralDate;
+                fillTimeSelect30('kt_funeral_time', e.funeralTime || '09:00');
+            } else if (e.time) {
+                const 발인Match = String(e.time).match(/발인[^·|]*/);
+                setPickerFromText('kt_funeral_date', 'kt_funeral_time', 발인Match ? 발인Match[0] : e.time);
+            }
+        }
+
+        function resetRegisterForm() {
+            regSelectedHrIdx = -1;
+            document.getElementById('reg_employee_name').value = '';
+            setRegEmployeeHint(null);
+            document.getElementById('reg_title').value = '';
+            document.getElementById('reg_location').value = '';
+            document.getElementById('reg_deceased').value = '';
+            document.getElementById('reg_burial').value = '';
+            document.getElementById('reg_account').value = '';
+            document.getElementById('reg_death_date').value = '';
+            document.getElementById('reg_funeral_date').value = '';
+            fillTimeSelect30('reg_funeral_time', '09:00');
+            setRegBusMode(false);
+            document.getElementById('reg_event_suffix').value = '부친상';
+            const rc = document.getElementById('reg_event_suffix_custom');
+            if (rc) { rc.value = ''; rc.classList.add('hidden'); }
+            document.getElementById('reg_hr_dropdown')?.classList.add('hidden');
+            ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased'].forEach(clearFieldError);
+        }
+
         function buildHeadlineFromPerson(person, eventSuffix) {
             const parts = [];
             if (person.division) parts.push(person.division);
@@ -593,28 +910,33 @@
         };
 
         function searchHrByName(query) {
-            const q = query.trim();
-            if (!q || !hrRoster.length) return [];
-            const exact = hrRoster.filter(p => p.name === q);
-            if (exact.length) return exact;
-            return hrRoster.filter(p => p.name.includes(q));
+            return searchHrRoster(query, 50).map(x => x.person);
         }
 
         window.applyHeadlineForPerson = (index) => {
             const person = hrRoster[index];
             if (!person) return;
-            const suffix = document.getElementById('kt_event_suffix').value.trim() || '부친상';
+            const suffix = getEventSuffix('kt');
+            if (!suffix) return showToast('경조 구분을 선택하거나 직접 입력하세요', true);
             const headline = buildHeadlineFromPerson(person, suffix);
             document.getElementById('kt_headline').value = headline;
             const regTitle = document.getElementById('reg_title');
             if (regTitle && !regTitle.value.trim()) regTitle.value = headline;
+            regSelectedHrIdx = index;
+            const regName = document.getElementById('reg_employee_name');
+            if (regName && !regName.value.trim()) {
+                regName.value = person.name;
+                setRegEmployeeHint(person);
+                setEventSuffixSelect('reg', suffix);
+            }
             closeModal('hrDuplicateModal');
             showToast('한 줄 제목이 적용되었습니다');
         };
 
         function openHrDuplicatePicker(matches) {
             const list = document.getElementById('hr_duplicate_list');
-            const suffix = document.getElementById('kt_event_suffix').value.trim() || '부친상';
+            const suffix = getEventSuffix('kt');
+            if (!suffix) { showToast('경조 구분을 선택하거나 직접 입력하세요', true); return; }
             list.innerHTML = matches.map(p => {
                 const useIdx = hrRoster.findIndex(x =>
                     x.name === p.name && x.division === p.division && x.hq === p.hq &&
@@ -636,13 +958,11 @@
             if (!q) return showToast('이름을 입력하세요', true);
             const matches = searchHrByName(q);
             if (!matches.length) return showToast(`「${q}」 담당자를 찾을 수 없습니다`, true);
-            const suffix = document.getElementById('kt_event_suffix').value.trim() || '부친상';
+            const suffix = getEventSuffix('kt');
+            if (!suffix) return showToast('경조 구분을 선택하거나 직접 입력하세요', true);
             if (matches.length === 1) {
-                const headline = buildHeadlineFromPerson(matches[0], suffix);
-                document.getElementById('kt_headline').value = headline;
-                const regTitle = document.getElementById('reg_title');
-                if (regTitle && !regTitle.value.trim()) regTitle.value = headline;
-                showToast('한 줄 제목 생성 완료');
+                const idx = findHrRosterIndex(matches[0]);
+                selectKakaoHrEmployee(idx >= 0 ? idx : 0);
                 return;
             }
             openHrDuplicatePicker(matches);
@@ -732,12 +1052,7 @@
             const id = document.getElementById('kakao_event_select').value;
             const e = globalEventsActive.find(x => x.id === id);
             if (!e) return showToast('진행 중인 경조사를 선택하세요', true);
-            document.getElementById('kt_headline').value = e.title || '';
-            document.getElementById('kt_hall').value = e.location || '';
-            if (e.funeralDate) {
-                document.getElementById('kt_funeral_date').value = e.funeralDate;
-                fillTimeSelect30('kt_funeral_time', e.funeralTime || '09:00');
-            } else if (e.time) setPickerFromText('kt_funeral_date', 'kt_funeral_time', e.time);
+            populateKakaoFromEvent(e);
             showToast('경조사 정보를 불러왔습니다');
         };
 
@@ -908,8 +1223,17 @@
             if (err) err.classList.add('hidden');
         }
 
-        function formatCountdown(target) {
-            if (!target) return { text: '시간 계산 불가', overdue: false };
+        const BUS_WEEKDAY = { '일요일': 0, '월요일': 1, '화요일': 2, '수요일': 3, '목요일': 4, '금요일': 5, '토요일': 6 };
+
+        function daysUntilWeekday(fromDay, toDayName) {
+            const to = BUS_WEEKDAY[toDayName];
+            if (to == null) return 1;
+            let diff = (to - fromDay + 7) % 7;
+            return diff === 0 ? 7 : diff;
+        }
+
+        function formatCountdown(target, noSchedule) {
+            if (!target) return { text: noSchedule ? '규정표 외 (자동 계산 없음)' : '시간 계산 불가', overdue: false };
             const diff = target.getTime() - Date.now();
             if (diff <= 0) return { text: '마감 지남', overdue: true };
             const h = Math.floor(diff / 3600000);
@@ -930,41 +1254,39 @@
             if (!dateVal || !pCheckMsg) return { personnel: null, apply: null, depart: null };
             let personnel = null, depart = null;
             const offset = season === 'peak' ? 3 : 2;
+            const personnelDayOffset = (targetDay, hour) => {
+                let dOff = daysUntilWeekday(day, targetDay);
+                if (pCheckMsg.includes('오전 9시') && day === 6 && ampm === 'PM') dOff = daysUntilWeekday(day, '일요일');
+                if (pCheckMsg.includes('오전 9시') && day === 0 && ampm === 'PM') dOff = daysUntilWeekday(day, '월요일');
+                return addDaysAt(dateVal, dOff, hour);
+            };
 
-            if (pCheckMsg.includes('토요일 오전 9시')) personnel = addDaysAt(dateVal, day === 5 ? 1 : day === 6 && ampm === 'PM' ? 1 : 0, 9);
+            if (pCheckMsg.includes('토요일 오전 9시')) personnel = personnelDayOffset('토요일', 9);
             else if (pCheckMsg.includes('금요일 오후 6시')) personnel = addDaysAt(dateVal, 0, 18);
-            else if (pCheckMsg.includes('토요일 오후 6시')) personnel = addDaysAt(dateVal, day === 6 ? 0 : 1, 18);
-            else if (pCheckMsg.includes('일요일 오전 9시')) personnel = addDaysAt(dateVal, day === 6 ? 1 : 0, 9);
-            else if (pCheckMsg.includes('일요일 오후 6시')) personnel = addDaysAt(dateVal, day === 0 ? 0 : 1, 18);
-            else if (pCheckMsg.includes('월요일 오전 9시')) personnel = addDaysAt(dateVal, day === 0 ? 1 : 0, 9);
+            else if (pCheckMsg.includes('토요일 오후 6시')) personnel = addDaysAt(dateVal, day === 6 ? 0 : daysUntilWeekday(day, '토요일'), 18);
+            else if (pCheckMsg.includes('일요일 오전 9시')) personnel = personnelDayOffset('일요일', 9);
+            else if (pCheckMsg.includes('일요일 오후 6시')) personnel = addDaysAt(dateVal, day === 0 ? 0 : daysUntilWeekday(day, '일요일'), 18);
+            else if (pCheckMsg.includes('월요일 오전 9시')) personnel = personnelDayOffset('월요일', 9);
 
             const depHour = depTime?.includes('13') && !depTime.includes('or') ? 13
                 : depTime?.includes('15') ? 15
                 : depTime?.includes('12') ? 12
                 : depTime?.includes('11') ? 11 : 10;
-            let depOffset = 1;
-            if (depDay === '토요일') depOffset = day === 5 ? (ampm === 'PM' ? 1 : isHoliday && ampm === 'AM' ? 1 : 1) : 0;
-            if (depDay === '일요일') depOffset = day === 6 ? (ampm === 'PM' ? 1 : 1) : (day === 5 ? 2 : 1);
-            if (depDay === '월요일') depOffset = day === 0 ? (ampm === 'PM' ? 1 : 1) : 2;
-            if (day === 5 && ampm === 'PM') depOffset = 1;
-            if (day === 5 && ampm === 'AM' && isHoliday) depOffset = 1;
-            if (day === 6 && ampm === 'AM') depOffset = 1;
-            if (day === 6 && ampm === 'PM') depOffset = 1;
-            if (day === 0) depOffset = ampm === 'PM' ? 1 : 1;
+            const depOffset = daysUntilWeekday(day, depDay);
             depart = addDaysAt(dateVal, depOffset, depHour);
 
             let apply = depart ? new Date(depart.getTime() - offset * 3600000) : null;
             return { personnel, apply, depart };
         }
 
-        function renderBusTimeline(pCheckMsg, bApplyMsg, depText, deadlines) {
+        function renderBusTimeline(pCheckMsg, bApplyMsg, depText, deadlines, noSchedule) {
             const steps = [
                 { label: '① 인원 파악 마감', value: pCheckMsg, at: deadlines.personnel },
                 { label: '② 대절 신청 마감', value: bApplyMsg, at: deadlines.apply },
                 { label: '③ 출발', value: depText, at: deadlines.depart }
             ];
             document.getElementById('bus_timeline').innerHTML = steps.map(s => {
-                const cd = formatCountdown(s.at);
+                const cd = formatCountdown(s.at, noSchedule);
                 const cdCls = cd.overdue ? 'text-red-600' : 'text-blue-600';
                 return `<div class="bus-timeline-step"><p class="text-[10px] font-bold text-slate-500">${s.label}</p><p class="text-[12px] font-black text-slate-800">${escapeHtml(s.value)}</p><p class="text-[9px] font-bold ${cdCls} mt-0.5">${cd.text}</p></div>`;
             }).join('');
@@ -977,6 +1299,7 @@
         }
 
         function getBusCaseKey(day, ampm, isHoliday) {
+            if (isHoliday && day >= 1 && day <= 4) return ampm === 'AM' ? 'fri-am-holiday' : 'fri-pm-holiday';
             if (day === 5 && ampm === 'PM' && !isHoliday) return 'fri-pm';
             if (day === 5 && ampm === 'AM' && isHoliday) return 'fri-am-holiday';
             if (day === 5 && ampm === 'PM' && isHoliday) return 'fri-pm-holiday';
@@ -1019,8 +1342,14 @@
             let pCheckMsg = "", bApplyMsg = "", depDay = "", depTime = "", note = "";
             let isKnownCase = true;
 
-            // 로직 분기
-            if (day === 5 && ampm === 'PM' && !isHoliday) {
+            // 로직 분기 (규정표: 금·토·일 접수 + 연휴 금요일)
+            if (isHoliday && day >= 1 && day <= 4) {
+                if (ampm === 'AM') {
+                    pCheckMsg = "금요일 오후 6시 마감"; depDay = "토요일"; depTime = "10시";
+                } else {
+                    pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
+                }
+            } else if (day === 5 && ampm === 'PM' && !isHoliday) {
                 pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
             } else if (day === 5 && ampm === 'AM' && isHoliday) {
                 pCheckMsg = "금요일 오후 6시 마감"; depDay = "토요일"; depTime = "10시";
@@ -1038,7 +1367,8 @@
                 isKnownCase = false;
             }
 
-            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${daysArr[day]}) 접수건`;
+            const dayLabel = daysArr[day] + (isHoliday && day >= 1 && day <= 4 ? '·연휴' : isHoliday && day === 5 ? '·연휴' : '');
+            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${dayLabel}) 접수건`;
 
             if(isKnownCase) {
                 let offset = season === 'peak' ? 3 : 2;
@@ -1066,7 +1396,16 @@
             highlightBusTable(lastBusCaseKey);
             const depText = isKnownCase ? `${depDay} ${depTime}` : '접수 후 협의';
             const deadlines = isKnownCase ? estimateBusDeadlines(dateVal, day, ampm, isHoliday, dist, season, pCheckMsg, depDay, depTime) : { personnel: null, apply: null, depart: null };
-            renderBusTimeline(isKnownCase ? pCheckMsg : '평일 규정 (문의)', isKnownCase ? bApplyMsg : (season === 'peak' ? '출발 3시간 전' : '출발 2시간 전'), depText, deadlines);
+            renderBusTimeline(
+                isKnownCase ? pCheckMsg : '평일 규정 (관리자 문의)',
+                isKnownCase ? bApplyMsg : (season === 'peak' ? '최소 출발 3시간 전' : '출발 2시간 전'),
+                depText,
+                deadlines,
+                !isKnownCase
+            );
+            if (!isKnownCase) {
+                showToast('이 조합은 규정표에 없습니다 (예: 금요일 오전·비연휴). 토·일 접수 또는 연휴 체크를 확인하세요.', true);
+            }
             resArea.classList.remove('hidden');
         };
 
@@ -1236,6 +1575,8 @@
             isReadOnly = readOnly;
             document.getElementById('d_title').innerText = title;
             document.getElementById('d_info').innerText = info;
+            const e = globalEventsActive.find(x => x.id === eventId) || globalEventsClosed.find(x => x.id === eventId);
+            if (e) populateKakaoFromEvent(e);
             const btnClose = document.getElementById('btn-close-event');
             if (btnClose) btnClose.style.display = readOnly ? 'none' : 'block';
             const dangerZone = document.getElementById('dangerZoneArea');
@@ -1389,25 +1730,48 @@
             });
         };
 
-        async function submitEvent() {
+        async function submitEvent(openKakaoAfter = false) {
             clearFieldError('reg_title');
             clearFieldError('reg_death_date');
             clearFieldError('reg_funeral_date');
-            const t = document.getElementById('reg_title').value.trim();
+            clearFieldError('reg_deceased');
+            let t = document.getElementById('reg_title').value.trim();
             const deathDate = document.getElementById('reg_death_date').value;
             const funeralDate = document.getElementById('reg_funeral_date').value;
             const funeralTime = document.getElementById('reg_funeral_time').value;
             const l = document.getElementById('reg_location').value.trim();
+            const deceased = document.getElementById('reg_deceased').value.trim();
+            const burial = document.getElementById('reg_burial').value.trim();
+            const account = document.getElementById('reg_account').value.trim();
+            const employeeName = document.getElementById('reg_employee_name').value.trim();
+            const eventSuffix = getEventSuffix('reg');
+            const suffixForTitle = eventSuffix || '부친상';
+            if (!t && regSelectedHrIdx >= 0) {
+                t = buildHeadlineFromPerson(hrRoster[regSelectedHrIdx], suffixForTitle);
+                document.getElementById('reg_title').value = t;
+            }
+            if (!t && employeeName && hrRoster.length) {
+                const one = searchHrByName(employeeName);
+                if (one.length === 1) {
+                    t = buildHeadlineFromPerson(one[0], suffixForTitle);
+                    document.getElementById('reg_title').value = t;
+                }
+            }
             let valid = true;
-            if (!t) { showFieldError('reg_title', '상황명을 입력하세요'); valid = false; }
+            if (!t) { showFieldError('reg_title', '대상 직원·경조 구분으로 제목을 만들거나 직접 입력하세요'); valid = false; }
             if (!deathDate) { showFieldError('reg_death_date', '별세일을 선택하세요'); valid = false; }
             if (!funeralDate) { showFieldError('reg_funeral_date', '발인일을 선택하세요'); valid = false; }
+            if (!deceased) { showFieldError('reg_deceased', '고인을 입력하세요'); valid = false; }
             if (!valid) return showToast('필수 항목을 확인하세요', true);
             if (deathDate > funeralDate) return showToast('발인일은 별세일 이후여야 합니다', true);
             const tm = buildEventTimeSummary(deathDate, funeralDate, funeralTime);
+            const hrSnap = regSelectedHrIdx >= 0 ? hrRoster[regSelectedHrIdx] : null;
             const doc = await db.collection("events").add({
                 title: t, time: tm, location: l, status: 'active', createdAt: Date.now(),
-                deathDate, funeralDate, funeralTime
+                deathDate, funeralDate, funeralTime,
+                employeeName, eventSuffix: suffixForTitle,
+                deceased, burial, account, busNeeded: regBusNeeded,
+                hrPerson: hrSnap ? { name: hrSnap.name, division: hrSnap.division, hq: hrSnap.hq, office: hrSnap.office, team: hrSnap.team, rank: hrSnap.rank } : null
             });
             const def = [
                 {o:'조정열', t:'경영지원 단톡방에 경조사 지원조건 (경조금, 휴가, 조화여부 등) 공유'},
@@ -1423,13 +1787,20 @@
             ];
             const promises = def.map((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
             await Promise.all(promises);
-            document.getElementById('reg_title').value = '';
-            document.getElementById('reg_death_date').value = '';
-            document.getElementById('reg_funeral_date').value = '';
-            fillTimeSelect30('reg_funeral_time', '09:00');
-            document.getElementById('reg_location').value = '';
+            const saved = {
+                id: doc.id, title: t, time: tm, location: l, deathDate, funeralDate, funeralTime,
+                employeeName, eventSuffix: suffixForTitle, deceased, burial, account, busNeeded: regBusNeeded
+            };
+            resetRegisterForm();
             closeModal('registerModal');
+            populateKakaoFromEvent(saved);
             openDetail(doc.id, t, [tm, l].filter(Boolean).join(' | '), false);
+            if (openKakaoAfter) {
+                switchScreen('screen-list', { skipHistory: true });
+                setTimeout(() => openKakaoPreview(), 350);
+            } else {
+                showToast('등록 완료 — 상세에서 카톡 문구를 이어서 작성할 수 있습니다');
+            }
         }
 
         window.closeEvent = () => {
@@ -1443,8 +1814,10 @@
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
         function openModal(modalId) {
             if (modalId === 'registerModal') {
-                ['reg_title', 'reg_death_date', 'reg_funeral_date'].forEach(clearFieldError);
+                ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased'].forEach(clearFieldError);
                 if (!document.getElementById('reg_death_date').value) initAllDatePickers();
+                setRegBusMode(regBusNeeded);
+                onEventSuffixChange('reg');
             }
             if (modalId === 'busTableModal') highlightBusTable(lastBusCaseKey);
             document.getElementById(modalId).classList.remove('hidden');
@@ -1464,7 +1837,7 @@
             else if (h === '#bus') switchScreen('screen-bus', { skipHistory: true });
         }
 
-        const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' }, sibling_marriage: { c: '100,000원', m: '200,000원', l: '1일', f: '-' }, my_marriage: { c: '500,000원', m: '700,000원', l: '7일', f: '지원' } };
+        const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' } };
         window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
         db.collection("vendors").onSnapshot(snap => {
@@ -1554,7 +1927,14 @@
 
         initAllDatePickers();
         setKakaoBusMode(false);
+        setRegBusMode(false);
+        onEventSuffixChange('kt');
+        onEventSuffixChange('reg');
         loadHrRoster();
+        bindHrAutocomplete('reg_employee_name', 'reg_hr_dropdown', (person, idx) => selectRegEmployee(idx), { autoExactOnBlur: true });
+        bindHrAutocomplete('hr_name_search', 'hr_search_dropdown', (person, idx) => selectKakaoHrEmployee(idx));
+        document.getElementById('reg_event_suffix')?.addEventListener('change', () => updateRegTitleFromSelection());
+        document.getElementById('reg_event_suffix_custom')?.addEventListener('input', () => updateRegTitleFromSelection());
         setupListClickDelegation();
         document.getElementById('sub_picker_list').addEventListener('click', (e) => {
             const btn = e.target.closest('.sub-pick-btn');
