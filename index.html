@@ -87,6 +87,10 @@
         .hr-ac-item:last-child { border-bottom: none; }
         .hr-ac-item:active, .hr-ac-item:hover { background: #fffbeb; }
         #registerModal .reg-modal-body { max-height: calc(90vh - 3.25rem); overflow-y: auto; }
+        .deceased-gender-on { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; border: 2px solid #2563eb; background: #eff6ff; color: #1d4ed8; }
+        .deceased-gender-off { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; border: 1px solid #e2e8f0; background: #fff; color: #64748b; }
+        .deceased-age-wrap { display: flex; align-items: center; gap: 0.125rem; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0 0.35rem; min-height: 40px; }
+        .deceased-age-wrap input { width: 2.25rem; text-align: center; border: none; background: transparent; font-size: 16px; font-weight: 700; outline: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative">
@@ -97,11 +101,16 @@
     </div>
 
     <header class="bg-white shadow-sm sticky top-0 z-[60]">
-        <div class="max-w-md mx-auto px-3 py-2">
-            <h1 class="text-sm font-black text-blue-700 flex items-center gap-1.5 leading-tight">
-                <i class="fa-solid fa-square-poll-vertical shrink-0"></i>주말 업무 대응
-            </h1>
-            <p class="text-[10px] text-slate-500 font-bold mt-0.5">유니테스트 경영지원팀</p>
+        <div class="max-w-md mx-auto px-3 py-2 flex justify-between items-center gap-2">
+            <div class="min-w-0">
+                <h1 class="text-sm font-black text-blue-700 flex items-center gap-1.5 leading-tight">
+                    <i class="fa-solid fa-square-poll-vertical shrink-0"></i>주말 업무 대응
+                </h1>
+                <p class="text-[10px] text-slate-500 font-bold mt-0.5">유니테스트 경영지원팀</p>
+            </div>
+            <button type="button" onclick="openModal('settingsModal')" class="shrink-0 w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 flex items-center justify-center active:scale-95 hover:bg-slate-100" aria-label="설정">
+                <i class="fa-solid fa-gear text-base"></i>
+            </button>
         </div>
     </header>
 
@@ -121,21 +130,17 @@
                 </div>
                 <select id="kakao_event_select" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 mb-2 outline-none font-medium"></select>
 
+                <p class="text-[9px] text-slate-500 mb-2 flex flex-wrap items-center gap-1">
+                    <i class="fa-solid fa-users text-slate-400"></i>
+                    <span id="hr_roster_hint_kakao">인사 명단 미등록</span>
+                    <button type="button" onclick="openModal('settingsModal')" class="text-blue-600 font-bold underline">설정</button>
+                </p>
+
                 <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 mb-2 space-y-2">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-file-excel text-green-600 mr-1"></i>인사 기본정보 엑셀</p>
-                            <p class="text-[8px] text-amber-800/80 mt-0.5">담당: 박유희 프로 · 한글/사업부/본부/실/팀/직책 형식</p>
-                        </div>
-                        <label class="shrink-0 text-[9px] font-bold bg-white text-green-700 border border-green-200 px-2 py-1.5 rounded-lg cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-upload mr-0.5"></i>업로드
-                            <input type="file" id="hr_excel_file" accept=".xls,.xlsx,.xlsm" class="hidden" onchange="handleHrExcelUpload(this)">
-                        </label>
-                    </div>
-                    <p id="hr_roster_status" class="text-[9px] text-slate-600 font-medium">명단 미등록 — 엑셀을 업로드해 주세요</p>
+                    <p class="text-[10px] font-bold text-amber-900">한 줄 제목 자동 만들기</p>
                     <div class="flex gap-2">
                         <div class="hr-ac-wrap flex-grow min-w-0">
-                            <input type="text" id="hr_name_search" placeholder="이름 (예: 안정)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none">
+                            <input type="text" id="hr_name_search" placeholder="이름 (예: 홍길동)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none">
                             <div id="hr_search_dropdown" class="hr-ac-dropdown hidden"></div>
                         </div>
                         <select id="kt_event_suffix" onchange="onEventSuffixChange('kt')" class="w-[5.5rem] shrink-0 border border-amber-200 rounded-lg p-2 text-[11px] bg-white outline-none font-bold text-center">
@@ -149,22 +154,36 @@
                             <option value="__custom__">직접입력</option>
                         </select>
                     </div>
-                    <input type="text" id="kt_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="직접 입력 (예: 고모상)">
+                    <input type="text" id="kt_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="예: 고모상">
                     <button type="button" onclick="generateHeadlineFromName()" class="w-full bg-amber-500 text-white font-bold rounded-lg py-2 text-[10px]">이름으로 한 줄 제목 만들기</button>
                 </div>
 
                 <div class="space-y-2 text-[10px]">
-                    <div><label class="font-bold text-slate-500 block mb-0.5">한 줄 제목 (필수)</label><input type="text" id="kt_headline" placeholder="GE사업부 … 정수현팀장 부친상" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">장례식장 (필수)</label><input type="text" id="kt_hall" placeholder="광주광역시 … 3호실" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">고인 (필수)</label><input type="text" id="kt_deceased" placeholder="정문수(69세/남)" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">한 줄 제목 (필수)</label><input type="text" id="kt_headline" placeholder="○○사업부 홍길동 프로 부친상" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">장례식장 (필수)</label><input type="text" id="kt_hall" placeholder="서울 ○○장례식장 1호실" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div id="kt_deceased_block">
+                        <label class="font-bold text-slate-500 block mb-0.5">고인 (필수)</label>
+                        <div class="flex gap-1.5 items-stretch mt-0.5">
+                            <input type="text" id="kt_deceased_name" placeholder="성함" autocomplete="off" class="flex-grow min-w-0 border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none">
+                            <div class="deceased-age-wrap">
+                                <input type="number" id="kt_deceased_age" min="1" max="150" inputmode="numeric" placeholder="72" aria-label="나이">
+                                <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
+                            </div>
+                            <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
+                                <button type="button" id="kt_deceased_gender_m" onclick="setDeceasedGender('kt','남')" class="deceased-gender-on">남</button>
+                                <button type="button" id="kt_deceased_gender_f" onclick="setDeceasedGender('kt','여')" class="deceased-gender-off">여</button>
+                            </div>
+                        </div>
+                        <p id="kt_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
+                    </div>
                     <div><label class="font-bold text-slate-500 block mb-0.5">발인 일시 (필수)</label>
                         <div class="flex gap-2">
                             <input type="date" id="kt_funeral_date" class="picker-input flex-[1.2] border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none">
                             <select id="kt_funeral_time" class="picker-input flex-1 border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none font-medium"></select>
                         </div>
                     </div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">장지</label><input type="text" id="kt_burial" placeholder="고흥군 도덕면 선영" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
-                    <div><label class="font-bold text-slate-500 block mb-0.5">마음전할곳</label><input type="text" id="kt_account" placeholder="우리은행 …" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">장지</label><input type="text" id="kt_burial" placeholder="○○군 ○○면 선영" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
+                    <div><label class="font-bold text-slate-500 block mb-0.5">마음전할곳</label><input type="text" id="kt_account" placeholder="○○은행 123-456-789 홍길동" class="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 outline-none"></div>
                 </div>
                 <div class="flex gap-2 mt-3">
                     <button type="button" id="kt_bus_yes" onclick="setKakaoBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600">버스 대절 <span class="text-red-500">필요</span></button>
@@ -184,7 +203,7 @@
 
         <div id="screen-history" class="screen space-y-4">
             <div><h2 class="text-lg font-extrabold text-slate-800">대응 이력 조회</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
-            <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i><input type="text" id="searchInput" oninput="filterHistory()" placeholder="검색어 입력..." class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] outline-none"></div>
+            <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i><input type="text" id="searchInput" oninput="filterHistory()" placeholder="예: 홍길동 부친상" class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] outline-none"></div>
             <div id="historyListArea" class="space-y-2"></div>
         </div>
 
@@ -365,7 +384,7 @@
                 <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2.5 space-y-2">
                     <p class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-user text-amber-600 mr-1"></i>대상 직원 · 한 줄 제목</p>
                     <div class="hr-ac-wrap">
-                        <input type="text" id="reg_employee_name" placeholder="이름 입력 (예: 안정)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2.5 text-xs bg-white outline-none font-bold">
+                        <input type="text" id="reg_employee_name" placeholder="이름 (예: 홍길동)" autocomplete="off" class="w-full border border-amber-200 rounded-lg p-2.5 text-xs bg-white outline-none font-bold">
                         <div id="reg_hr_dropdown" class="hr-ac-dropdown hidden"></div>
                     </div>
                     <p id="reg_employee_hint" class="text-[9px] text-green-800 font-bold hidden"></p>
@@ -380,9 +399,9 @@
                             <option value="배우자상">배우자상</option>
                             <option value="__custom__">직접입력</option>
                         </select>
-                        <input type="text" id="reg_title" placeholder="한 줄 제목 (자동 생성)" class="flex-grow border border-slate-200 rounded-lg p-2 text-[11px] bg-white outline-none font-medium">
+                        <input type="text" id="reg_title" placeholder="○○사업부 홍길동 프로 부친상" class="flex-grow border border-slate-200 rounded-lg p-2 text-[11px] bg-white outline-none font-medium">
                     </div>
-                    <input type="text" id="reg_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="직접 입력 (예: 고모상)">
+                    <input type="text" id="reg_event_suffix_custom" class="hidden w-full border border-amber-300 rounded-lg p-2 text-[11px] bg-white outline-none font-bold" placeholder="예: 고모상">
                     <p id="reg_title_err" class="field-error-msg hidden"></p>
                 </div>
                 <div><label class="block text-[10px] font-bold text-slate-400 mb-0.5 uppercase">별세일</label><p class="text-[8px] text-slate-400 mb-1">임종·작고일</p><input type="date" id="reg_death_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
@@ -392,11 +411,25 @@
                     <div class="w-2/5"><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">발인 시각</label><select id="reg_funeral_time" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none font-medium"></select></div>
                 </div>
                 <p id="reg_funeral_date_err" class="field-error-msg hidden"></p>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장례식장</label><input type="text" id="reg_location" placeholder="광주 … 장례식장 3호실" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">고인 <span class="text-red-500">*</span></label><input type="text" id="reg_deceased" placeholder="정문수(69세/남)" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
-                <p id="reg_deceased_err" class="field-error-msg hidden"></p>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장지</label><input type="text" id="reg_burial" placeholder="선택" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
-                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">마음전할곳</label><input type="text" id="reg_account" placeholder="선택" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장례식장</label><input type="text" id="reg_location" placeholder="서울 ○○장례식장 1호실" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div id="reg_deceased_block">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">고인 <span class="text-red-500">*</span></label>
+                    <div class="flex gap-1.5 items-stretch">
+                        <input type="text" id="reg_deceased_name" placeholder="성함" autocomplete="off" class="flex-grow min-w-0 border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none">
+                        <div class="deceased-age-wrap">
+                            <input type="number" id="reg_deceased_age" min="1" max="150" inputmode="numeric" placeholder="72" aria-label="나이">
+                            <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
+                        </div>
+                        <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
+                            <button type="button" id="reg_deceased_gender_m" onclick="setDeceasedGender('reg','남')" class="deceased-gender-on">남</button>
+                            <button type="button" id="reg_deceased_gender_f" onclick="setDeceasedGender('reg','여')" class="deceased-gender-off">여</button>
+                        </div>
+                    </div>
+                    <p id="reg_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
+                </div>
+                <p id="reg_deceased_name_err" class="field-error-msg hidden"></p>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">장지</label><input type="text" id="reg_burial" placeholder="○○군 ○○면 선영" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
+                <div><label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">마음전할곳</label><input type="text" id="reg_account" placeholder="○○은행 123-456-789 홍길동" class="w-full border border-slate-200 rounded-lg p-2.5 text-xs bg-slate-50 outline-none"></div>
                 <div class="flex gap-2">
                     <button type="button" id="reg_bus_yes" onclick="setRegBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 text-slate-600">버스 대절 <span class="text-red-500">필요</span></button>
                     <button type="button" id="reg_bus_no" onclick="setRegBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold border-2 border-blue-600 bg-blue-50 text-blue-700">버스 <span class="text-slate-500">불필요</span></button>
@@ -406,6 +439,27 @@
             </div>
         </div>
     </div>
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-[370] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="bg-slate-700 px-4 py-3 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-gear"></i>설정</h3>
+                <button type="button" onclick="closeModal('settingsModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 space-y-4 overflow-y-auto">
+                <section class="bg-amber-50/90 border border-amber-200 rounded-xl p-3 space-y-2">
+                    <p class="text-[11px] font-bold text-amber-900"><i class="fa-solid fa-file-excel text-green-600 mr-1"></i>인사 기본정보 엑셀</p>
+                    <p class="text-[9px] text-amber-800/90 leading-relaxed">한글 · 사업부 · 본부 · 실 · 팀 · 직책 열이 있는 파일을 업로드합니다. (담당: 박유희 프로)</p>
+                    <p id="hr_roster_status" class="text-[10px] text-slate-700 font-bold bg-white/80 rounded-lg px-2 py-1.5 border border-amber-100">명단 미등록 — 엑셀을 업로드해 주세요</p>
+                    <label class="flex w-full items-center justify-center gap-2 bg-green-600 text-white font-bold rounded-xl py-3 text-xs cursor-pointer active:scale-[0.98]">
+                        <i class="fa-solid fa-upload"></i>엑셀 업로드
+                        <input type="file" id="hr_excel_file" accept=".xls,.xlsx,.xlsm" class="hidden" onchange="handleHrExcelUpload(this)">
+                    </label>
+                </section>
+                <p class="text-[9px] text-slate-400 text-center">Firebase에 저장되며, 등록·카톡 문구의 이름 검색에 사용됩니다.</p>
+            </div>
+        </div>
+    </div>
+
     <div id="hrDuplicateModal" class="fixed inset-0 bg-slate-900/60 z-[360] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div class="bg-amber-500 px-4 py-3 text-white flex justify-between items-center">
@@ -447,7 +501,7 @@
 
     <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-green-600 px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full bg-green-600 text-white font-bold rounded-lg py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
     <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full border border-slate-200 rounded-lg p-2 text-[11px] bg-slate-50 outline-none resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 bg-blue-600 text-white font-bold rounded-lg py-2 text-xs hover:bg-blue-700">저장</button></div></div></div></div>
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-1234-5678" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="자동변환: [일시], [장소], [행사명]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-blue-600 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow bg-slate-800 text-white font-bold rounded-lg py-2.5 text-xs hover:bg-slate-900">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -523,7 +577,7 @@
                 const 발인Match = (parts[0] || '').match(/발인[^·]*/);
                 if (발인Match) setPickerFromText('kt_funeral_date', 'kt_funeral_time', 발인Match[0]);
             }
-            if (!document.getElementById('kt_deceased').value.trim()) {
+            if (!getDeceasedParts('kt').display) {
                 showToast('등록 시 고인을 입력하거나, 홈에서 고인을 입력하세요', true);
                 switchScreen('screen-list', { skipHistory: true });
                 return;
@@ -811,11 +865,101 @@
             }
         };
 
+        function formatDeceasedDisplay(name, age, gender) {
+            const n = String(name || '').trim();
+            if (!n) return '';
+            const a = String(age ?? '').trim();
+            const g = gender === '여' ? '여' : gender === '남' ? '남' : '';
+            if (!a && !g) return n;
+            const inner = [a ? `${a}세` : '', g].filter(Boolean).join('/');
+            return `${n}(${inner})`;
+        }
+
+        function parseDeceasedString(s) {
+            const t = String(s || '').trim();
+            if (!t) return { name: '', age: '', gender: '남' };
+            const m = t.match(/^(.+?)\s*\(\s*(\d+)\s*세\s*\/\s*(남|여)\s*\)\s*$/);
+            if (m) return { name: m[1].trim(), age: m[2], gender: m[3] };
+            const m2 = t.match(/^(.+?)\s*\(\s*(\d+)\s*세\s*\)\s*$/);
+            if (m2) return { name: m2[1].trim(), age: m2[2], gender: '남' };
+            return { name: t, age: '', gender: '남' };
+        }
+
+        function getDeceasedGender(prefix) {
+            return document.getElementById(`${prefix}_deceased_gender_f`)?.dataset.selected === '1' ? '여' : '남';
+        }
+
+        window.setDeceasedGender = (prefix, gender) => {
+            const m = document.getElementById(`${prefix}_deceased_gender_m`);
+            const f = document.getElementById(`${prefix}_deceased_gender_f`);
+            const isF = gender === '여';
+            if (m) { m.className = isF ? 'deceased-gender-off' : 'deceased-gender-on'; m.dataset.selected = isF ? '0' : '1'; }
+            if (f) { f.className = isF ? 'deceased-gender-on' : 'deceased-gender-off'; f.dataset.selected = isF ? '1' : '0'; }
+            updateDeceasedPreview(prefix);
+        };
+
+        function setDeceasedFields(prefix, data) {
+            const parsed = data?.deceased ? parseDeceasedString(data.deceased) : null;
+            const name = data?.deceasedName || parsed?.name || '';
+            const age = data?.deceasedAge != null && data.deceasedAge !== '' ? String(data.deceasedAge) : (parsed?.age || '');
+            const gender = data?.deceasedGender || parsed?.gender || '남';
+            const elName = document.getElementById(`${prefix}_deceased_name`);
+            const elAge = document.getElementById(`${prefix}_deceased_age`);
+            if (elName) elName.value = name;
+            if (elAge) elAge.value = age;
+            setDeceasedGender(prefix, gender);
+        }
+
+        function getDeceasedParts(prefix) {
+            const name = document.getElementById(`${prefix}_deceased_name`)?.value.trim() || '';
+            const age = document.getElementById(`${prefix}_deceased_age`)?.value.trim() || '';
+            const gender = getDeceasedGender(prefix);
+            return { name, age, gender, display: formatDeceasedDisplay(name, age, gender) };
+        }
+
+        function getDeceasedPayload(prefix) {
+            const p = getDeceasedParts(prefix);
+            return { deceasedName: p.name, deceasedAge: p.age, deceasedGender: p.gender, deceased: p.display };
+        }
+
+        function updateDeceasedPreview(prefix) {
+            const prev = document.getElementById(`${prefix}_deceased_preview`);
+            if (!prev) return;
+            const { display } = getDeceasedParts(prefix);
+            prev.textContent = display ? `카톡 표기: ${display}` : '카톡 표기: —';
+        }
+
+        function validateDeceasedFields(prefix, showFieldErr) {
+            const { name, age } = getDeceasedParts(prefix);
+            if (showFieldErr) clearFieldError(`${prefix}_deceased_name`);
+            if (!name) {
+                showToast('고인 성함을 입력하세요', true);
+                document.getElementById(`${prefix}_deceased_name`)?.focus();
+                if (showFieldErr) showFieldError(`${prefix}_deceased_name`, '성함을 입력하세요');
+                return false;
+            }
+            const ageNum = Number(age);
+            if (!age || ageNum < 1 || ageNum > 150) {
+                showToast('고인 나이(세)를 입력하세요', true);
+                document.getElementById(`${prefix}_deceased_age`)?.focus();
+                return false;
+            }
+            return true;
+        }
+
+        function initDeceasedFields() {
+            ['kt', 'reg'].forEach(prefix => {
+                setDeceasedGender(prefix, '남');
+                document.getElementById(`${prefix}_deceased_name`)?.addEventListener('input', () => updateDeceasedPreview(prefix));
+                document.getElementById(`${prefix}_deceased_age`)?.addEventListener('input', () => updateDeceasedPreview(prefix));
+            });
+        }
+
         function populateKakaoFromEvent(e) {
             if (!e) return;
             document.getElementById('kt_headline').value = e.title || '';
             document.getElementById('kt_hall').value = e.location || '';
-            document.getElementById('kt_deceased').value = e.deceased || '';
+            setDeceasedFields('kt', e);
             document.getElementById('kt_burial').value = e.burial || '';
             document.getElementById('kt_account').value = e.account || '';
             if (e.employeeName) document.getElementById('hr_name_search').value = e.employeeName;
@@ -836,7 +980,7 @@
             setRegEmployeeHint(null);
             document.getElementById('reg_title').value = '';
             document.getElementById('reg_location').value = '';
-            document.getElementById('reg_deceased').value = '';
+            setDeceasedFields('reg', {});
             document.getElementById('reg_burial').value = '';
             document.getElementById('reg_account').value = '';
             document.getElementById('reg_death_date').value = '';
@@ -847,7 +991,7 @@
             const rc = document.getElementById('reg_event_suffix_custom');
             if (rc) { rc.value = ''; rc.classList.add('hidden'); }
             document.getElementById('reg_hr_dropdown')?.classList.add('hidden');
-            ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased'].forEach(clearFieldError);
+            ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased_name'].forEach(clearFieldError);
         }
 
         function buildHeadlineFromPerson(person, eventSuffix) {
@@ -866,16 +1010,19 @@
         }
 
         function updateHrStatusUI() {
-            const el = document.getElementById('hr_roster_status');
-            if (!el) return;
-            if (!hrRoster.length) {
-                el.textContent = '명단 미등록 — 엑셀을 업로드해 주세요';
-                el.className = 'text-[9px] text-slate-600 font-medium';
-                return;
+            let text = '인사 명단 미등록';
+            let statusClass = 'text-[10px] text-slate-700 font-bold bg-white/80 rounded-lg px-2 py-1.5 border border-amber-100';
+            if (hrRoster.length) {
+                const d = hrRosterMeta.updatedAt ? new Date(hrRosterMeta.updatedAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                text = `${hrRoster.length}명 등록됨${d ? ' · ' + d + ' 갱신' : ''}`;
+                statusClass = 'text-[10px] text-green-800 font-bold bg-green-50 rounded-lg px-2 py-1.5 border border-green-200';
+            } else {
+                text = '명단 미등록 — 아래에서 엑셀 업로드';
             }
-            const d = hrRosterMeta.updatedAt ? new Date(hrRosterMeta.updatedAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-            el.textContent = `${hrRoster.length}명 로드됨${d ? ' · ' + d + ' 갱신' : ''}`;
-            el.className = 'text-[9px] text-green-700 font-bold';
+            const el = document.getElementById('hr_roster_status');
+            if (el) { el.textContent = text; el.className = statusClass; }
+            const hint = document.getElementById('hr_roster_hint_kakao');
+            if (hint) hint.textContent = hrRoster.length ? `${hrRoster.length}명 등록됨` : '인사 명단 미등록';
         }
 
         function loadHrRoster() {
@@ -904,6 +1051,7 @@
                     fileName: file.name
                 });
                 showToast(`${employees.length}명 인사 명단 저장 완료`);
+                closeModal('settingsModal');
             } catch (e) {
                 showToast(e.message || '엑셀 읽기 실패', true);
             }
@@ -953,7 +1101,7 @@
         }
 
         window.generateHeadlineFromName = () => {
-            if (!hrRoster.length) return showToast('먼저 인사 엑셀을 업로드해 주세요 (박유희 프로)', true);
+            if (!hrRoster.length) return showToast('설정(⚙)에서 인사 엑셀을 먼저 업로드해 주세요', true);
             const q = document.getElementById('hr_name_search').value.trim();
             if (!q) return showToast('이름을 입력하세요', true);
             const matches = searchHrByName(q);
@@ -969,10 +1117,11 @@
         };
 
         function getKakaoFormData() {
+            const deceased = getDeceasedParts('kt').display;
             return {
                 headline: document.getElementById('kt_headline').value.trim(),
                 hall: document.getElementById('kt_hall').value.trim(),
-                deceased: document.getElementById('kt_deceased').value.trim(),
+                deceased,
                 funeral: formatFuneralKorean(
                     document.getElementById('kt_funeral_date').value,
                     document.getElementById('kt_funeral_time').value
@@ -1024,8 +1173,7 @@
         function validateKakaoFields() {
             const required = [
                 { id: 'kt_headline', label: '한 줄 제목' },
-                { id: 'kt_hall', label: '장례식장' },
-                { id: 'kt_deceased', label: '고인' }
+                { id: 'kt_hall', label: '장례식장' }
             ];
             for (const f of required) {
                 if (!document.getElementById(f.id).value.trim()) {
@@ -1034,6 +1182,7 @@
                     return false;
                 }
             }
+            if (!validateDeceasedFields('kt', false)) return false;
             if (!document.getElementById('kt_funeral_date').value) {
                 showToast('발인 일자를 선택하세요', true);
                 document.getElementById('kt_funeral_date').focus();
@@ -1734,13 +1883,13 @@
             clearFieldError('reg_title');
             clearFieldError('reg_death_date');
             clearFieldError('reg_funeral_date');
-            clearFieldError('reg_deceased');
+            clearFieldError('reg_deceased_name');
             let t = document.getElementById('reg_title').value.trim();
             const deathDate = document.getElementById('reg_death_date').value;
             const funeralDate = document.getElementById('reg_funeral_date').value;
             const funeralTime = document.getElementById('reg_funeral_time').value;
             const l = document.getElementById('reg_location').value.trim();
-            const deceased = document.getElementById('reg_deceased').value.trim();
+            const deceasedPayload = getDeceasedPayload('reg');
             const burial = document.getElementById('reg_burial').value.trim();
             const account = document.getElementById('reg_account').value.trim();
             const employeeName = document.getElementById('reg_employee_name').value.trim();
@@ -1761,7 +1910,7 @@
             if (!t) { showFieldError('reg_title', '대상 직원·경조 구분으로 제목을 만들거나 직접 입력하세요'); valid = false; }
             if (!deathDate) { showFieldError('reg_death_date', '별세일을 선택하세요'); valid = false; }
             if (!funeralDate) { showFieldError('reg_funeral_date', '발인일을 선택하세요'); valid = false; }
-            if (!deceased) { showFieldError('reg_deceased', '고인을 입력하세요'); valid = false; }
+            if (!validateDeceasedFields('reg', true)) valid = false;
             if (!valid) return showToast('필수 항목을 확인하세요', true);
             if (deathDate > funeralDate) return showToast('발인일은 별세일 이후여야 합니다', true);
             const tm = buildEventTimeSummary(deathDate, funeralDate, funeralTime);
@@ -1770,7 +1919,7 @@
                 title: t, time: tm, location: l, status: 'active', createdAt: Date.now(),
                 deathDate, funeralDate, funeralTime,
                 employeeName, eventSuffix: suffixForTitle,
-                deceased, burial, account, busNeeded: regBusNeeded,
+                ...deceasedPayload, burial, account, busNeeded: regBusNeeded,
                 hrPerson: hrSnap ? { name: hrSnap.name, division: hrSnap.division, hq: hrSnap.hq, office: hrSnap.office, team: hrSnap.team, rank: hrSnap.rank } : null
             });
             const def = [
@@ -1789,7 +1938,7 @@
             await Promise.all(promises);
             const saved = {
                 id: doc.id, title: t, time: tm, location: l, deathDate, funeralDate, funeralTime,
-                employeeName, eventSuffix: suffixForTitle, deceased, burial, account, busNeeded: regBusNeeded
+                employeeName, eventSuffix: suffixForTitle, ...deceasedPayload, burial, account, busNeeded: regBusNeeded
             };
             resetRegisterForm();
             closeModal('registerModal');
@@ -1814,7 +1963,7 @@
         function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
         function openModal(modalId) {
             if (modalId === 'registerModal') {
-                ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased'].forEach(clearFieldError);
+                ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased_name'].forEach(clearFieldError);
                 if (!document.getElementById('reg_death_date').value) initAllDatePickers();
                 setRegBusMode(regBusNeeded);
                 onEventSuffixChange('reg');
@@ -1926,6 +2075,7 @@
         if (!location.hash) history.replaceState({ screen: 'screen-list' }, '', '#list');
 
         initAllDatePickers();
+        initDeceasedFields();
         setKakaoBusMode(false);
         setRegBusMode(false);
         onEventSuffixChange('kt');
