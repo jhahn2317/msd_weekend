@@ -107,6 +107,18 @@
         input[type="date"].picker-input, input[type="time"].picker-input {
             min-height: 44px; font-size: 16px; -webkit-appearance: none; appearance: none;
         }
+        #screen-bus .bus-form-control {
+            display: block; width: 100%; box-sizing: border-box;
+            min-height: 2.5rem; height: 2.5rem;
+            padding: 0.5rem 0.625rem; font-size: 11px !important; line-height: 1.25;
+            border: 1px solid var(--wk-border); border-radius: 0.5rem;
+            background: var(--wk-bg); outline: none;
+        }
+        #screen-bus select.bus-form-control { padding-top: 0.45rem; padding-bottom: 0.45rem; }
+        #screen-bus input[type="date"].bus-form-control {
+            min-height: 2.5rem; height: 2.5rem; font-size: 11px !important;
+            -webkit-appearance: none; appearance: none; text-align: center;
+        }
         .kakao-preview-text {
             font-family: "Gungsuh", "궁서체", "Batang", "Nanum Myeongjo", serif;
             font-size: 15px;
@@ -193,7 +205,7 @@
 
         <div id="screen-list" class="screen active space-y-4">
             <div class="flex justify-between items-end mb-1">
-                <div><h2 class="text-lg font-extrabold text-slate-700 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 진행중</h2><p class="text-[10px] text-slate-500">주말·휴일 업무 카드입니다.</p></div>
+                <div><h2 class="text-lg font-extrabold text-slate-700">진행 상황 모니터링</h2><p class="text-[10px] text-slate-500">주말·휴일 업무 카드입니다.</p></div>
                 <button onclick="openModal('registerModal')" class="wk-btn-primary text-[11px] px-3 py-2 shadow-sm">+ 상황 등록</button>
             </div>
             <div id="eventListArea"></div>
@@ -207,9 +219,7 @@
                     </span>
                 </button>
                 <div id="kakaoSectionBody" class="wk-collapse-body collapsed px-3 pb-3 border-t border-blue-100/80 bg-gradient-to-b from-blue-50/30 to-white">
-                <div class="flex justify-end pt-2 mb-2">
-                    <button type="button" onclick="event.stopPropagation(); loadKakaoFromEvent()" class="text-[9px] text-blue-700 px-2 py-1 rounded font-bold border border-blue-200 bg-blue-50">경조사에서 불러오기</button>
-                </div>
+                <label class="block text-[9px] font-bold text-blue-700/90 pt-2 mb-1">진행 중 경조사</label>
                 <select id="kakao_event_select" class="wk-input w-full p-2 text-[10px] mb-2 font-medium"></select>
 
                 <p class="text-[9px] text-slate-500 mb-2 flex flex-wrap items-center gap-1">
@@ -287,38 +297,38 @@
         </div>
 
         <div id="screen-history" class="screen space-y-4">
-            <div><h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 이력</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
+            <div><h2 class="text-lg font-extrabold text-slate-800">이력조회</h2><p class="text-[10px] text-slate-500">종료 처리된 과거 기록입니다.</p></div>
             <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[11px]"></i><input type="text" id="searchInput" oninput="filterHistory()" placeholder="예: 홍길동 부친상" class="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-2.5 text-[11px] outline-none"></div>
             <div id="historyListArea" class="space-y-2"></div>
         </div>
 
         <div id="screen-bus" class="screen space-y-4">
-            <div><h2 class="text-lg font-extrabold text-slate-700 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 버스 규정</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
+            <div><h2 class="text-lg font-extrabold text-slate-700">버스 규정</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
             
             <div class="wk-card p-4 space-y-3">
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">성수기 여부</label>
-                        <select id="bus_season" class="w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium">
+                        <select id="bus_season" class="bus-form-control font-medium text-slate-800">
                             <option value="normal">비수기</option>
                             <option value="peak">성수기 (봄/가을)</option>
                         </select>
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 일자</label>
-                        <input type="date" id="bus_date" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium text-center">
+                        <input type="date" id="bus_date" class="bus-form-control picker-input font-medium text-slate-800">
                     </div>
                 </div>
 
                 <div class="flex gap-2">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">접수 시각</label>
-                        <select id="bus_time" class="picker-input w-full border border-slate-200 rounded-lg p-2.5 text-[11px] bg-slate-50 outline-none font-medium"></select>
+                        <select id="bus_time" class="bus-form-control picker-input font-medium text-slate-800"></select>
                         <p class="text-[8px] text-slate-400 mt-0.5">12시 기준 오전/오후 자동 판단</p>
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-400 mb-1">이동 거리</label>
-                        <select id="bus_dist" class="wk-input w-full p-2.5 text-[11px] font-medium text-slate-800">
+                        <select id="bus_dist" class="bus-form-control font-medium text-slate-800">
                             <option value="under">300km 이내</option>
                             <option value="over">300km 이상</option>
                         </select>
@@ -333,10 +343,6 @@
                     <p class="text-[8px] text-slate-400 text-right mt-0.5">달력이 월~목이어도 연휴 접수면 체크 (연휴 금요일 규정 적용)</p>
                 </div>
 
-                <button type="button" onclick="requestBusCharterSms()" class="w-full wk-btn-bus py-3 text-xs shadow-sm flex items-center justify-center gap-2 mb-2">
-                    <i class="fa-solid fa-bus"></i>버스 대절 신청하기
-                </button>
-                <button onclick="calculateBusRule()" class="w-full wk-btn-primary py-3 text-xs shadow-sm">규정 확인하기</button>
             </div>
 
             <div id="busResultArea" class="hidden space-y-3">
@@ -353,6 +359,9 @@
                     <div class="flex justify-between"><span class="font-bold">대절 신청</span><span id="res_b_apply" class="font-bold text-slate-800"></span></div>
                     <div class="flex justify-between"><span class="font-bold">출발</span><span id="res_departure" class="font-bold text-slate-800"></span></div>
                 </div>
+                <button type="button" onclick="requestBusCharterSms()" class="w-full wk-btn-primary py-3 text-xs shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bus"></i>버스 대절 신청하기
+                </button>
             </div>
 
             <button onclick="openModal('busTableModal')" class="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-xl py-3 text-[11px] shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50">
@@ -397,10 +406,10 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[100] h-14">
         <div class="max-w-md mx-auto flex justify-around items-center h-full">
             <button type="button" onclick="switchScreen('screen-list')" id="nav-screen-list" class="flex flex-col items-center gap-0.5 text-slate-400 active-nav w-1/3">
-                <i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">진행 상황</span>
+                <i class="fa-solid fa-house text-lg"></i><span class="text-[9px] font-bold">모니터링</span>
             </button>
             <button type="button" onclick="switchScreen('screen-history')" id="nav-screen-history" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
-                <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">이력 조회</span>
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i><span class="text-[9px] font-bold">이력조회</span>
             </button>
             <button type="button" onclick="switchScreen('screen-bus')" id="nav-screen-bus" class="flex flex-col items-center gap-0.5 text-slate-400 w-1/3">
                 <i class="fa-solid fa-bus text-lg"></i><span class="text-[9px] font-bold">버스 규정</span>
@@ -469,7 +478,7 @@
     <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div class="week-modal-head px-4 py-3 flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm">위크</span> 경조사 등록</h3>
+                <h3 class="font-bold text-sm">경조사 등록</h3>
                 <button type="button" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-3 reg-modal-body">
@@ -540,7 +549,7 @@
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-[370] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div class="week-modal-head px-4 py-3 flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm">위크</span> 설정</h3>
+                <h3 class="font-bold text-sm">설정</h3>
                 <button type="button" onclick="closeModal('settingsModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-4 overflow-y-auto">
@@ -592,7 +601,10 @@
             <div id="kakao_preview_body" class="kakao-preview-text overflow-y-auto flex-grow max-h-[50vh] border-b border-slate-200"></div>
             <div class="p-4 space-y-2 shrink-0">
                 <p class="text-[9px] text-slate-500 text-center">발송 시 카톡에서 <b>채팅방·수신자</b>를 선택합니다</p>
-                <button type="button" id="kakao_preview_send" class="w-full wk-btn-primary py-3 text-xs">카카오톡으로 보내기</button>
+                <div class="flex gap-2">
+                    <button type="button" id="kakao_preview_copy" class="flex-1 wk-btn-secondary py-3 text-xs"><i class="fa-regular fa-copy mr-1"></i>내용 복사하기</button>
+                    <button type="button" id="kakao_preview_send" class="flex-1 wk-btn-kakao py-3 text-xs">카카오톡으로 보내기</button>
+                </div>
             </div>
         </div>
     </div>
@@ -669,13 +681,15 @@
         window.requestBusCharterSms = () => {
             const ctx = resolveSmsEventContext();
             if (!ctx.title) return showToast('진행 중 경조사를 등록하거나 상세 화면에서 진행해 주세요', true);
+            const busCtx = enrichSmsContextWithBusDeparture(ctx);
+            if (!busCtx.busDeparture) return;
             const matches = findBusVendors();
             if (!matches.length) {
                 return showToast('협력업체에 버스 업체를 등록하세요 (예: 범아관광, 분류에 「버스」)', true);
             }
             const [vendorId, vendor] = matches[0];
             if (matches.length > 1) showToast(`「${vendor.name}」으로 문자 (${matches.length}개 업체 중 우선)`);
-            sendSMS(vendorId, ctx);
+            sendSMS(vendorId, busCtx);
         };
         let lastBusCaseKey = null;
         let lastBusDist = 'under';
@@ -1478,24 +1492,33 @@
             openModal('kakaoPreviewModal');
         };
 
-        window.loadKakaoFromEvent = () => {
-            const id = document.getElementById('kakao_event_select').value;
+        function onKakaoEventSelectChange() {
+            const id = document.getElementById('kakao_event_select')?.value;
+            if (!id) return;
             const e = globalEventsActive.find(x => x.id === id);
-            if (!e) return showToast('진행 중인 경조사를 선택하세요', true);
+            if (!e) return;
             populateKakaoFromEvent(e);
-            showToast('경조사 정보를 불러왔습니다');
-        };
+            setKakaoSectionOpen(true);
+        }
 
         function updateKakaoEventSelect() {
             const sel = document.getElementById('kakao_event_select');
             if (!sel) return;
+            const prev = sel.value;
             if (!globalEventsActive.length) {
                 sel.innerHTML = '<option value="">진행 중인 경조사 없음</option>';
                 return;
             }
-            sel.innerHTML = globalEventsActive.map(e =>
+            const opts = globalEventsActive.map(e =>
                 `<option value="${e.id}">${escapeHtml(e.title)}</option>`
             ).join('');
+            sel.innerHTML = (globalEventsActive.length > 1 ? '<option value="">경조사 선택...</option>' : '') + opts;
+            const pick = (prev && globalEventsActive.some(e => e.id === prev)) ? prev
+                : (globalEventsActive.length === 1 ? globalEventsActive[0].id : '');
+            if (pick) {
+                sel.value = pick;
+                onKakaoEventSelectChange();
+            }
         }
 
         async function sendKakaoTalk() {
@@ -1731,6 +1754,121 @@
             return 10;
         }
 
+        function formatBusDateTime(d) {
+            if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '';
+            const m = d.getMonth() + 1;
+            const dd = d.getDate();
+            const dow = daysArr[d.getDay()];
+            const h = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${m}월 ${dd}일(${dow}) ${h}:${min}`;
+        }
+
+        function formatBusDeadlineLabel(d) {
+            const t = formatBusDateTime(d);
+            return t ? `${t} 마감` : '';
+        }
+
+        function formatBusDepartureSms(dateVal, receiptDay, depDay, depTimeResolved) {
+            const depOffset = daysUntilWeekday(receiptDay, depDay);
+            const depHour = parseDepHour(depTimeResolved);
+            return formatBusDateTime(addDaysAt(dateVal, depOffset, depHour));
+        }
+
+        function getBusCharterInputs() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const dateEl = document.getElementById('bus_date');
+            const timeEl = document.getElementById('bus_time');
+            let dateVal = dateEl?.value;
+            if (!dateVal) {
+                dateVal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+                if (dateEl) dateEl.value = dateVal;
+            }
+            let timeVal = timeEl?.value;
+            if (!timeVal) {
+                timeVal = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                if (timeEl) timeEl.value = timeVal;
+            }
+            return {
+                dateVal,
+                season: document.getElementById('bus_season')?.value || 'normal',
+                ampm: getAmpmFromTime(timeVal),
+                dist: document.getElementById('bus_dist')?.value || 'under',
+                isHoliday: !!document.getElementById('bus_is_holiday')?.checked
+            };
+        }
+
+        function computeBusRule({ dateVal, season, ampm, dist, isHoliday }) {
+            const dateObj = new Date(dateVal + 'T12:00:00');
+            const day = dateObj.getDay();
+            let pCheckMsg = '', bApplyMsg = '', depDay = '', depTime = '', note = '';
+            let isKnownCase = true;
+
+            if (isHoliday && day >= 1 && day <= 4) {
+                if (ampm === 'AM') {
+                    pCheckMsg = '금요일 오후 6시 마감'; depDay = '토요일'; depTime = '10시';
+                } else {
+                    pCheckMsg = '토요일 오전 9시 마감'; depDay = '토요일'; depTime = season === 'peak' ? '12시 or 13시' : '11시';
+                }
+            } else if (day === 5 && ampm === 'PM' && !isHoliday) {
+                pCheckMsg = '토요일 오전 9시 마감'; depDay = '토요일'; depTime = season === 'peak' ? '12시 or 13시' : '11시';
+            } else if (day === 5 && ampm === 'AM' && isHoliday) {
+                pCheckMsg = '금요일 오후 6시 마감'; depDay = '토요일'; depTime = '10시';
+            } else if (day === 5 && ampm === 'PM' && isHoliday) {
+                pCheckMsg = '토요일 오전 9시 마감'; depDay = '토요일'; depTime = season === 'peak' ? '12시 or 13시' : '11시';
+            } else if (day === 6 && ampm === 'AM') {
+                pCheckMsg = '토요일 오후 6시 마감'; depDay = '일요일'; depTime = '10시';
+            } else if (day === 6 && ampm === 'PM') {
+                pCheckMsg = '일요일 오전 9시 마감'; depDay = '일요일'; depTime = season === 'peak' ? '12시 or 13시' : '11시';
+            } else if (day === 0 && ampm === 'AM') {
+                pCheckMsg = '일요일 오후 6시 마감'; depDay = '월요일'; depTime = dist === 'under' ? '15시' : '13시'; note = '온타임 근무시간 적용';
+            } else if (day === 0 && ampm === 'PM') {
+                pCheckMsg = '월요일 오전 9시 마감'; depDay = '월요일'; depTime = dist === 'under' ? '15시' : '13시'; note = '온타임 근무시간 적용';
+            } else {
+                isKnownCase = false;
+            }
+
+            const depTimeResolved = resolveBusDepTime(depTime, dist);
+            const distText = busDistLabel(dist);
+            let departureFormatted = '';
+            let depText = '접수 후 협의';
+            let deadlines = { personnel: null, apply: null, depart: null };
+
+            if (isKnownCase) {
+                deadlines = estimateBusDeadlines(dateVal, day, ampm, isHoliday, dist, season, pCheckMsg, depDay, depTimeResolved);
+                if (deadlines.personnel) pCheckMsg = formatBusDeadlineLabel(deadlines.personnel);
+                if (deadlines.apply) bApplyMsg = formatBusDeadlineLabel(deadlines.apply);
+                if (deadlines.depart) {
+                    departureFormatted = formatBusDateTime(deadlines.depart);
+                    depText = `${departureFormatted} · ${distText}`;
+                }
+            } else {
+                bApplyMsg = season === 'peak' ? '최소 출발 3시간 전' : '출발 2시간 전';
+            }
+
+            return {
+                isKnownCase, day, pCheckMsg, bApplyMsg, depDay, depTime, depTimeResolved, distText, depText,
+                departureFormatted, note, deadlines,
+                dayLabel: daysArr[day] + (isHoliday && day >= 1 && day <= 4 ? '·연휴' : isHoliday && day === 5 ? '·연휴' : '')
+            };
+        }
+
+        function enrichSmsContextWithBusDeparture(ctx) {
+            const inputs = getBusCharterInputs();
+            const rule = computeBusRule(inputs);
+            if (!rule.isKnownCase) {
+                showToast('버스 탭에서 접수 일·시각(주말·연휴)을 맞춘 뒤 신청하세요', true);
+                return { ...ctx, busDeparture: '' };
+            }
+            calculateBusRule();
+            return {
+                ...ctx,
+                busDeparture: rule.departureFormatted,
+                busDepartureDetail: rule.depText
+            };
+        }
+
         function addDaysAt(dateStr, dayOffset, hour, min = 0) {
             const d = new Date(dateStr + 'T12:00:00');
             d.setDate(d.getDate() + dayOffset);
@@ -1750,7 +1888,7 @@
             };
 
             if (pCheckMsg.includes('토요일 오전 9시')) personnel = personnelDayOffset('토요일', 9);
-            else if (pCheckMsg.includes('금요일 오후 6시')) personnel = addDaysAt(dateVal, 0, 18);
+            else if (pCheckMsg.includes('금요일 오후 6시')) personnel = addDaysAt(dateVal, daysUntilWeekday(day, '금요일'), 18);
             else if (pCheckMsg.includes('토요일 오후 6시')) personnel = addDaysAt(dateVal, day === 6 ? 0 : daysUntilWeekday(day, '토요일'), 18);
             else if (pCheckMsg.includes('일요일 오전 9시')) personnel = personnelDayOffset('일요일', 9);
             else if (pCheckMsg.includes('일요일 오후 6시')) personnel = addDaysAt(dateVal, day === 0 ? 0 : daysUntilWeekday(day, '일요일'), 18);
@@ -1819,19 +1957,45 @@
             setTimeout(() => { toast.classList.remove('opacity-100', 'translate-y-0'); toast.classList.add('opacity-0', '-translate-y-4'); }, 2500);
         };
 
-        // [★ 업데이트된 버스 대절 계산기 로직 ★]
-        window.calculateBusRule = () => {
-            const dateVal = document.getElementById('bus_date').value;
-            const season = document.getElementById('bus_season').value;
-            const ampm = getAmpmFromTime(document.getElementById('bus_time').value);
-            const dist = document.getElementById('bus_dist').value;
-            const isHoliday = document.getElementById('bus_is_holiday').checked;
+        let busRuleRefreshTimer = null;
+        let busRuleUnknownToastShown = false;
 
-            if(!dateVal) return showToast("접수 일자를 선택해주세요.", true);
+        function isBusFormReady() {
+            return !!(document.getElementById('bus_date')?.value && document.getElementById('bus_time')?.value);
+        }
 
-            const dateObj = new Date(dateVal + 'T12:00:00');
-            const day = dateObj.getDay();
-            
+        function scheduleBusRuleRefresh() {
+            clearTimeout(busRuleRefreshTimer);
+            busRuleRefreshTimer = setTimeout(() => calculateBusRule({ silent: true }), 120);
+        }
+
+        function bindBusFormAutoCalc() {
+            ['bus_season', 'bus_date', 'bus_time', 'bus_dist'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el || el.dataset.busAutoBound) return;
+                el.dataset.busAutoBound = '1';
+                el.addEventListener('change', scheduleBusRuleRefresh);
+                el.addEventListener('input', scheduleBusRuleRefresh);
+            });
+            const hol = document.getElementById('bus_is_holiday');
+            if (hol && !hol.dataset.busAutoBound) {
+                hol.dataset.busAutoBound = '1';
+                hol.addEventListener('change', scheduleBusRuleRefresh);
+            }
+        }
+
+        window.calculateBusRule = (opts = {}) => {
+            const silent = opts.silent === true;
+            const inputs = getBusCharterInputs();
+            if (!inputs.dateVal) {
+                if (!silent) showToast('접수 일자를 선택해주세요.', true);
+                return;
+            }
+
+            const rule = computeBusRule(inputs);
+            const { dateVal, season, ampm, dist, isHoliday } = inputs;
+            const day = rule.day;
+
             const resArea = document.getElementById('busResultArea');
             const resP = document.getElementById('res_p_check');
             const resB = document.getElementById('res_b_apply');
@@ -1839,69 +2003,42 @@
             const resBadge = document.getElementById('res_day_badge');
             const resN = document.getElementById('res_note_area');
 
-            let pCheckMsg = "", bApplyMsg = "", depDay = "", depTime = "", note = "";
-            let isKnownCase = true;
+            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${rule.dayLabel}) · ${rule.distText}`;
 
-            // 로직 분기 (규정표: 금·토·일 접수 + 연휴 금요일)
-            if (isHoliday && day >= 1 && day <= 4) {
-                if (ampm === 'AM') {
-                    pCheckMsg = "금요일 오후 6시 마감"; depDay = "토요일"; depTime = "10시";
-                } else {
-                    pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
-                }
-            } else if (day === 5 && ampm === 'PM' && !isHoliday) {
-                pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
-            } else if (day === 5 && ampm === 'AM' && isHoliday) {
-                pCheckMsg = "금요일 오후 6시 마감"; depDay = "토요일"; depTime = "10시";
-            } else if (day === 5 && ampm === 'PM' && isHoliday) {
-                pCheckMsg = "토요일 오전 9시 마감"; depDay = "토요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
-            } else if (day === 6 && ampm === 'AM') {
-                pCheckMsg = "토요일 오후 6시 마감"; depDay = "일요일"; depTime = "10시";
-            } else if (day === 6 && ampm === 'PM') {
-                pCheckMsg = "일요일 오전 9시 마감"; depDay = "일요일"; depTime = season === 'peak' ? "12시 or 13시" : "11시";
-            } else if (day === 0 && ampm === 'AM') {
-                pCheckMsg = "일요일 오후 6시 마감"; depDay = "월요일"; depTime = dist === 'under' ? "15시" : "13시"; note = "온타임 근무시간 적용";
-            } else if (day === 0 && ampm === 'PM') {
-                pCheckMsg = "월요일 오전 9시 마감"; depDay = "월요일"; depTime = dist === 'under' ? "15시" : "13시"; note = "온타임 근무시간 적용";
+            if (rule.isKnownCase) {
+                resP.innerText = rule.pCheckMsg;
+                resB.innerText = rule.bApplyMsg;
+                resD.innerText = rule.depText;
             } else {
-                isKnownCase = false;
+                resP.innerText = '평일 규정에 따름 (관리자 문의)';
+                resB.innerText = rule.bApplyMsg;
+                resD.innerText = '접수 후 협의';
             }
 
-            const dayLabel = daysArr[day] + (isHoliday && day >= 1 && day <= 4 ? '·연휴' : isHoliday && day === 5 ? '·연휴' : '');
-            const depTimeResolved = resolveBusDepTime(depTime, dist);
-            const distText = busDistLabel(dist);
-            resBadge.innerText = `${dateVal.replace(/-/g, '.')} (${dayLabel}) · ${distText}`;
-
-            if(isKnownCase) {
-                const offset = season === 'peak' ? 3 : 2;
-                const depH = parseDepHour(depTimeResolved);
-                bApplyMsg = `출발 ${offset}시간 전 (${depH - offset}시 마감)`;
-
-                resP.innerText = pCheckMsg;
-                resB.innerText = bApplyMsg;
-                resD.innerText = `${depDay} ${depTimeResolved} (${distText})`;
+            if (rule.note) {
+                resN.innerHTML = `<i class="fa-solid fa-circle-exclamation text-slate-500 mt-0.5"></i> ${rule.note}`;
+                resN.classList.remove('hidden');
             } else {
-                resP.innerText = "평일 규정에 따름 (관리자 문의)";
-                resB.innerText = season === 'peak' ? "최소 출발 3시간 전" : "출발 2시간 전";
-                resD.innerText = "접수 후 협의";
+                resN.classList.add('hidden');
             }
-
-            if(note) { resN.innerHTML = `<i class="fa-solid fa-circle-exclamation text-slate-500 mt-0.5"></i> ${note}`; resN.classList.remove('hidden'); } else { resN.classList.add('hidden'); }
 
             lastBusCaseKey = getBusCaseKey(day, ampm, isHoliday);
             lastBusDist = dist;
             highlightBusTable(lastBusCaseKey, dist);
-            const depText = isKnownCase ? `${depDay} ${depTimeResolved} · ${distText}` : '접수 후 협의';
-            const deadlines = isKnownCase ? estimateBusDeadlines(dateVal, day, ampm, isHoliday, dist, season, pCheckMsg, depDay, depTimeResolved) : { personnel: null, apply: null, depart: null };
             renderBusTimeline(
-                isKnownCase ? pCheckMsg : '평일 규정 (관리자 문의)',
-                isKnownCase ? bApplyMsg : (season === 'peak' ? '최소 출발 3시간 전' : '출발 2시간 전'),
-                depText,
-                deadlines,
-                !isKnownCase
+                rule.isKnownCase ? rule.pCheckMsg : '평일 규정 (관리자 문의)',
+                rule.bApplyMsg,
+                rule.depText,
+                rule.deadlines || { personnel: null, apply: null, depart: null },
+                !rule.isKnownCase
             );
-            if (!isKnownCase) {
-                showToast('이 조합은 규정표에 없습니다 (예: 금요일 오전·비연휴). 토·일 접수 또는 연휴 체크를 확인하세요.', true);
+            if (!rule.isKnownCase) {
+                if (!silent && !busRuleUnknownToastShown) {
+                    showToast('이 조합은 규정표에 없습니다 (예: 금요일 오전·비연휴). 토·일 접수 또는 연휴 체크를 확인하세요.', true);
+                    busRuleUnknownToastShown = true;
+                }
+            } else {
+                busRuleUnknownToastShown = false;
             }
             resArea.classList.remove('hidden');
         };
@@ -1937,6 +2074,10 @@
                 const hash = screenId === 'screen-detail' && opts.eventId ? `#event/${opts.eventId}` : `#${screenId.replace('screen-', '')}`;
                 const state = { screen: screenId, eventId: opts.eventId || null, readOnly: !!opts.readOnly };
                 if (location.hash !== hash) history.pushState(state, '', hash);
+            }
+            if (screenId === 'screen-bus') {
+                bindBusFormAutoCalc();
+                scheduleBusRuleRefresh();
             }
         }
 
@@ -2392,18 +2533,31 @@
         };
         window.deleteVendorAction = () => { if(confirm("삭제?")) { db.collection("vendors").doc(document.getElementById('v_id').value).delete(); closeModal('vendorModal'); showToast("삭제됨"); } };
 
+        function isBusVendorForSms(v) {
+            const blob = `${v.name || ''} ${v.desc || ''}`;
+            return /버스|대절|범아|관광|조문/i.test(blob);
+        }
+
         function buildSmsBody(v, ctx) {
             const resolved = ctx || resolveSmsEventContext();
             const title = resolved.title || '';
             const info = resolved.info || '';
             const parts = info ? info.split('|') : [];
-            const time = parts[0]?.trim() || '';
+            const eventSchedule = parts[0]?.trim() || '';
             const loc = parts[1]?.trim() || '';
-            if (v.name.includes('위드고')) return `<위드고 1800-9222> 화환 발송\n\n배송일 : ${time}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : \n*배송문구(오른쪽문구) : \n*받는이 : \n*주문자 : `;
+            const busDepart = resolved.busDeparture || '';
+            if (v.name.includes('위드고')) return `<위드고 1800-9222> 화환 발송\n\n배송일 : ${eventSchedule}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : \n*배송문구(오른쪽문구) : \n*받는이 : \n*주문자 : `;
             if (v.name.includes('우영') || v.name.includes('상조용품')) return `<우영프라자 1668-5487> 상조용품 발송\n\n회사명 : 유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
-            if (v.name.includes('범아') || v.name.includes('관광') || v.name.includes('버스')) return `범아관광\n업체명 : 유니테스트\n출발지 : \n출발시간 : ${time}\n도착지 주소 : ${loc}`;
-            if (v.smsTemplate) return v.smsTemplate.replace(/\[행사명\]/g, title).replace(/\[일시\]/g, time).replace(/\[장소\]/g, loc);
-            return `[발송 요청]\n행사명: ${title}\n일시: ${time}\n장소: ${loc}`;
+            if (isBusVendorForSms(v)) {
+                const departLine = busDepart || '버스 탭에서 규정 확인 후 신청';
+                const extra = resolved.busDepartureDetail ? `\n(규정: ${resolved.busDepartureDetail})` : '';
+                return `범아관광\n업체명 : 유니테스트\n출발지 : \n출발시간 : ${departLine}${extra}\n도착지 주소 : ${loc}\n경조 : ${title}`;
+            }
+            if (v.smsTemplate) {
+                const smsTime = busDepart || eventSchedule;
+                return v.smsTemplate.replace(/\[행사명\]/g, title).replace(/\[일시\]/g, smsTime).replace(/\[장소\]/g, loc);
+            }
+            return `[발송 요청]\n행사명: ${title}\n일시: ${busDepart || eventSchedule}\n장소: ${loc}`;
         }
 
         window.sendSMS = (vendorId, ctx) => {
@@ -2418,6 +2572,16 @@
         };
 
         document.getElementById('kakao_preview_send').addEventListener('click', sendKakaoTalk);
+        document.getElementById('kakao_preview_copy').addEventListener('click', async () => {
+            const text = buildKakaoMessage();
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('카톡 문구가 복사되었습니다');
+            } catch (_) {
+                showToast('복사에 실패했습니다', true);
+            }
+        });
+        document.getElementById('kakao_event_select')?.addEventListener('change', onKakaoEventSelectChange);
 
         document.getElementById('sms_preview_send').addEventListener('click', () => {
             if (!pendingSms) return;
@@ -2429,6 +2593,8 @@
         if (!location.hash) history.replaceState({ screen: 'screen-list' }, '', '#list');
 
         initAllDatePickers();
+        bindBusFormAutoCalc();
+        scheduleBusRuleRefresh();
         initDeceasedFields();
         setKakaoBusMode(false);
         setRegBusMode(false);
