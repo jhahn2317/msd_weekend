@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>위크 · 주말·휴일 업무</title>
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#64748b">
     <meta name="apple-mobile-web-app-title" content="위크">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
@@ -14,12 +14,15 @@
     <style>
         :root {
             --wk-bg: #ffffff;
-            --wk-muted: #f8fafc;
+            --wk-muted: #f1f5f9;
+            --wk-surface: #f8fafc;
             --wk-border: #e2e8f0;
-            --wk-text: #0f172a;
+            --wk-text: #334155;
             --wk-text-muted: #64748b;
-            --wk-accent: #1e293b;
-            --wk-accent-hover: #0f172a;
+            --wk-accent: #5b6d82;
+            --wk-accent-hover: #4a5c6f;
+            --wk-accent-soft: #eef2f6;
+            --wk-accent-soft-border: #d8e0ea;
             --wk-radius: 0.75rem;
         }
         body {
@@ -29,13 +32,26 @@
         }
         .week-logo {
             display: inline-flex; align-items: center; justify-content: center;
-            background: var(--wk-accent); color: #fff; font-weight: 800; letter-spacing: -0.06em;
+            background: var(--wk-accent-soft); color: var(--wk-accent);
+            border: 1px solid var(--wk-accent-soft-border); font-weight: 800; letter-spacing: -0.06em;
             border-radius: 0.625rem; padding: 0.38rem 0.65rem; font-size: 1.2rem; line-height: 1;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
         }
         .week-logo-sm { font-size: 0.95rem; padding: 0.28rem 0.5rem; border-radius: 0.45rem; }
-        .week-header-bar { background: var(--wk-bg); border-bottom: 1px solid var(--wk-border); }
-        .week-modal-head { background: var(--wk-accent); }
+        .week-header-bar { background: var(--wk-surface); border-bottom: 1px solid var(--wk-border); }
+        .week-modal-head {
+            background: linear-gradient(180deg, #f8fafc 0%, var(--wk-accent-soft) 100%);
+            color: var(--wk-text); border-bottom: 1px solid var(--wk-accent-soft-border);
+        }
+        .week-modal-head .week-logo { background: #fff; }
+        .week-modal-head button { color: var(--wk-text-muted); }
+        .week-modal-head button:hover { color: var(--wk-text); }
+        .wk-check-on { background: var(--wk-accent); border-color: var(--wk-accent); color: #fff; }
+        .wk-progress-panel {
+            background: linear-gradient(135deg, #f8fafc 0%, var(--wk-accent-soft) 100%);
+            border: 1px solid var(--wk-accent-soft-border); color: var(--wk-text);
+        }
+        .wk-progress-panel .wk-progress-bar { background: #e2e8f0; }
+        .wk-progress-panel .wk-progress-fill { background: var(--wk-accent); }
         .active-nav { color: var(--wk-accent) !important; border-top: 2px solid var(--wk-accent) !important; }
         .screen { display: none; }
         .screen.active { display: block; }
@@ -43,13 +59,20 @@
         .wk-card { background: var(--wk-bg); border: 1px solid var(--wk-border); border-radius: var(--wk-radius); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
         .wk-panel { background: var(--wk-muted); border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-section-title { font-size: 10px; font-weight: 700; color: var(--wk-text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
-        .wk-btn-primary { background: var(--wk-accent); color: #fff; font-weight: 700; border-radius: var(--wk-radius); transition: background 0.15s; }
+        .wk-btn-primary {
+            background: var(--wk-accent); color: #fff; font-weight: 700; border-radius: var(--wk-radius);
+            transition: background 0.15s; box-shadow: 0 1px 2px rgba(91, 109, 130, 0.25);
+        }
         .wk-btn-primary:active { background: var(--wk-accent-hover); }
         .wk-btn-secondary { background: var(--wk-bg); color: var(--wk-text); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-btn-ghost { background: transparent; color: var(--wk-text-muted); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-input { border: 1px solid var(--wk-border); border-radius: 0.5rem; background: var(--wk-bg); outline: none; }
         .wk-input:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2); }
-        .wk-pill-on { border: 1.5px solid var(--wk-accent) !important; background: var(--wk-accent) !important; color: #fff !important; }
+        .wk-pill-on {
+            border: 1.5px solid var(--wk-accent) !important;
+            background: var(--wk-accent-soft) !important;
+            color: var(--wk-accent) !important;
+        }
         .wk-pill-off { border: 1px solid var(--wk-border) !important; background: var(--wk-bg) !important; color: var(--wk-text-muted) !important; }
         .toggle-checkbox:checked { right: 0; border-color: var(--wk-accent); }
         .toggle-checkbox:checked + .toggle-label { background-color: var(--wk-accent); }
@@ -132,7 +155,7 @@
 </head>
 <body class="min-h-screen pb-20 relative">
 
-    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2">
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-slate-600 text-white px-4 py-3 rounded-full text-[11px] font-bold shadow-lg transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[400] flex items-center gap-2">
         <i id="toast-icon" class="fa-solid fa-circle-check text-slate-300 text-sm"></i>
         <span id="toast-msg">메시지</span>
     </div>
@@ -156,7 +179,7 @@
 
         <div id="screen-list" class="screen active space-y-4">
             <div class="flex justify-between items-end mb-1">
-                <div><h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 진행중</h2><p class="text-[10px] text-slate-500">주말·휴일 업무 카드입니다.</p></div>
+                <div><h2 class="text-lg font-extrabold text-slate-700 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 진행중</h2><p class="text-[10px] text-slate-500">주말·휴일 업무 카드입니다.</p></div>
                 <button onclick="openModal('registerModal')" class="wk-btn-primary text-[11px] px-3 py-2 shadow-sm">+ 상황 등록</button>
             </div>
             <div id="eventListArea"></div>
@@ -208,10 +231,11 @@
                                 <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
                             </div>
                             <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
-                            <button type="button" id="kt_deceased_gender_m" onclick="setDeceasedGender('kt','남')" class="deceased-gender-on wk-pill-on">남</button>
-                            <button type="button" id="kt_deceased_gender_f" onclick="setDeceasedGender('kt','여')" class="deceased-gender-off wk-pill-off">여</button>
+                            <button type="button" id="kt_deceased_gender_m" onclick="setDeceasedGender('kt','남',true)" class="deceased-gender-on wk-pill-on">남</button>
+                            <button type="button" id="kt_deceased_gender_f" onclick="setDeceasedGender('kt','여',true)" class="deceased-gender-off wk-pill-off">여</button>
                             </div>
                         </div>
+                        <p id="kt_deceased_gender_hint" class="text-[8px] text-slate-400 mt-0.5 hidden"></p>
                         <p id="kt_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
                     </div>
                     <div><label class="font-bold text-slate-500 block mb-0.5">발인 일시 (필수)</label>
@@ -247,7 +271,7 @@
         </div>
 
         <div id="screen-bus" class="screen space-y-4">
-            <div><h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 버스 규정</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
+            <div><h2 class="text-lg font-extrabold text-slate-700 flex items-center gap-1.5"><span class="week-logo week-logo-sm">위크</span> 버스 규정</h2><p class="text-[10px] text-slate-500">접수 시점과 거리에 따른 마감 시간을 자동 계산합니다.</p></div>
             
             <div class="wk-card p-4 space-y-3">
                 <div class="flex gap-2">
@@ -314,12 +338,12 @@
         <div id="screen-detail" class="screen space-y-3">
             <div class="flex items-center gap-2">
                 <button type="button" onclick="goBack()" aria-label="뒤로" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg"><i class="fa-solid fa-chevron-left text-slate-600 text-xs"></i></button>
-                <div class="flex-grow min-w-0"><h2 id="d_title" class="text-sm font-extrabold text-slate-900 leading-tight truncate"></h2><p id="d_info" class="text-[9px] text-slate-600 font-medium mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded max-w-full truncate"></p></div>
+                <div class="flex-grow min-w-0"><h2 id="d_title" class="text-sm font-extrabold text-slate-700 leading-tight truncate"></h2><p id="d_info" class="text-[9px] text-slate-600 font-medium mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded max-w-full truncate"></p></div>
                 <button id="btn-close-event" type="button" onclick="closeEvent()" class="text-[10px] wk-btn-primary px-2 py-1.5 shadow-sm shrink-0">마감(종료)</button>
             </div>
-            <section class="rounded-xl p-3 shadow-sm text-white" style="background: var(--wk-accent);">
-                <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] opacity-90 text-slate-300 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic">0%</span></div>
-                <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden mb-2.5"><div id="globalProgressBar" class="bg-white h-full transition-all duration-500" style="width: 0%"></div></div>
+            <section class="wk-progress-panel rounded-xl p-3 shadow-sm">
+                <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] text-slate-500 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic text-slate-700">0%</span></div>
+                <div class="w-full wk-progress-bar h-2 rounded-full overflow-hidden mb-2.5"><div id="globalProgressBar" class="wk-progress-fill h-full transition-all duration-500" style="width: 0%"></div></div>
                 <div class="grid grid-cols-4 gap-1 text-center text-[9px]" id="memberProgress"></div>
             </section>
             <section class="wk-card overflow-hidden">
@@ -357,7 +381,7 @@
 
     <div id="busTableModal" class="fixed inset-0 bg-slate-900/80 z-[300] hidden flex items-center justify-center p-2">
         <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-table"></i> 버스 대절 세부 규정표</h3>
                 <button onclick="closeModal('busTableModal')"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -415,8 +439,8 @@
 
     <div id="registerModal" class="fixed inset-0 bg-slate-900/60 z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm bg-white/20 shadow-none">위크</span> 경조사 등록</h3>
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm">위크</span> 경조사 등록</h3>
                 <button type="button" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-3 reg-modal-body">
@@ -465,10 +489,11 @@
                             <span class="text-[9px] text-slate-500 font-bold pr-0.5">세</span>
                         </div>
                         <div class="flex gap-0.5 shrink-0" style="width:4.75rem">
-                            <button type="button" id="reg_deceased_gender_m" onclick="setDeceasedGender('reg','남')" class="deceased-gender-on wk-pill-on">남</button>
-                            <button type="button" id="reg_deceased_gender_f" onclick="setDeceasedGender('reg','여')" class="deceased-gender-off wk-pill-off">여</button>
+                            <button type="button" id="reg_deceased_gender_m" onclick="setDeceasedGender('reg','남',true)" class="deceased-gender-on wk-pill-on">남</button>
+                            <button type="button" id="reg_deceased_gender_f" onclick="setDeceasedGender('reg','여',true)" class="deceased-gender-off wk-pill-off">여</button>
                         </div>
                     </div>
+                    <p id="reg_deceased_gender_hint" class="text-[8px] text-slate-400 mt-0.5 hidden"></p>
                     <p id="reg_deceased_preview" class="text-[8px] text-slate-400 mt-1 font-medium">카톡 표기: —</p>
                 </div>
                 <p id="reg_deceased_name_err" class="field-error-msg hidden"></p>
@@ -485,8 +510,8 @@
     </div>
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 z-[370] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm bg-white/20 shadow-none">위크</span> 설정</h3>
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><span class="week-logo week-logo-sm">위크</span> 설정</h3>
                 <button type="button" onclick="closeModal('settingsModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-4 space-y-4 overflow-y-auto">
@@ -506,7 +531,7 @@
 
     <div id="hrDuplicateModal" class="fixed inset-0 bg-slate-900/60 z-[360] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm">동명이인 선택</h3>
                 <button type="button" onclick="closeModal('hrDuplicateModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -517,7 +542,7 @@
 
     <div id="subPickerModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-end sm:items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center">
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm">대체자 지정</h3>
                 <button type="button" onclick="closeModal('subPickerModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -531,7 +556,7 @@
 
     <div id="kakaoPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="week-modal-head px-4 py-3 text-white flex justify-between items-center shrink-0">
+            <div class="week-modal-head px-4 py-3 flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-comment-dots mr-1"></i>카톡 문구 확인</h3>
                 <button type="button" onclick="closeModal('kakaoPreviewModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -543,9 +568,9 @@
         </div>
     </div>
 
-    <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 text-white flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
+    <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
     <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">저장</button></div></div></div></div>
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 text-white flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -710,13 +735,120 @@
             return employees;
         }
 
-        window.onEventSuffixChange = (prefix = 'kt') => {
+        const SUFFIX_EXACT_GENDER = {
+            '부친상': '남', '모친상': '여',
+            '빙부상': '남', '빙모상': '여',
+            '조부상': '남', '조모상': '여',
+            '외조부상': '남', '외조모상': '여',
+            '친조부상': '남', '친조모상': '여',
+            '시조부상': '남', '시조모상': '여',
+            '고모상': '여', '이모상': '여',
+            '삼촌상': '남', '외삼촌상': '남', '백부상': '남',
+            '형상': '남', '오빠상': '남', '남편상': '남',
+            '누나상': '여', '언니상': '여', '자매상': '여',
+            '아내상': '여', '부인상': '여',
+            '배우자상': null
+        };
+
+        const KNOWN_EVENT_SUFFIXES = Object.keys(SUFFIX_EXACT_GENDER);
+
+        const SUFFIX_GENDER_PATTERNS = [
+            { re: /배우자/, g: null },
+            { re: /(모친|모님|어머니|어머님|노모|할머니|빙모|조모|외조모|친조모|시조모|시어머니|장모|고모|이모|숙모|누나|언니|누님|자매|아내|부인|며느리|외할머니)/, g: '여' },
+            { re: /(부친|부님|아버지|아버님|노부|할아버지|빙부|조부|외조부|친조부|시조부|시아버지|장인|삼촌|외삼촌|백부|숙부|형|오빠|남편|사위|외할아버지)/, g: '남' }
+        ];
+
+        function normalizeSuffixKey(suffix) {
+            return String(suffix || '').trim().replace(/\s+/g, '');
+        }
+
+        function inferDeceasedGenderFromSuffix(suffix) {
+            const key = normalizeSuffixKey(suffix);
+            if (!key) return null;
+            if (Object.prototype.hasOwnProperty.call(SUFFIX_EXACT_GENDER, key)) {
+                return SUFFIX_EXACT_GENDER[key];
+            }
+            const bare = key.replace(/상$/, '');
+            if (/^배우자$/.test(bare)) return null;
+            for (const { re, g } of SUFFIX_GENDER_PATTERNS) {
+                if (re.test(key)) return g;
+            }
+            if (/상$/.test(key)) {
+                if (/[모女여]/.test(key) && !/조부|외조부|친조부|빙부|할아버|부친|아버|삼촌|백부|남편|형|오빠/.test(key)) return '여';
+                if (/[부父男]/.test(key) && !/모친|어머|고모|이모|누나|언니|아내|부인|자매/.test(key)) return '남';
+            }
+            return null;
+        }
+
+        function extractSuffixFromTitle(title) {
+            const t = String(title || '').trim();
+            if (!t) return '';
+            const hit = KNOWN_EVENT_SUFFIXES.find(s => t.endsWith(s));
+            if (hit) return hit;
+            const m = t.match(/([가-힣]{2,8}상)\s*$/);
+            return m ? m[1] : '';
+        }
+
+        function mapSuffixToCondolenceType(suffix) {
+            const k = normalizeSuffixKey(suffix);
+            if (!k) return '';
+            if (/부친|모친|빙부|빙모|아버|어머|부모|시부|시모/.test(k)) return 'parent_death';
+            if (/조부|조모|할아버|할머니|외조|친조|시조/.test(k)) return 'grandparent_death';
+            if (/고모|삼촌|이모|백부|외삼|숙부|외가|친가/.test(k)) return 'aunt_uncle_death';
+            if (/형|오빠|누나|언니|형제|자매|동생/.test(k)) return 'sibling_death';
+            if (/배우자|남편|아내|부인/.test(k)) return 'parent_death';
+            return '';
+        }
+
+        function updateDeceasedGenderHint(prefix, suffix, inferred) {
+            const hint = document.getElementById(`${prefix}_deceased_gender_hint`);
+            if (!hint) return;
+            const key = normalizeSuffixKey(suffix);
+            if (inferred) {
+                hint.textContent = `${key || suffix} → 고인 ${inferred} (자동 선택)`;
+                hint.classList.remove('hidden');
+            } else if (/배우자/.test(key)) {
+                hint.textContent = '배우자상은 고인 성별을 직접 선택해 주세요';
+                hint.classList.remove('hidden');
+            } else if (key) {
+                hint.textContent = '고인 성별을 확인해 주세요 (자동 판별 불가)';
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+                hint.textContent = '';
+            }
+        }
+
+        function applyDeceasedGenderFromSuffix(prefix) {
+            const suffix = getEventSuffix(prefix);
+            const inferred = inferDeceasedGenderFromSuffix(suffix);
+            if (inferred) setDeceasedGender(prefix, inferred);
+            updateDeceasedGenderHint(prefix, suffix, inferred);
+        }
+
+        function syncCondolenceSelectFromEvent(title, suffix) {
+            const el = document.getElementById('eventSelect');
+            if (!el) return;
+            const type = mapSuffixToCondolenceType(suffix || extractSuffixFromTitle(title));
+            if (!type) return;
+            el.value = type;
+            if (typeof calculateCondolence === 'function') calculateCondolence();
+        }
+
+        function trySyncSuffixFromHeadline(prefix) {
+            const id = prefix === 'kt' ? 'kt_headline' : 'reg_title';
+            const extracted = extractSuffixFromTitle(document.getElementById(id)?.value);
+            if (extracted) setEventSuffixSelect(prefix, extracted);
+        }
+
+        window.onEventSuffixChange = (prefix = 'kt', opts = {}) => {
             const isCustom = document.getElementById(`${prefix}_event_suffix`).value === '__custom__';
             const customEl = document.getElementById(`${prefix}_event_suffix_custom`);
             if (!customEl) return;
             customEl.classList.toggle('hidden', !isCustom);
             if (isCustom) customEl.focus();
             else customEl.value = '';
+            if (opts.applyGender !== false) applyDeceasedGenderFromSuffix(prefix);
             if (prefix === 'reg') updateRegTitleFromSelection();
         };
 
@@ -731,19 +863,20 @@
             return v || '부친상';
         }
 
-        function setEventSuffixSelect(prefix, suffix) {
+        function setEventSuffixSelect(prefix, suffix, opts = {}) {
             const sel = document.getElementById(`${prefix}_event_suffix`);
             const custom = document.getElementById(`${prefix}_event_suffix_custom`);
             if (!sel) return;
-            const opts = [...sel.options].map(o => o.value).filter(v => v !== '__custom__');
-            if (suffix && opts.includes(suffix)) {
-                sel.value = suffix;
+            const optValues = [...sel.options].map(o => o.value).filter(v => v !== '__custom__');
+            const normalized = normalizeSuffixKey(suffix);
+            if (normalized && optValues.includes(normalized)) {
+                sel.value = normalized;
                 if (custom) { custom.classList.add('hidden'); custom.value = ''; }
-            } else if (suffix) {
+            } else if (normalized) {
                 sel.value = '__custom__';
-                if (custom) { custom.classList.remove('hidden'); custom.value = suffix; }
+                if (custom) { custom.classList.remove('hidden'); custom.value = normalized; }
             }
-            onEventSuffixChange(prefix);
+            onEventSuffixChange(prefix, opts);
         }
 
         function getChosung(str) {
@@ -929,25 +1062,44 @@
             return document.getElementById(`${prefix}_deceased_gender_f`)?.dataset.selected === '1' ? '여' : '남';
         }
 
-        window.setDeceasedGender = (prefix, gender) => {
+        window.setDeceasedGender = (prefix, gender, manual = false) => {
             const m = document.getElementById(`${prefix}_deceased_gender_m`);
             const f = document.getElementById(`${prefix}_deceased_gender_f`);
             const isF = gender === '여';
             if (m) { m.className = isF ? 'deceased-gender-off wk-pill-off' : 'deceased-gender-on wk-pill-on'; m.dataset.selected = isF ? '0' : '1'; }
             if (f) { f.className = isF ? 'deceased-gender-on wk-pill-on' : 'deceased-gender-off wk-pill-off'; f.dataset.selected = isF ? '1' : '0'; }
+            if (manual) {
+                const hint = document.getElementById(`${prefix}_deceased_gender_hint`);
+                if (hint) {
+                    hint.textContent = `고인 ${gender} (직접 선택)`;
+                    hint.classList.remove('hidden');
+                }
+            }
             updateDeceasedPreview(prefix);
         };
+
+        function resolveDeceasedGender(data, prefix) {
+            const parsed = data?.deceased ? parseDeceasedString(data.deceased) : null;
+            if (data?.deceasedGender === '남' || data?.deceasedGender === '여') return data.deceasedGender;
+            if (parsed?.gender && data?.deceased && /\/\s*(남|여)\s*\)/.test(data.deceased)) return parsed.gender;
+            const suffix = data?.eventSuffix || getEventSuffix(prefix) || extractSuffixFromTitle(data?.title);
+            const inferred = inferDeceasedGenderFromSuffix(suffix);
+            if (inferred) return inferred;
+            return parsed?.gender || '남';
+        }
 
         function setDeceasedFields(prefix, data) {
             const parsed = data?.deceased ? parseDeceasedString(data.deceased) : null;
             const name = data?.deceasedName || parsed?.name || '';
             const age = data?.deceasedAge != null && data.deceasedAge !== '' ? String(data.deceasedAge) : (parsed?.age || '');
-            const gender = data?.deceasedGender || parsed?.gender || '남';
+            const gender = resolveDeceasedGender(data || {}, prefix);
             const elName = document.getElementById(`${prefix}_deceased_name`);
             const elAge = document.getElementById(`${prefix}_deceased_age`);
             if (elName) elName.value = name;
             if (elAge) elAge.value = age;
             setDeceasedGender(prefix, gender);
+            const suffix = data?.eventSuffix || extractSuffixFromTitle(data?.title) || getEventSuffix(prefix);
+            updateDeceasedGenderHint(prefix, suffix, inferDeceasedGenderFromSuffix(suffix));
         }
 
         function getDeceasedParts(prefix) {
@@ -989,21 +1141,24 @@
 
         function initDeceasedFields() {
             ['kt', 'reg'].forEach(prefix => {
-                setDeceasedGender(prefix, '남');
                 document.getElementById(`${prefix}_deceased_name`)?.addEventListener('input', () => updateDeceasedPreview(prefix));
                 document.getElementById(`${prefix}_deceased_age`)?.addEventListener('input', () => updateDeceasedPreview(prefix));
+                document.getElementById(`${prefix}_event_suffix_custom`)?.addEventListener('input', () => onEventSuffixChange(prefix));
             });
+            document.getElementById('kt_headline')?.addEventListener('blur', () => trySyncSuffixFromHeadline('kt'));
+            document.getElementById('reg_title')?.addEventListener('blur', () => trySyncSuffixFromHeadline('reg'));
         }
 
         function populateKakaoFromEvent(e) {
             if (!e) return;
+            const suffix = e.eventSuffix || extractSuffixFromTitle(e.title);
             document.getElementById('kt_headline').value = e.title || '';
             document.getElementById('kt_hall').value = e.location || '';
-            setDeceasedFields('kt', e);
+            if (suffix) setEventSuffixSelect('kt', suffix, { applyGender: false });
+            setDeceasedFields('kt', { ...e, eventSuffix: suffix });
             document.getElementById('kt_burial').value = e.burial || '';
             document.getElementById('kt_account').value = e.account || '';
             if (e.employeeName) document.getElementById('hr_name_search').value = e.employeeName;
-            if (e.eventSuffix) setEventSuffixSelect('kt', e.eventSuffix);
             setKakaoBusMode(!!e.busNeeded);
             if (e.funeralDate) {
                 document.getElementById('kt_funeral_date').value = e.funeralDate;
@@ -1027,9 +1182,7 @@
             document.getElementById('reg_funeral_date').value = '';
             fillFuneralTimeSelect('reg_funeral_time', '10:00');
             setRegBusMode(false);
-            document.getElementById('reg_event_suffix').value = '부친상';
-            const rc = document.getElementById('reg_event_suffix_custom');
-            if (rc) { rc.value = ''; rc.classList.add('hidden'); }
+            setEventSuffixSelect('reg', '부친상');
             document.getElementById('reg_hr_dropdown')?.classList.add('hidden');
             ['reg_title', 'reg_death_date', 'reg_funeral_date', 'reg_deceased_name'].forEach(clearFieldError);
         }
@@ -1669,8 +1822,8 @@
             const t = title || '';
             const base = { bg: 'wk-card', textMain: 'text-slate-800', textSub: 'text-slate-500', icon: 'text-slate-400' };
             if (t.includes('결혼') || t.includes('혼인') || t.includes('웨딩')) return { ...base, bar: 'bg-rose-300' };
-            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { ...base, bar: 'bg-slate-600' };
-            return { ...base, bar: 'bg-slate-500' };
+            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { ...base, bar: 'bg-slate-400' };
+            return { ...base, bar: 'bg-slate-400' };
         }
 
         function switchTab(tabName) {
@@ -1833,7 +1986,10 @@
             document.getElementById('d_title').innerText = title;
             document.getElementById('d_info').innerText = info;
             const e = globalEventsActive.find(x => x.id === eventId) || globalEventsClosed.find(x => x.id === eventId);
-            if (e) populateKakaoFromEvent(e);
+            if (e) {
+                populateKakaoFromEvent(e);
+                syncCondolenceSelectFromEvent(e.title, e.eventSuffix || extractSuffixFromTitle(e.title));
+            }
             const btnClose = document.getElementById('btn-close-event');
             if (btnClose) btnClose.style.display = readOnly ? 'none' : 'block';
             const dangerZone = document.getElementById('dangerZoneArea');
@@ -1860,14 +2016,14 @@
                 else if (collapsedOwners.has(owner)) collapsed = true;
                 else collapsed = isAllDone && !hasPending;
                 const cardCls = isAllDone ? 'owner-card-done' : '';
-                const ok = isAllDone ? 'text-emerald-200' : 'text-slate-300';
+                const ok = isAllDone ? 'text-emerald-600' : 'text-slate-600';
 
                 const progLabel = ownerDisplayName(owner);
-                mHtml += `<div class="bg-white/10 rounded-lg py-1.5 border border-white/15"><div class="font-bold ${ok} text-[8px] leading-tight">${escapeHtml(progLabel)}</div><div class="opacity-80 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
+                mHtml += `<div class="bg-white rounded-lg py-1.5 border border-slate-200/90 shadow-sm"><div class="font-bold ${ok} text-[8px] leading-tight">${escapeHtml(progLabel)}</div><div class="text-slate-500 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
 
                 let taskHtml = myTasks.map(t => `
                     <div class="flex items-center gap-2 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
-                        <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'bg-slate-800 border-slate-800 text-white' : 'border-slate-300 bg-white'}" data-done="${t.done}">
+                        <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'wk-check-on' : 'border-slate-300 bg-white'}" data-done="${t.done}">
                             ${t.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
                         </button>
                         <span class="task-label flex-grow text-[11px] leading-snug ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${escapeHtml(t.title)}</span>
@@ -2104,7 +2260,7 @@
                 const telFmt = formatPhoneDisplay(v.tel);
                 const descBadge = v.desc ? `<span class="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">${escapeHtml(v.desc)}</span>` : '';
                 let btnSms = v.useSms ? `<button type="button" onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-9 h-9 bg-slate-100 text-slate-700 rounded-md flex items-center justify-center"><i class="fa-solid fa-comment-sms"></i></button>` : '';
-                let btnCall = v.useCall ? `<a href="tel:${normalizePhone(v.tel) || v.tel}" onclick="event.stopPropagation();" class="w-9 h-9 bg-slate-800 text-white rounded-md flex items-center justify-center"><i class="fa-solid fa-phone"></i></a>` : '';
+                let btnCall = v.useCall ? `<a href="tel:${normalizePhone(v.tel) || v.tel}" onclick="event.stopPropagation();" class="w-9 h-9 rounded-md flex items-center justify-center text-white text-[11px]" style="background:var(--wk-accent)"><i class="fa-solid fa-phone"></i></a>` : '';
                 html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 wk-card mb-2 active:scale-[0.98] hover:border-slate-300"><div class="min-w-0 flex-grow pr-2"><div class="flex items-center gap-1 flex-wrap mb-0.5"><p class="font-bold text-[11px]">${escapeHtml(v.name)}</p>${descBadge}</div><p class="text-[10px] text-slate-500 font-mono">${escapeHtml(telFmt)}</p></div><div class="flex gap-1.5 shrink-0">${btnSms}${btnCall}</div></div>`; 
             });
             const emptyHtml = '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
@@ -2191,8 +2347,6 @@
         loadHrRoster();
         bindHrAutocomplete('reg_employee_name', 'reg_hr_dropdown', (person, idx) => selectRegEmployee(idx), { autoExactOnBlur: true });
         bindHrAutocomplete('hr_name_search', 'hr_search_dropdown', (person, idx) => selectKakaoHrEmployee(idx));
-        document.getElementById('reg_event_suffix')?.addEventListener('change', () => updateRegTitleFromSelection());
-        document.getElementById('reg_event_suffix_custom')?.addEventListener('input', () => updateRegTitleFromSelection());
         setupListClickDelegation();
         document.getElementById('sub_picker_list').addEventListener('click', (e) => {
             const btn = e.target.closest('.sub-pick-btn');
