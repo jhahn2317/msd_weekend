@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>위크 · 주말·휴일 업무</title>
-    <meta name="theme-color" content="#64748b">
+    <meta name="theme-color" content="#2d6a8f">
     <meta name="apple-mobile-web-app-title" content="위크">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
@@ -19,10 +19,14 @@
             --wk-border: #e2e8f0;
             --wk-text: #334155;
             --wk-text-muted: #64748b;
-            --wk-accent: #5b6d82;
-            --wk-accent-hover: #4a5c6f;
-            --wk-accent-soft: #eef2f6;
-            --wk-accent-soft-border: #d8e0ea;
+            --wk-accent: #2d6a8f;
+            --wk-accent-hover: #245a7a;
+            --wk-accent-soft: #e8f4fa;
+            --wk-accent-soft-border: #b8d9eb;
+            --wk-teal: #0d9488;
+            --wk-kakao: #2563eb;
+            --wk-bus: #d97706;
+            --wk-rose: #e11d48;
             --wk-radius: 0.75rem;
         }
         body {
@@ -32,8 +36,9 @@
         }
         .week-logo {
             display: inline-flex; align-items: center; justify-content: center;
-            background: var(--wk-accent-soft); color: var(--wk-accent);
-            border: 1px solid var(--wk-accent-soft-border); font-weight: 800; letter-spacing: -0.06em;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            color: var(--wk-accent); border: 1px solid #93c5fd;
+            font-weight: 800; letter-spacing: -0.06em;
             border-radius: 0.625rem; padding: 0.38rem 0.65rem; font-size: 1.2rem; line-height: 1;
         }
         .week-logo-sm { font-size: 0.95rem; padding: 0.28rem 0.5rem; border-radius: 0.45rem; }
@@ -64,6 +69,15 @@
             transition: background 0.15s; box-shadow: 0 1px 2px rgba(91, 109, 130, 0.25);
         }
         .wk-btn-primary:active { background: var(--wk-accent-hover); }
+        .wk-btn-teal { background: var(--wk-teal); color: #fff; font-weight: 700; border-radius: var(--wk-radius); box-shadow: 0 1px 3px rgba(13, 148, 136, 0.3); }
+        .wk-btn-teal:active { background: #0f766e; }
+        .wk-btn-bus { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-weight: 700; border-radius: var(--wk-radius); box-shadow: 0 1px 3px rgba(217, 119, 6, 0.35); }
+        .wk-btn-bus:active { opacity: 0.92; }
+        .wk-btn-kakao { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; font-weight: 700; border-radius: var(--wk-radius); }
+        .wk-card-kakao { border-left: 3px solid var(--wk-kakao); }
+        .wk-card-vendor { border-left: 3px solid var(--wk-teal); }
+        .wk-collapse-toggle { width: 100%; text-align: left; }
+        .wk-collapse-body.collapsed { display: none; }
         .wk-btn-secondary { background: var(--wk-bg); color: var(--wk-text); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-btn-ghost { background: transparent; color: var(--wk-text-muted); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-input { border: 1px solid var(--wk-border); border-radius: 0.5rem; background: var(--wk-bg); outline: none; }
@@ -84,7 +98,7 @@
         .owner-card-done { border-color: #86efac !important; box-shadow: 0 0 0 1px #bbf7d0; }
         .owner-card-body.collapsed { display: none; }
         .bus-timeline-step { position: relative; padding-left: 1.25rem; }
-        .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #475569; }
+        .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: var(--wk-bus); }
         .bus-timeline-step:not(:last-child)::after { content: ''; position: absolute; left: 0.42rem; top: 1rem; bottom: -0.5rem; width: 2px; background: #e2e8f0; }
         .bus-rule-highlight { background-color: #f1f5f9 !important; }
         .bus-col-highlight { background-color: #e2e8f0 !important; outline: 1px solid #94a3b8; }
@@ -184,10 +198,17 @@
             </div>
             <div id="eventListArea"></div>
 
-            <section id="kakaoSection" class="wk-card p-3 mt-4">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-bold text-slate-800 text-xs flex items-center"><i class="fa-solid fa-comment-dots text-slate-500 mr-1.5"></i>본사 조사 · 카톡 문구</h2>
-                    <button type="button" onclick="loadKakaoFromEvent()" class="text-[9px] text-slate-600 px-2 py-1 rounded font-bold border border-slate-200 bg-slate-50">경조사에서 불러오기</button>
+            <section id="kakaoSection" class="wk-card wk-card-kakao overflow-hidden mt-4">
+                <button type="button" id="kakaoSectionToggle" onclick="toggleKakaoSection()" class="wk-collapse-toggle flex justify-between items-center gap-2 p-3 active:bg-blue-50/50">
+                    <span class="font-bold text-slate-800 text-xs flex items-center min-w-0"><i class="fa-solid fa-comment-dots text-blue-500 mr-1.5 shrink-0"></i><span class="truncate">본사 조사 · 카톡 문구</span></span>
+                    <span class="flex items-center gap-1.5 shrink-0">
+                        <span id="kakaoSectionBadge" class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">접기</span>
+                        <i id="kakaoSectionChevron" class="fa-solid fa-chevron-down text-blue-500 text-[10px] transition-transform"></i>
+                    </span>
+                </button>
+                <div id="kakaoSectionBody" class="wk-collapse-body collapsed px-3 pb-3 border-t border-blue-100/80 bg-gradient-to-b from-blue-50/30 to-white">
+                <div class="flex justify-end pt-2 mb-2">
+                    <button type="button" onclick="event.stopPropagation(); loadKakaoFromEvent()" class="text-[9px] text-blue-700 px-2 py-1 rounded font-bold border border-blue-200 bg-blue-50">경조사에서 불러오기</button>
                 </div>
                 <select id="kakao_event_select" class="wk-input w-full p-2 text-[10px] mb-2 font-medium"></select>
 
@@ -252,12 +273,13 @@
                     <button type="button" id="kt_bus_yes" onclick="setKakaoBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-off wk-pill-off">버스 대절 <span class="text-slate-600">필요</span></button>
                     <button type="button" id="kt_bus_no" onclick="setKakaoBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-on wk-pill-on">버스 <span class="opacity-80">불필요</span></button>
                 </div>
-                <button type="button" onclick="openKakaoPreview()" class="w-full mt-3 wk-btn-primary py-3 text-xs shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 카톡 발송</button>
+                <button type="button" onclick="openKakaoPreview()" class="w-full mt-3 wk-btn-kakao py-3 text-xs shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 카톡 발송</button>
+                </div>
             </section>
 
-            <section class="wk-card p-3 mt-6">
+            <section class="wk-card wk-card-vendor p-3 mt-6">
                 <div class="flex justify-between items-center mb-2.5">
-                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book text-slate-500 mr-1.5"></i>협력업체 연락처</h2>
+                    <h2 class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book text-teal-600 mr-1.5"></i>협력업체 연락처</h2>
                     <button onclick="openVendorModal()" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">+ 새 업체 등록</button>
                 </div>
                 <div id="vendorList_home" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
@@ -311,6 +333,9 @@
                     <p class="text-[8px] text-slate-400 text-right mt-0.5">달력이 월~목이어도 연휴 접수면 체크 (연휴 금요일 규정 적용)</p>
                 </div>
 
+                <button type="button" onclick="requestBusCharterSms()" class="w-full wk-btn-bus py-3 text-xs shadow-sm flex items-center justify-center gap-2 mb-2">
+                    <i class="fa-solid fa-bus"></i>버스 대절 신청하기
+                </button>
                 <button onclick="calculateBusRule()" class="w-full wk-btn-primary py-3 text-xs shadow-sm">규정 확인하기</button>
             </div>
 
@@ -339,7 +364,6 @@
             <div class="flex items-center gap-2">
                 <button type="button" onclick="goBack()" aria-label="뒤로" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg"><i class="fa-solid fa-chevron-left text-slate-600 text-xs"></i></button>
                 <div class="flex-grow min-w-0"><h2 id="d_title" class="text-sm font-extrabold text-slate-700 leading-tight truncate"></h2><p id="d_info" class="text-[9px] text-slate-600 font-medium mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded max-w-full truncate"></p></div>
-                <button id="btn-close-event" type="button" onclick="closeEvent()" class="text-[10px] wk-btn-primary px-2 py-1.5 shadow-sm shrink-0">마감(종료)</button>
             </div>
             <section class="wk-progress-panel rounded-xl p-3 shadow-sm">
                 <div class="flex justify-between items-center mb-1.5"><h2 class="font-bold text-[10px] text-slate-500 uppercase tracking-tighter">TOTAL PROGRESS</h2><span id="globalPercent" class="text-xl font-black italic text-slate-700">0%</span></div>
@@ -357,10 +381,15 @@
                 </div>
                 <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] wk-btn-ghost px-2 py-1 text-[9px]">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
             </section>
-            <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-secondary py-2.5 text-[11px] flex items-center justify-center gap-2"><i class="fa-solid fa-comment-dots text-slate-500"></i>본사 조사 카톡 문구 (현재 경조사)</button>
+            <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-kakao py-2.5 text-[11px] flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-comment-dots"></i>본사 조사 · 카톡 발송</button>
             <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 <b>⋯</b> 수정·삭제 · <b>대체</b> 버튼으로 담당자 변경</p>
             <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
-            <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6"><button onclick="deleteEvent()" class="w-full flex items-center justify-center gap-1.5 bg-red-50 text-red-500 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors"><i class="fa-solid fa-triangle-exclamation"></i> 이 상황 영구 삭제하기</button></div>
+            <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6">
+                <div class="flex gap-2">
+                    <button id="btn-close-event" type="button" onclick="closeEvent()" class="flex-1 flex items-center justify-center gap-1.5 wk-btn-teal py-3 rounded-xl text-[11px] shadow-sm"><i class="fa-solid fa-check-double"></i> 마감(종료)</button>
+                    <button type="button" onclick="deleteEvent()" class="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 border border-red-200 font-bold py-3 rounded-xl text-[11px] hover:bg-red-100 transition-colors"><i class="fa-solid fa-trash-can"></i> 영구 삭제</button>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -570,7 +599,7 @@
 
     <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
     <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">저장</button></div></div></div></div>
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환 · 버스·대절" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -589,6 +618,65 @@
         let isReadOnly = false;
         let editingTaskId = null;
         let pendingSms = null;
+
+        function setKakaoSectionOpen(open) {
+            const body = document.getElementById('kakaoSectionBody');
+            const chevron = document.getElementById('kakaoSectionChevron');
+            const badge = document.getElementById('kakaoSectionBadge');
+            if (!body) return;
+            body.classList.toggle('collapsed', !open);
+            chevron?.classList.toggle('rotate-180', open);
+            if (badge) badge.textContent = open ? '접기' : '펼치기';
+            try { localStorage.setItem('wk_kakao_open', open ? '1' : '0'); } catch (_) {}
+        }
+
+        window.toggleKakaoSection = () => {
+            const body = document.getElementById('kakaoSectionBody');
+            setKakaoSectionOpen(body?.classList.contains('collapsed'));
+        };
+
+        function resolveSmsEventContext() {
+            if (currentEventId) {
+                return {
+                    title: document.getElementById('d_title')?.innerText?.trim() || '',
+                    info: document.getElementById('d_info')?.innerText?.trim() || ''
+                };
+            }
+            const selId = document.getElementById('kakao_event_select')?.value;
+            let e = selId ? globalEventsActive.find(x => x.id === selId) : null;
+            if (!e && globalEventsActive.length === 1) e = globalEventsActive[0];
+            if (!e) return { title: '', info: '' };
+            return {
+                title: e.title || '',
+                info: [e.time, e.location].filter(Boolean).join(' | ')
+            };
+        }
+
+        function isBusVendor(v) {
+            const blob = `${v.name || ''} ${v.desc || ''}`;
+            return /버스|대절|범아|관광|조문/i.test(blob);
+        }
+
+        function findBusVendors() {
+            return Object.entries(vendorDataCache)
+                .filter(([, v]) => isBusVendor(v))
+                .sort((a, b) => {
+                    const score = (v) => (/범아|관광/.test(v.name || '') ? 3 : 0) + (/버스|대절/.test(`${v.name}${v.desc}`) ? 1 : 0);
+                    return score(b[1]) - score(a[1]);
+                });
+        }
+
+        window.requestBusCharterSms = () => {
+            const ctx = resolveSmsEventContext();
+            if (!ctx.title) return showToast('진행 중 경조사를 등록하거나 상세 화면에서 진행해 주세요', true);
+            const matches = findBusVendors();
+            if (!matches.length) {
+                return showToast('협력업체에 버스 업체를 등록하세요 (예: 범아관광, 분류에 「버스」)', true);
+            }
+            const [vendorId, vendor] = matches[0];
+            if (matches.length > 1) showToast(`「${vendor.name}」으로 문자 (${matches.length}개 업체 중 우선)`);
+            sendSMS(vendorId, ctx);
+        };
         let lastBusCaseKey = null;
         let lastBusDist = 'under';
         const owners = ['조정열', '안정훈/변우혁', '김태석', '박유희'];
@@ -1820,10 +1908,10 @@
 
         function getEventTheme(title) {
             const t = title || '';
-            const base = { bg: 'wk-card', textMain: 'text-slate-800', textSub: 'text-slate-500', icon: 'text-slate-400' };
-            if (t.includes('결혼') || t.includes('혼인') || t.includes('웨딩')) return { ...base, bar: 'bg-rose-300' };
-            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { ...base, bar: 'bg-slate-400' };
-            return { ...base, bar: 'bg-slate-400' };
+            const base = { bg: 'wk-card', textMain: 'text-slate-800', textSub: 'text-slate-500', icon: 'text-slate-400', stripe: 'border-l-slate-300' };
+            if (t.includes('결혼') || t.includes('혼인') || t.includes('웨딩')) return { ...base, bar: 'bg-rose-400', stripe: 'border-l-rose-400' };
+            if (t.includes('상') || t.includes('사망') || t.includes('부친') || t.includes('모친') || t.includes('빙부') || t.includes('빙모') || t.includes('조부') || t.includes('조모') || t.includes('별세') || t.includes('부고')) return { ...base, bar: 'bg-teal-500', stripe: 'border-l-teal-500' };
+            return { ...base, bar: 'bg-blue-400', stripe: 'border-l-blue-400' };
         }
 
         function switchTab(tabName) {
@@ -1914,7 +2002,7 @@
                 const percent = eTasks.length === 0 ? 0 : Math.round((done / eTasks.length) * 100);
                 const nextTask = eTasks.find(task => !task.done);
                 const nextLine = nextTask ? `<p class="text-[9px] ${t.textSub} font-bold mt-1 truncate"><i class="fa-solid fa-circle-dot mr-1"></i>다음: ${escapeHtml(nextTask.title)}</p>` : '';
-                html += `<div data-event-id="${e.id}" class="event-card ${t.bg} p-3.5 relative transition-all active:scale-[0.98] mb-3 cursor-pointer">
+                html += `<div data-event-id="${e.id}" class="event-card ${t.bg} border-l-4 ${t.stripe} p-3.5 relative transition-all active:scale-[0.98] mb-3 cursor-pointer">
                     <div onclick="openDetailById('${e.id}', false)" class="pr-9">
                         <div class="absolute top-0 left-4 w-6 h-1 ${t.bar} rounded-b-md opacity-90"></div>
                         <h3 class="font-black text-[14px] ${t.textMain} mb-1 mt-1.5">${escapeHtml(e.title)}</h3>
@@ -1922,7 +2010,7 @@
                             <span><i class="fa-solid fa-calendar-day mr-1"></i>${escapeHtml(e.time || '-')}</span>
                             <span class="truncate max-w-[55%]"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(e.location || '-')}</span>
                         </div>
-                        <p class="text-[10px] font-bold ${pending > 0 ? 'text-slate-700' : 'text-slate-500'}">미완료 ${pending}건 · ${percent}%</p>
+                        <p class="text-[10px] font-bold ${pending > 0 ? 'text-amber-700' : 'text-teal-700'}">미완료 ${pending}건 · ${percent}%</p>
                         ${nextLine}
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex items-center mt-1.5"><div class="${t.bar} h-full transition-all duration-500" style="width:${percent}%"></div></div>
                     </div>
@@ -1944,7 +2032,7 @@
             filtered.forEach(e => {
                 const dateStr = new Date(e.createdAt).toLocaleDateString();
                 const t = getEventTheme(e.title);
-                html += `<div data-event-id="${e.id}" class="history-card ${t.bg} p-3 rounded-lg border flex justify-between items-center mb-2 cursor-pointer active:scale-[0.98] relative">
+                html += `<div data-event-id="${e.id}" class="history-card ${t.bg} border-l-4 ${t.stripe} p-3 flex justify-between items-center mb-2 cursor-pointer active:scale-[0.98] relative">
                     <div onclick="openDetailById('${e.id}', true)" class="flex-grow min-w-0 pr-8">
                         <p class="text-[9px] font-bold ${t.textSub} mb-0.5">${dateStr} 종료</p>
                         <h4 class="font-bold text-xs ${t.textMain} truncate">${escapeHtml(e.title)}</h4>
@@ -2259,9 +2347,10 @@
                 const v = doc.data(); vendorDataCache[doc.id] = v;
                 const telFmt = formatPhoneDisplay(v.tel);
                 const descBadge = v.desc ? `<span class="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">${escapeHtml(v.desc)}</span>` : '';
+                const busBadge = isBusVendor(v) ? `<span class="text-[8px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">버스</span>` : '';
                 let btnSms = v.useSms ? `<button type="button" onclick="event.stopPropagation(); sendSMS('${doc.id}')" class="w-9 h-9 bg-slate-100 text-slate-700 rounded-md flex items-center justify-center"><i class="fa-solid fa-comment-sms"></i></button>` : '';
                 let btnCall = v.useCall ? `<a href="tel:${normalizePhone(v.tel) || v.tel}" onclick="event.stopPropagation();" class="w-9 h-9 rounded-md flex items-center justify-center text-white text-[11px]" style="background:var(--wk-accent)"><i class="fa-solid fa-phone"></i></a>` : '';
-                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 wk-card mb-2 active:scale-[0.98] hover:border-slate-300"><div class="min-w-0 flex-grow pr-2"><div class="flex items-center gap-1 flex-wrap mb-0.5"><p class="font-bold text-[11px]">${escapeHtml(v.name)}</p>${descBadge}</div><p class="text-[10px] text-slate-500 font-mono">${escapeHtml(telFmt)}</p></div><div class="flex gap-1.5 shrink-0">${btnSms}${btnCall}</div></div>`; 
+                html += `<div onclick="openVendorModal('${doc.id}')" class="cursor-pointer flex justify-between items-center p-2.5 wk-card mb-2 active:scale-[0.98] hover:border-slate-300"><div class="min-w-0 flex-grow pr-2"><div class="flex items-center gap-1 flex-wrap mb-0.5"><p class="font-bold text-[11px]">${escapeHtml(v.name)}</p>${busBadge}${descBadge}</div><p class="text-[10px] text-slate-500 font-mono">${escapeHtml(telFmt)}</p></div><div class="flex gap-1.5 shrink-0">${btnSms}${btnCall}</div></div>`; 
             });
             const emptyHtml = '<p class="text-[10px] text-slate-400 italic">등록된 업체가 없습니다.</p>';
             ['vendorList_home', 'vendorList_detail'].forEach(id => {
@@ -2303,9 +2392,10 @@
         };
         window.deleteVendorAction = () => { if(confirm("삭제?")) { db.collection("vendors").doc(document.getElementById('v_id').value).delete(); closeModal('vendorModal'); showToast("삭제됨"); } };
 
-        function buildSmsBody(v) {
-            const title = currentEventId ? document.getElementById('d_title').innerText : '';
-            const info = currentEventId ? document.getElementById('d_info').innerText : '';
+        function buildSmsBody(v, ctx) {
+            const resolved = ctx || resolveSmsEventContext();
+            const title = resolved.title || '';
+            const info = resolved.info || '';
             const parts = info ? info.split('|') : [];
             const time = parts[0]?.trim() || '';
             const loc = parts[1]?.trim() || '';
@@ -2316,10 +2406,10 @@
             return `[발송 요청]\n행사명: ${title}\n일시: ${time}\n장소: ${loc}`;
         }
 
-        window.sendSMS = (vendorId) => {
+        window.sendSMS = (vendorId, ctx) => {
             const v = vendorDataCache[vendorId];
             if (!v) return;
-            const body = buildSmsBody(v);
+            const body = buildSmsBody(v, ctx);
             if (!body.trim()) return showToast('문자 내용이 비어 있습니다', true);
             pendingSms = { tel: v.tel, body };
             document.getElementById('sms_preview_tel').innerText = formatPhoneDisplay(v.tel);
@@ -2344,6 +2434,7 @@
         setRegBusMode(false);
         onEventSuffixChange('kt');
         onEventSuffixChange('reg');
+        try { setKakaoSectionOpen(localStorage.getItem('wk_kakao_open') === '1'); } catch (_) { setKakaoSectionOpen(false); }
         loadHrRoster();
         bindHrAutocomplete('reg_employee_name', 'reg_hr_dropdown', (person, idx) => selectRegEmployee(idx), { autoExactOnBlur: true });
         bindHrAutocomplete('hr_name_search', 'hr_search_dropdown', (person, idx) => selectKakaoHrEmployee(idx));
