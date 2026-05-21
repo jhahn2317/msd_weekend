@@ -78,6 +78,14 @@
         .wk-card-vendor { border-left: 3px solid var(--wk-teal); }
         .wk-collapse-toggle { width: 100%; text-align: left; }
         .wk-collapse-body.collapsed { display: none; }
+        .condolence-rule-panel { border: 1px solid var(--wk-border); border-radius: 0.5rem; overflow: hidden; background: #fff; }
+        .condolence-rule-panel.is-match { border-color: var(--wk-accent); box-shadow: 0 0 0 1px rgba(45, 106, 143, 0.25); }
+        .condolence-rule-toggle { width: 100%; text-align: left; padding: 0.5rem 0.625rem; display: flex; align-items: center; gap: 0.5rem; }
+        .condolence-rule-toggle .condolence-chevron { transition: transform 0.2s; }
+        .condolence-rule-panel:not(.is-open) .condolence-chevron { transform: rotate(-90deg); }
+        .condolence-rule-body { border-top: 1px solid var(--wk-border); background: var(--wk-bg); }
+        .condolence-rule-body.collapsed { display: none; }
+        .condolence-amt-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; }
         .wk-btn-secondary { background: var(--wk-bg); color: var(--wk-text); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-btn-ghost { background: transparent; color: var(--wk-text-muted); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-input { border: 1px solid var(--wk-border); border-radius: 0.5rem; background: var(--wk-bg); outline: none; }
@@ -97,6 +105,13 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .owner-card-done { border-color: #86efac !important; box-shadow: 0 0 0 1px #bbf7d0; }
         .owner-card-body.collapsed { display: none; }
+        .task-order-btns { display: flex; flex-direction: column; gap: 0; flex-shrink: 0; }
+        .task-order-btn {
+            width: 1.35rem; height: 1.1rem; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; border-radius: 0.25rem;
+        }
+        .task-order-btn:not(:disabled):active { background: #f1f5f9; color: var(--wk-accent); }
+        .task-order-btn:disabled { opacity: 0.25; cursor: default; }
         .bus-timeline-step { position: relative; padding-left: 1.25rem; }
         .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: var(--wk-bus); }
         .bus-timeline-step:not(:last-child)::after { content: ''; position: absolute; left: 0.42rem; top: 1rem; bottom: -0.5rem; width: 2px; background: #e2e8f0; }
@@ -118,46 +133,6 @@
         #screen-bus input[type="date"].bus-form-control {
             min-height: 2.5rem; height: 2.5rem; font-size: 11px !important;
             -webkit-appearance: none; appearance: none; text-align: center;
-        }
-        .kakao-preview-text {
-            font-family: "Gungsuh", "궁서체", "Batang", "Nanum Myeongjo", serif;
-            font-size: 15px;
-            line-height: 2;
-            letter-spacing: 0.03em;
-            word-break: keep-all;
-            overflow-wrap: break-word;
-            color: #1e293b;
-            padding: 1.25rem 1rem;
-            background: #fafaf9;
-        }
-        .kakao-preview-text .kakao-title {
-            display: block;
-            text-align: center;
-            font-size: 17px;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e7e5e4;
-        }
-        .kakao-preview-text .kakao-info {
-            display: block;
-            text-align: left;
-            margin: 0.2rem 0;
-            padding-left: 0.25rem;
-        }
-        .kakao-preview-text .kakao-info .label {
-            color: #57534e;
-            font-weight: normal;
-        }
-        .kakao-preview-text .kakao-gap {
-            display: block;
-            height: 0.85rem;
-        }
-        .kakao-preview-text .kakao-notice {
-            display: block;
-            text-align: left;
-            margin-top: 0.25rem;
-            line-height: 2.1;
-            color: #44403c;
         }
         .hr-ac-wrap { position: relative; }
         .hr-ac-dropdown {
@@ -212,9 +187,9 @@
 
             <section id="kakaoSection" class="wk-card wk-card-kakao overflow-hidden mt-4">
                 <button type="button" id="kakaoSectionToggle" onclick="toggleKakaoSection()" class="wk-collapse-toggle flex justify-between items-center gap-2 p-3 active:bg-blue-50/50">
-                    <span class="font-bold text-slate-800 text-xs flex items-center min-w-0"><i class="fa-solid fa-comment-dots text-blue-500 mr-1.5 shrink-0"></i><span class="truncate">본사 조사 · 카톡 문구</span></span>
+                    <span class="font-bold text-slate-800 text-xs flex items-center min-w-0"><i class="fa-solid fa-comment-dots text-blue-500 mr-1.5 shrink-0"></i><span class="truncate">단톡방 카톡 전송</span></span>
                     <span class="flex items-center gap-1.5 shrink-0">
-                        <span id="kakaoSectionBadge" class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">접기</span>
+                        <span id="kakaoSectionBadge" class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">펼치기</span>
                         <i id="kakaoSectionChevron" class="fa-solid fa-chevron-down text-blue-500 text-[10px] transition-transform"></i>
                     </span>
                 </button>
@@ -283,7 +258,10 @@
                     <button type="button" id="kt_bus_yes" onclick="setKakaoBusMode(true)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-off wk-pill-off">버스 대절 <span class="text-slate-600">필요</span></button>
                     <button type="button" id="kt_bus_no" onclick="setKakaoBusMode(false)" class="flex-1 py-2 rounded-lg text-[10px] font-bold deceased-gender-on wk-pill-on">버스 <span class="opacity-80">불필요</span></button>
                 </div>
-                <button type="button" onclick="openKakaoPreview()" class="w-full mt-3 wk-btn-kakao py-3 text-xs shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 카톡 발송</button>
+                <div class="flex gap-2 mt-3">
+                    <button type="button" onclick="clearKakaoForm()" class="flex-1 wk-btn-ghost py-3 text-xs"><i class="fa-solid fa-eraser mr-1"></i>내용 지우기</button>
+                    <button type="button" onclick="openKakaoPreview()" class="flex-[1.4] wk-btn-kakao py-3 text-xs shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>미리보기 · 발송</button>
+                </div>
                 </div>
             </section>
 
@@ -385,13 +363,14 @@
                     <button id="tab-btn-vendor" onclick="switchTab('vendor')" class="w-1/2 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent"><i class="fa-solid fa-address-book mr-1"></i>업체 연락처</button>
                 </div>
                 <div id="tab-rule" class="p-3">
-                    <select id="eventSelect" onchange="calculateCondolence()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] rounded-lg p-2 focus:outline-none"><option value="">경조 종류 선택...</option><option value="parent_death">부모님 상 (빙부/빙모 포함)</option><option value="sibling_death">형제자매 상 (본인/배우자)</option><option value="aunt_uncle_death">고모/삼촌 (부모님 형제자매 상)</option><option value="grandparent_death">조부모 상 (외/빙조부모 포함)</option></select>
-                    <div id="calcResult" class="hidden wk-panel p-2 text-[10px] space-y-1 mt-2 font-medium"><div class="flex justify-between"><span>회사 경조금</span><span id="r_company" class="font-bold text-slate-800"></span></div><div class="flex justify-between"><span>사우회비</span><span id="r_mutual" class="font-bold text-slate-800"></span></div><div class="flex justify-between"><span>지원 휴가</span><span id="r_leave" class="font-bold text-slate-700"></span></div><div class="flex justify-between"><span>화환/조화</span><span id="r_flower" class="font-bold text-slate-700"></span></div></div>
+                    <p id="condolence_auto_hint" class="hidden text-[9px] font-bold text-blue-800 bg-blue-50 border border-blue-100 rounded-lg px-2 py-1.5 mb-2"></p>
+                    <p class="text-[9px] text-slate-500 mb-2">경조 구분에 맞는 항목이 자동으로 펼쳐집니다. 다른 규정은 눌러서 확인하세요.</p>
+                    <div id="condolenceAccordion" class="space-y-1.5"></div>
                 </div>
                 <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] wk-btn-ghost px-2 py-1 text-[9px]">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
             </section>
-            <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-kakao py-2.5 text-[11px] flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-comment-dots"></i>본사 조사 · 카톡 발송</button>
-            <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 <b>⋯</b> 수정·삭제 · <b>대체</b> 버튼으로 담당자 변경</p>
+            <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-kakao py-2.5 text-[11px] flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-comment-dots"></i>단톡방 카톡 전송</button>
+            <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 <b>⋯</b> 수정·삭제 · <b>▲▼</b> 순서 변경 · <b>대체</b> 담당자 지정</p>
             <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
             <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6">
                 <div class="flex gap-2">
@@ -598,7 +577,7 @@
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-comment-dots mr-1"></i>카톡 문구 확인</h3>
                 <button type="button" onclick="closeModal('kakaoPreviewModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="kakao_preview_body" class="kakao-preview-text overflow-y-auto flex-grow max-h-[50vh] border-b border-slate-200"></div>
+            <pre id="kakao_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border-b border-slate-200 p-3 overflow-y-auto flex-grow max-h-[50vh] leading-relaxed text-slate-800 m-0 font-sans"></pre>
             <div class="p-4 space-y-2 shrink-0">
                 <p class="text-[9px] text-slate-500 text-center">발송 시 카톡에서 <b>채팅방·수신자</b>를 선택합니다</p>
                 <div class="flex gap-2">
@@ -639,7 +618,6 @@
             body.classList.toggle('collapsed', !open);
             chevron?.classList.toggle('rotate-180', open);
             if (badge) badge.textContent = open ? '접기' : '펼치기';
-            try { localStorage.setItem('wk_kakao_open', open ? '1' : '0'); } catch (_) {}
         }
 
         window.toggleKakaoSection = () => {
@@ -703,6 +681,7 @@
         let hrRoster = [];
         let hrRosterMeta = { updatedAt: null, count: 0 };
         let activeTasksUnsubscribe = null, activeMetaUnsubscribe = null;
+        let currentBoardTasks = [];
         let vendorDataCache = {};
         let globalTasks = [], globalEventsActive = [], globalEventsClosed = [];
         const collapsedOwners = new Set();
@@ -714,6 +693,25 @@
         function ownerDisplayName(owner) {
             if (owner === '안정훈/변우혁') return '안정훈/변우혁';
             return owner;
+        }
+
+        /** 담당 카드·진행률: 김태석(0/4) / 대체자 황충모 전문위원 */
+        function formatOwnerProgressLabel(owner, done, total, sub = '') {
+            const disp = ownerDisplayName(owner);
+            const prog = `(${done}/${total})`;
+            const subTrim = String(sub || '').trim();
+            if (subTrim) return `${disp}${prog} / 대체자 ${subTrim}`;
+            return `${disp}${prog}`;
+        }
+
+        function renderOwnerCardTitleHtml(owner, done, total, sub = '') {
+            const disp = escapeHtml(ownerDisplayName(owner));
+            const prog = `<span class="text-slate-500 font-bold">(${done}/${total})</span>`;
+            const subTrim = String(sub || '').trim();
+            if (subTrim) {
+                return `${disp}${prog} <span class="text-slate-500 font-bold">/ 대체자 </span>${escapeHtml(subTrim)}`;
+            }
+            return `${disp}${prog}`;
         }
 
         function getSubCandidates(owner) {
@@ -928,13 +926,93 @@
             updateDeceasedGenderHint(prefix, suffix, inferred);
         }
 
+        const CONDOLENCE_GROUPS = [
+            { id: 'parent_death', title: '부모님 상', examples: '부친상 · 모친상 · 빙부상 · 빙모상', amounts: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' } },
+            { id: 'grandparent_death', title: '조부모 상', examples: '조부상 · 조모상 · 외·친·시조부모상', amounts: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' } },
+            { id: 'sibling_death', title: '형제자매 상', examples: '형·오빠·누나·언니·자매·남편·아내상', amounts: { c: '300,000원', m: '300,000원', l: '3일', f: '-' } },
+            { id: 'aunt_uncle_death', title: '고모·삼촌 상', examples: '고모상 · 삼촌상 · 이모상 · 백부상 등', amounts: { c: '-', m: '200,000원', l: '-', f: '-' } }
+        ];
+
+        function renderCondolenceAmountRows(amounts) {
+            const rows = [
+                ['회사 경조금', amounts.c],
+                ['사우회비', amounts.m],
+                ['지원 휴가', amounts.l],
+                ['화환/조화', amounts.f]
+            ];
+            return rows.map(([label, val]) =>
+                `<div class="condolence-amt-row"><span class="text-slate-500">${label}</span><span class="font-bold text-slate-800">${val}</span></div>`
+            ).join('');
+        }
+
+        function initCondolenceAccordion() {
+            const root = document.getElementById('condolenceAccordion');
+            if (!root || root.dataset.inited) return;
+            root.dataset.inited = '1';
+            root.innerHTML = CONDOLENCE_GROUPS.map(g => `
+                <div class="condolence-rule-panel" data-rule-id="${g.id}">
+                    <button type="button" class="condolence-rule-toggle" onclick="toggleCondolencePanel('${g.id}')">
+                        <i class="fa-solid fa-chevron-down condolence-chevron text-[9px] text-slate-400 shrink-0"></i>
+                        <span class="flex-grow min-w-0">
+                            <span class="block text-[11px] font-bold text-slate-800">${g.title}</span>
+                            <span class="block text-[8px] text-slate-500 font-medium truncate">${g.examples}</span>
+                        </span>
+                    </button>
+                    <div class="condolence-rule-body collapsed px-2.5 py-2 space-y-1">${renderCondolenceAmountRows(g.amounts)}</div>
+                </div>
+            `).join('');
+        }
+
+        function setCondolencePanelOpen(ruleId, open) {
+            const panel = document.querySelector(`.condolence-rule-panel[data-rule-id="${ruleId}"]`);
+            if (!panel) return;
+            const body = panel.querySelector('.condolence-rule-body');
+            if (!body) return;
+            body.classList.toggle('collapsed', !open);
+            panel.classList.toggle('is-open', open);
+            panel.classList.toggle('is-match', open);
+        }
+
+        window.toggleCondolencePanel = (ruleId) => {
+            const panel = document.querySelector(`.condolence-rule-panel[data-rule-id="${ruleId}"]`);
+            const body = panel?.querySelector('.condolence-rule-body');
+            if (!body) return;
+            const willOpen = body.classList.contains('collapsed');
+            document.querySelectorAll('.condolence-rule-panel').forEach(p => {
+                p.classList.remove('is-match', 'is-open');
+                p.querySelector('.condolence-rule-body')?.classList.add('collapsed');
+            });
+            if (willOpen) setCondolencePanelOpen(ruleId, true);
+        };
+
+        function expandCondolenceRule(ruleId, matchedSuffix) {
+            initCondolenceAccordion();
+            document.querySelectorAll('.condolence-rule-panel').forEach(p => {
+                const open = p.dataset.ruleId === ruleId;
+                setCondolencePanelOpen(p.dataset.ruleId, open);
+            });
+            const hint = document.getElementById('condolence_auto_hint');
+            const group = CONDOLENCE_GROUPS.find(g => g.id === ruleId);
+            if (hint && group && matchedSuffix) {
+                hint.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-1"></i><b>${escapeHtml(matchedSuffix)}</b> → ${escapeHtml(group.title)} (${escapeHtml(group.examples)})`;
+                hint.classList.remove('hidden');
+            } else if (hint) {
+                hint.classList.add('hidden');
+                hint.textContent = '';
+            }
+        }
+
         function syncCondolenceSelectFromEvent(title, suffix) {
-            const el = document.getElementById('eventSelect');
-            if (!el) return;
-            const type = mapSuffixToCondolenceType(suffix || extractSuffixFromTitle(title));
-            if (!type) return;
-            el.value = type;
-            if (typeof calculateCondolence === 'function') calculateCondolence();
+            const suf = (suffix || extractSuffixFromTitle(title) || '').trim();
+            const type = mapSuffixToCondolenceType(suf);
+            initCondolenceAccordion();
+            if (!type) {
+                const hint = document.getElementById('condolence_auto_hint');
+                if (hint) { hint.classList.add('hidden'); hint.textContent = ''; }
+                return;
+            }
+            expandCondolenceRule(type, suf);
+            switchTab('rule');
         }
 
         function trySyncSuffixFromHeadline(prefix) {
@@ -1251,6 +1329,25 @@
             document.getElementById('reg_title')?.addEventListener('blur', () => trySyncSuffixFromHeadline('reg'));
         }
 
+        window.clearKakaoForm = () => {
+            const sel = document.getElementById('kakao_event_select');
+            if (sel?.querySelector('option[value=""]')) sel.value = '';
+            document.getElementById('hr_name_search').value = '';
+            document.getElementById('kt_headline').value = '';
+            document.getElementById('kt_hall').value = '';
+            document.getElementById('kt_burial').value = '';
+            document.getElementById('kt_account').value = '';
+            document.getElementById('kt_funeral_date').value = '';
+            fillFuneralTimeSelect('kt_funeral_time', '10:00');
+            setDeceasedFields('kt', {});
+            setEventSuffixSelect('kt', '부친상');
+            setKakaoBusMode(false);
+            document.getElementById('hr_search_dropdown')?.classList.add('hidden');
+            const hint = document.getElementById('kt_deceased_gender_hint');
+            if (hint) { hint.classList.add('hidden'); hint.textContent = ''; }
+            showToast('입력 내용을 지웠습니다');
+        };
+
         function populateKakaoFromEvent(e) {
             if (!e) return;
             const suffix = e.eventSuffix || extractSuffixFromTitle(e.title);
@@ -1447,24 +1544,6 @@
             return lines.join('\n');
         }
 
-        function renderKakaoPreviewHtml() {
-            const d = getKakaoFormData();
-            const row = (label, value) => `<span class="kakao-info"><span class="label">${label}</span> ${escapeHtml(value)}</span>`;
-            let html = `<span class="kakao-title">${escapeHtml(d.headline)}</span>`;
-            html += row('장례식장:', d.hall);
-            html += row('고인:', d.deceased);
-            html += row('발인:', d.funeral);
-            if (d.burial) html += row('장지:', d.burial);
-            if (d.account) html += row('마음전할곳:', d.account);
-            if (d.busNeeded) {
-                html += '<span class="kakao-gap"></span>';
-                html += '<span class="kakao-notice">사우회에서 조문을 위한 조문버스 대절을<br>고려하고 있습니다.</span>';
-                html += '<span class="kakao-gap"></span>';
-                html += '<span class="kakao-notice">조문버스 이용하실 분들은 경조사 게시판<br>조문버스 대절 인원파악에 댓글 달아<br>주시기 바랍니다.</span>';
-            }
-            return html;
-        }
-
         function validateKakaoFields() {
             const required = [
                 { id: 'kt_headline', label: '한 줄 제목' },
@@ -1488,7 +1567,7 @@
 
         window.openKakaoPreview = () => {
             if (!validateKakaoFields()) return;
-            document.getElementById('kakao_preview_body').innerHTML = renderKakaoPreviewHtml();
+            document.getElementById('kakao_preview_body').textContent = buildKakaoMessage();
             openModal('kakaoPreviewModal');
         };
 
@@ -1525,7 +1604,7 @@
             const text = buildKakaoMessage();
             try {
                 if (navigator.share) {
-                    await navigator.share({ text, title: '본사 조사 문구' });
+                    await navigator.share({ text, title: '단톡방 카톡 전송' });
                     closeModal('kakaoPreviewModal');
                     showToast('공유 창에서 카카오톡을 선택하세요');
                     return;
@@ -2226,7 +2305,30 @@
             switchScreen('screen-detail', { skipHistory: opts.skipHistory, eventId, readOnly });
             listenToTasks(eventId);
         }
-        function listenToTasks(eventId) { if(activeTasksUnsubscribe) activeTasksUnsubscribe(); if(activeMetaUnsubscribe) activeMetaUnsubscribe(); activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => { let allTasks = []; snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() })); allTasks.sort((a,b) => a.createdAt - b.createdAt); db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => { let allMeta = {}; mSnap.forEach(mDoc => allMeta[mDoc.data().owner] = mDoc.data()); renderBoard(allTasks, allMeta); }); }); }
+        function taskSortKey(t) {
+            if (t.sortOrder != null && t.sortOrder !== '') return Number(t.sortOrder);
+            return t.createdAt ?? 0;
+        }
+
+        function sortTasksByOrder(tasks) {
+            return [...tasks].sort((a, b) => taskSortKey(a) - taskSortKey(b));
+        }
+
+        function listenToTasks(eventId) {
+            if (activeTasksUnsubscribe) activeTasksUnsubscribe();
+            if (activeMetaUnsubscribe) activeMetaUnsubscribe();
+            activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => {
+                let allTasks = [];
+                snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
+                allTasks = sortTasksByOrder(allTasks);
+                currentBoardTasks = allTasks;
+                db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => {
+                    const allMeta = {};
+                    mSnap.forEach(mDoc => { allMeta[mDoc.data().owner] = mDoc.data(); });
+                    renderBoard(allTasks, allMeta);
+                });
+            });
+        }
 
         function renderBoard(tasks, meta) {
             let total = 0, done = 0;
@@ -2234,7 +2336,7 @@
             const ownerKey = (o) => o.replace(/\//g, '_');
 
             owners.forEach(owner => {
-                const myTasks = tasks.filter(t => t.owner === owner);
+                const myTasks = sortTasksByOrder(tasks.filter(t => t.owner === owner));
                 const myMeta = meta[owner] || { sub: '', note: '' };
                 total += myTasks.length;
                 done += myTasks.filter(t => t.done).length;
@@ -2247,23 +2349,34 @@
                 const cardCls = isAllDone ? 'owner-card-done' : '';
                 const ok = isAllDone ? 'text-emerald-600' : 'text-slate-600';
 
-                const progLabel = ownerDisplayName(owner);
-                mHtml += `<div class="bg-white rounded-lg py-1.5 border border-slate-200/90 shadow-sm"><div class="font-bold ${ok} text-[8px] leading-tight">${escapeHtml(progLabel)}</div><div class="text-slate-500 mt-0.5 font-bold">${myTasks.filter(t => t.done).length}/${myTasks.length}</div></div>`;
+                const doneN = myTasks.filter(t => t.done).length;
+                const totalN = myTasks.length;
+                const progLine = formatOwnerProgressLabel(owner, doneN, totalN, myMeta.sub);
+                mHtml += `<div class="bg-white rounded-lg py-1.5 px-0.5 border border-slate-200/90 shadow-sm"><div class="font-bold ${ok} text-[7px] leading-snug break-words">${escapeHtml(progLine)}</div></div>`;
 
-                let taskHtml = myTasks.map(t => `
-                    <div class="flex items-center gap-2 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
+                let taskHtml = myTasks.map((t, idx) => {
+                    const canMove = !isReadOnly && myTasks.length > 1;
+                    const orderBtns = canMove ? `
+                        <div class="task-order-btns">
+                            <button type="button" class="task-order-btn task-move-up" data-task-id="${t.id}" ${idx === 0 ? 'disabled' : ''} aria-label="위로"><i class="fa-solid fa-chevron-up text-[8px]"></i></button>
+                            <button type="button" class="task-order-btn task-move-down" data-task-id="${t.id}" ${idx === myTasks.length - 1 ? 'disabled' : ''} aria-label="아래로"><i class="fa-solid fa-chevron-down text-[8px]"></i></button>
+                        </div>` : '';
+                    return `
+                    <div class="flex items-center gap-1.5 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
+                        ${orderBtns}
                         <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'wk-check-on' : 'border-slate-300 bg-white'}" data-done="${t.done}">
                             ${t.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
                         </button>
-                        <span class="task-label flex-grow text-[11px] leading-snug ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${escapeHtml(t.title)}</span>
+                        <span class="task-label flex-grow text-[11px] leading-snug min-w-0 ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${escapeHtml(t.title)}</span>
                         ${!isReadOnly ? `<button type="button" class="task-menu w-9 h-9 flex items-center justify-center text-slate-400 shrink-0" aria-label="업무 메뉴"><i class="fa-solid fa-ellipsis-vertical text-xs"></i></button>` : ''}
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
 
-                const disp = ownerDisplayName(owner);
-                const subLabel = myMeta.sub ? `${escapeHtml(disp)} <span class="text-slate-500">(${escapeHtml(myMeta.sub)} 대체)</span>` : escapeHtml(disp);
+                const doneCard = myTasks.filter(t => t.done).length;
+                const totalCard = myTasks.length;
                 cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${cardCls}" data-owner="${escapeHtml(owner)}">
-                    <button type="button" class="owner-toggle w-full bg-slate-50 px-3 py-2.5 flex justify-between items-center border-b border-slate-100 text-left">
-                        <span class="text-[11px] font-bold text-slate-800">${subLabel} <span class="text-slate-400 font-bold">(${myTasks.filter(t=>t.done).length}/${myTasks.length})</span></span>
+                    <button type="button" class="owner-toggle w-full bg-slate-50 px-3 py-2.5 flex justify-between items-center gap-2 border-b border-slate-100 text-left">
+                        <span class="text-[11px] font-bold text-slate-800 leading-snug min-w-0">${renderOwnerCardTitleHtml(owner, doneCard, totalCard, myMeta.sub)}</span>
                         <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform ${collapsed ? '' : 'rotate-180'}"></i>
                     </button>
                     <div class="owner-card-body ${collapsed ? 'collapsed' : ''}">
@@ -2328,6 +2441,40 @@
             document.getElementById('ownerCardsArea').querySelectorAll('.btn-save-note').forEach(btn => {
                 btn.addEventListener('click', () => saveNote(btn.dataset.owner));
             });
+            document.getElementById('ownerCardsArea').querySelectorAll('.task-move-up').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    moveTaskOrder(btn.dataset.taskId, -1);
+                });
+            });
+            document.getElementById('ownerCardsArea').querySelectorAll('.task-move-down').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    moveTaskOrder(btn.dataset.taskId, 1);
+                });
+            });
+        }
+
+        async function moveTaskOrder(taskId, direction) {
+            if (isReadOnly || !currentEventId) return;
+            const task = currentBoardTasks.find(t => t.id === taskId);
+            if (!task) return;
+            const ownerTasks = sortTasksByOrder(currentBoardTasks.filter(t => t.owner === task.owner));
+            const idx = ownerTasks.findIndex(t => t.id === taskId);
+            const swapIdx = idx + direction;
+            if (idx < 0 || swapIdx < 0 || swapIdx >= ownerTasks.length) return;
+            const ids = ownerTasks.map(t => t.id);
+            [ids[idx], ids[swapIdx]] = [ids[swapIdx], ids[idx]];
+            const batch = db.batch();
+            ids.forEach((id, i) => batch.update(db.collection('tasks').doc(id), { sortOrder: i }));
+            try {
+                await batch.commit();
+                expandedOwners.add(task.owner);
+                collapsedOwners.delete(task.owner);
+            } catch (e) {
+                console.warn(e);
+                showToast('순서 변경에 실패했습니다', true);
+            }
         }
 
         window.toggleTask = (id, status) => { if (isReadOnly) return; db.collection("tasks").doc(id).update({ done: status }); };
@@ -2336,7 +2483,14 @@
             if (isReadOnly || !currentEventId) return;
             const title = prompt('추가할 업무 내용:');
             if (!title || !title.trim()) return;
-            db.collection('tasks').add({ eventId: currentEventId, owner, title: title.trim(), done: false, createdAt: Date.now() });
+            const ownerTasks = sortTasksByOrder(currentBoardTasks.filter(t => t.owner === owner));
+            const nextOrder = ownerTasks.length
+                ? Math.max(...ownerTasks.map((t, i) => (t.sortOrder != null && t.sortOrder !== '' ? Number(t.sortOrder) : i))) + 1
+                : 0;
+            db.collection('tasks').add({
+                eventId: currentEventId, owner, title: title.trim(), done: false,
+                createdAt: Date.now(), sortOrder: nextOrder
+            });
             collapsedOwners.delete(owner);
             showToast('업무가 추가되었습니다');
         };
@@ -2427,7 +2581,15 @@
                 {o:'박유희', t:'화환/조화 발송 업체 예약 완료'},
                 {o:'박유희', t:'배송지 도착 여부 최종 확인'}
             ];
-            const promises = def.map((d, i) => db.collection("tasks").add({ eventId: doc.id, owner: d.o, title: d.t, done: false, createdAt: Date.now() + i }));
+            const ownerSeq = {};
+            const promises = def.map((d, i) => {
+                const so = ownerSeq[d.o] ?? 0;
+                ownerSeq[d.o] = so + 1;
+                return db.collection("tasks").add({
+                    eventId: doc.id, owner: d.o, title: d.t, done: false,
+                    createdAt: Date.now() + i, sortOrder: so
+                });
+            });
             await Promise.all(promises);
             const saved = {
                 id: doc.id, title: t, time: tm, location: l, deathDate, funeralDate, funeralTime,
@@ -2478,9 +2640,6 @@
             } else if (h === '#history') switchScreen('screen-history', { skipHistory: true });
             else if (h === '#bus') switchScreen('screen-bus', { skipHistory: true });
         }
-
-        const rules = { parent_death: { c: '500,000원', m: '500,000원', l: '7일', f: '지원' }, sibling_death: { c: '300,000원', m: '300,000원', l: '3일', f: '-' }, aunt_uncle_death: { c: '-', m: '200,000원', l: '-', f: '-' }, grandparent_death: { c: '300,000원', m: '300,000원', l: '3일', f: '지원' } };
-        window.calculateCondolence = () => { const v = document.getElementById('eventSelect').value; const res = document.getElementById('calcResult'); if(!v) return res.classList.add('hidden'); document.getElementById('r_company').innerText = rules[v].c; document.getElementById('r_mutual').innerText = rules[v].m; document.getElementById('r_leave').innerText = rules[v].l; document.getElementById('r_flower').innerText = rules[v].f; res.classList.remove('hidden'); };
 
         db.collection("vendors").onSnapshot(snap => {
             let html = ''; vendorDataCache = {};
@@ -2596,11 +2755,12 @@
         bindBusFormAutoCalc();
         scheduleBusRuleRefresh();
         initDeceasedFields();
+        initCondolenceAccordion();
         setKakaoBusMode(false);
         setRegBusMode(false);
         onEventSuffixChange('kt');
         onEventSuffixChange('reg');
-        try { setKakaoSectionOpen(localStorage.getItem('wk_kakao_open') === '1'); } catch (_) { setKakaoSectionOpen(false); }
+        setKakaoSectionOpen(false);
         loadHrRoster();
         bindHrAutocomplete('reg_employee_name', 'reg_hr_dropdown', (person, idx) => selectRegEmployee(idx), { autoExactOnBlur: true });
         bindHrAutocomplete('hr_name_search', 'hr_search_dropdown', (person, idx) => selectKakaoHrEmployee(idx));
