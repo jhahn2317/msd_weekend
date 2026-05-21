@@ -105,13 +105,19 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .owner-card-done { border-color: #86efac !important; box-shadow: 0 0 0 1px #bbf7d0; }
         .owner-card-body.collapsed { display: none; }
-        .task-order-btns { display: flex; flex-direction: column; gap: 0; flex-shrink: 0; }
-        .task-order-btn {
-            width: 1.35rem; height: 1.1rem; display: flex; align-items: center; justify-content: center;
-            color: #94a3b8; border-radius: 0.25rem;
+        .task-sort-list.task-sort-active { touch-action: none; -webkit-user-select: none; user-select: none; }
+        body.task-drag-lock { overflow: hidden; touch-action: none; }
+        .task-row.task-dragging {
+            background: #e8f4fc !important;
+            box-shadow: 0 4px 12px rgba(45, 106, 143, 0.2);
+            border-radius: 0.375rem;
+            z-index: 5;
+            position: relative;
         }
-        .task-order-btn:not(:disabled):active { background: #f1f5f9; color: var(--wk-accent); }
-        .task-order-btn:disabled { opacity: 0.25; cursor: default; }
+        .owner-card-editing { box-shadow: 0 0 0 1px rgba(45, 106, 143, 0.35); }
+        .owner-card-editing .task-sort-list { background: linear-gradient(to bottom, #f8fafc, transparent); border-radius: 0.375rem; }
+        .task-menu { display: none !important; }
+        .owner-card-editing .task-menu { display: flex !important; }
         .bus-timeline-step { position: relative; padding-left: 1.25rem; }
         .bus-timeline-step::before { content: ''; position: absolute; left: 0.2rem; top: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: var(--wk-bus); }
         .bus-timeline-step:not(:last-child)::after { content: ''; position: absolute; left: 0.42rem; top: 1rem; bottom: -0.5rem; width: 2px; background: #e2e8f0; }
@@ -370,7 +376,7 @@
                 <div id="tab-vendor" class="p-3 hidden"><div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-500">긴급 협력업체</span><button onclick="openVendorModal()" class="text-[9px] wk-btn-ghost px-2 py-1 text-[9px]">+ 등록</button></div><div id="vendorList_detail" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div></div>
             </section>
             <button type="button" onclick="fillKakaoFromDetail()" class="w-full wk-btn-kakao py-2.5 text-[11px] flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-comment-dots"></i>단톡방 카톡 전송</button>
-            <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>업무 <b>⋯</b> 수정·삭제 · <b>▲▼</b> 순서 변경 · <b>대체</b> 담당자 지정</p>
+            <p class="text-[9px] text-slate-400 font-bold mb-1.5 px-1"><i class="fa-solid fa-circle-info mr-1"></i>카드 <b>수정</b> → 업무 <b>길게 눌러</b> 순서 변경 · <b>⋯</b> 내용 수정·삭제 · <b>대체</b> 담당자 지정</p>
             <div id="ownerCardsArea" class="space-y-3 pb-6"></div>
             <div id="dangerZoneArea" class="mt-8 pt-4 border-t border-slate-200 pb-6">
                 <div class="flex gap-2">
@@ -589,7 +595,7 @@
     </div>
 
     <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
-    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">개인 업무 관리</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">저장</button></div></div></div></div>
+    <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">업무 수정</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">수정</button></div></div></div></div>
     <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환 · 버스·대절" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
 
     <script>
@@ -686,6 +692,8 @@
         let globalTasks = [], globalEventsActive = [], globalEventsClosed = [];
         const collapsedOwners = new Set();
         const expandedOwners = new Set();
+        const editingOwners = new Set();
+        let lastBoardMeta = {};
 
         const escapeHtml = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         const daysArr = ['일','월','화','수','목','금','토'];
@@ -1577,7 +1585,6 @@
             const e = globalEventsActive.find(x => x.id === id);
             if (!e) return;
             populateKakaoFromEvent(e);
-            setKakaoSectionOpen(true);
         }
 
         function updateKakaoEventSelect() {
@@ -2158,6 +2165,9 @@
                 bindBusFormAutoCalc();
                 scheduleBusRuleRefresh();
             }
+            if (screenId === 'screen-list') {
+                setKakaoSectionOpen(false);
+            }
         }
 
         window.goBack = () => {
@@ -2317,6 +2327,7 @@
         function listenToTasks(eventId) {
             if (activeTasksUnsubscribe) activeTasksUnsubscribe();
             if (activeMetaUnsubscribe) activeMetaUnsubscribe();
+            editingOwners.clear();
             activeTasksUnsubscribe = db.collection("tasks").where("eventId", "==", eventId).onSnapshot(snap => {
                 let allTasks = [];
                 snap.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
@@ -2325,6 +2336,7 @@
                 db.collection("eventMeta").where("eventId", "==", eventId).get().then(mSnap => {
                     const allMeta = {};
                     mSnap.forEach(mDoc => { allMeta[mDoc.data().owner] = mDoc.data(); });
+                    lastBoardMeta = allMeta;
                     renderBoard(allTasks, allMeta);
                 });
             });
@@ -2354,39 +2366,36 @@
                 const progLine = formatOwnerProgressLabel(owner, doneN, totalN, myMeta.sub);
                 mHtml += `<div class="bg-white rounded-lg py-1.5 px-0.5 border border-slate-200/90 shadow-sm"><div class="font-bold ${ok} text-[7px] leading-snug break-words">${escapeHtml(progLine)}</div></div>`;
 
-                let taskHtml = myTasks.map((t, idx) => {
-                    const canMove = !isReadOnly && myTasks.length > 1;
-                    const orderBtns = canMove ? `
-                        <div class="task-order-btns">
-                            <button type="button" class="task-order-btn task-move-up" data-task-id="${t.id}" ${idx === 0 ? 'disabled' : ''} aria-label="위로"><i class="fa-solid fa-chevron-up text-[8px]"></i></button>
-                            <button type="button" class="task-order-btn task-move-down" data-task-id="${t.id}" ${idx === myTasks.length - 1 ? 'disabled' : ''} aria-label="아래로"><i class="fa-solid fa-chevron-down text-[8px]"></i></button>
-                        </div>` : '';
-                    return `
-                    <div class="flex items-center gap-1.5 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
-                        ${orderBtns}
+                const isEditing = editingOwners.has(owner);
+                const sortable = !isReadOnly && isEditing && myTasks.length > 1;
+                let taskHtml = myTasks.map(t => `
+                    <div class="flex items-center gap-2 min-h-[44px] border-b border-slate-50 last:border-0 task-row" data-task-id="${t.id}">
                         <button type="button" class="task-check w-6 h-6 rounded flex-shrink-0 border flex items-center justify-center ${t.done ? 'wk-check-on' : 'border-slate-300 bg-white'}" data-done="${t.done}">
                             ${t.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
                         </button>
                         <span class="task-label flex-grow text-[11px] leading-snug min-w-0 ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${escapeHtml(t.title)}</span>
-                        ${!isReadOnly ? `<button type="button" class="task-menu w-9 h-9 flex items-center justify-center text-slate-400 shrink-0" aria-label="업무 메뉴"><i class="fa-solid fa-ellipsis-vertical text-xs"></i></button>` : ''}
-                    </div>`;
-                }).join('');
+                        ${!isReadOnly ? `<button type="button" class="task-menu w-9 h-9 items-center justify-center text-slate-500 shrink-0" aria-label="업무 수정·삭제"><i class="fa-solid fa-ellipsis-vertical text-xs"></i></button>` : ''}
+                    </div>`).join('');
+                const taskListWrap = taskHtml
+                    ? `<div class="task-sort-list px-3 pb-2" data-owner="${escapeHtml(owner)}" data-sortable="${sortable ? 'true' : 'false'}">${taskHtml}</div>`
+                    : '<p class="text-[10px] text-slate-300 italic py-2 px-3">업무 없음</p>';
 
                 const doneCard = myTasks.filter(t => t.done).length;
                 const totalCard = myTasks.length;
-                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${cardCls}" data-owner="${escapeHtml(owner)}">
+                cHtml += `<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${cardCls}${isEditing ? ' owner-card-editing' : ''}" data-owner="${escapeHtml(owner)}">
                     <button type="button" class="owner-toggle w-full bg-slate-50 px-3 py-2.5 flex justify-between items-center gap-2 border-b border-slate-100 text-left">
                         <span class="text-[11px] font-bold text-slate-800 leading-snug min-w-0">${renderOwnerCardTitleHtml(owner, doneCard, totalCard, myMeta.sub)}</span>
                         <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform ${collapsed ? '' : 'rotate-180'}"></i>
                     </button>
                     <div class="owner-card-body ${collapsed ? 'collapsed' : ''}">
-                        <div class="px-3 py-1 flex justify-end gap-1 border-b border-slate-50">
-                            ${!isReadOnly ? `<button type="button" class="btn-add-task text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">+ 추가</button><button type="button" class="btn-set-sub text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">대체</button>` : ''}
+                        <div class="px-3 py-1 flex justify-end gap-1 border-b border-slate-50 flex-wrap">
+                            ${!isReadOnly ? `<button type="button" class="btn-edit-owner text-[9px] font-bold px-2 py-1 rounded border ${isEditing ? 'border-slate-400 bg-slate-100 text-slate-800' : 'border-slate-200 bg-white text-slate-500'}" data-owner="${escapeHtml(owner)}">${isEditing ? '완료' : '수정'}</button><button type="button" class="btn-add-task text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">+ 추가</button><button type="button" class="btn-set-sub text-[9px] text-slate-700 font-bold px-2 py-1 rounded border border-slate-200 bg-white" data-owner="${escapeHtml(owner)}">대체</button>` : ''}
                         </div>
-                        <div class="px-3 pb-2">${taskHtml || '<p class="text-[10px] text-slate-300 italic py-2">업무 없음</p>'}</div>
+                        ${isEditing && myTasks.length > 1 ? '<p class="text-[8px] text-slate-400 px-3 pb-1">업무 줄을 길게 눌러 순서를 바꿉니다</p>' : ''}
+                        ${taskListWrap}
                         <div class="p-2 bg-slate-50 border-t border-slate-100 flex items-center gap-1.5">
                             <input type="text" id="note_${ownerKey(owner)}" value="${escapeHtml(myMeta.note || '')}" ${isReadOnly ? 'disabled' : ''} placeholder="메모..." class="text-[10px] w-full wk-input px-2 py-2">
-                            ${!isReadOnly ? `<button type="button" class="btn-save-note wk-btn-primary px-3 py-2 text-[10px] shrink-0" data-owner="${escapeHtml(owner)}">저장</button>` : ''}
+                            ${!isReadOnly ? `<button type="button" class="btn-save-note wk-btn-primary px-3 py-2 text-[10px] shrink-0" data-owner="${escapeHtml(owner)}">수정</button>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -2420,6 +2429,7 @@
             document.getElementById('ownerCardsArea').querySelectorAll('.task-label').forEach(el => {
                 el.addEventListener('click', () => {
                     const row = el.closest('.task-row');
+                    if (row?.dataset.suppressClick) return;
                     const btn = row.querySelector('.task-check');
                     toggleTask(row.dataset.taskId, btn.dataset.done !== 'true');
                 });
@@ -2432,6 +2442,12 @@
                     openTaskEditModal(row.dataset.taskId, title);
                 });
             });
+            document.getElementById('ownerCardsArea').querySelectorAll('.btn-edit-owner').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleOwnerEditMode(btn.dataset.owner);
+                });
+            });
             document.getElementById('ownerCardsArea').querySelectorAll('.btn-add-task').forEach(btn => {
                 btn.addEventListener('click', () => addTask(btn.dataset.owner));
             });
@@ -2441,39 +2457,170 @@
             document.getElementById('ownerCardsArea').querySelectorAll('.btn-save-note').forEach(btn => {
                 btn.addEventListener('click', () => saveNote(btn.dataset.owner));
             });
-            document.getElementById('ownerCardsArea').querySelectorAll('.task-move-up').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    moveTaskOrder(btn.dataset.taskId, -1);
-                });
-            });
-            document.getElementById('ownerCardsArea').querySelectorAll('.task-move-down').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    moveTaskOrder(btn.dataset.taskId, 1);
-                });
-            });
         }
 
-        async function moveTaskOrder(taskId, direction) {
-            if (isReadOnly || !currentEventId) return;
-            const task = currentBoardTasks.find(t => t.id === taskId);
-            if (!task) return;
-            const ownerTasks = sortTasksByOrder(currentBoardTasks.filter(t => t.owner === task.owner));
-            const idx = ownerTasks.findIndex(t => t.id === taskId);
-            const swapIdx = idx + direction;
-            if (idx < 0 || swapIdx < 0 || swapIdx >= ownerTasks.length) return;
-            const ids = ownerTasks.map(t => t.id);
-            [ids[idx], ids[swapIdx]] = [ids[swapIdx], ids[idx]];
+        const TASK_LONG_PRESS_MS = 450;
+        const TASK_MOVE_CANCEL_PX = 14;
+        let taskLongPressTimer = null;
+        let taskDragPending = null;
+        let taskDragState = null;
+
+        function clearTaskLongPress() {
+            if (taskLongPressTimer) {
+                clearTimeout(taskLongPressTimer);
+                taskLongPressTimer = null;
+            }
+        }
+
+        function toggleOwnerEditMode(owner) {
+            if (!owner || isReadOnly) return;
+            if (editingOwners.has(owner)) editingOwners.delete(owner);
+            else editingOwners.add(owner);
+            expandedOwners.add(owner);
+            collapsedOwners.delete(owner);
+            renderBoard(currentBoardTasks, lastBoardMeta);
+        }
+
+        function getTaskSortHit(target) {
+            if (!target || target.closest('.task-check, .task-menu, .btn-edit-owner')) return null;
+            const list = target.closest('.task-sort-list[data-sortable="true"]');
+            if (!list?.closest('.owner-card-editing')) return null;
+            if (!list) return null;
+            const row = target.closest('.task-row');
+            if (!row || !list.contains(row)) return null;
+            if (list.querySelectorAll('.task-row').length < 2) return null;
+            return { list, row, owner: list.dataset.owner };
+        }
+
+        function taskSortRows(list) {
+            return [...list.querySelectorAll('.task-row')];
+        }
+
+        function reorderTaskRowAtY(list, row, clientY) {
+            const others = taskSortRows(list).filter(r => r !== row);
+            for (const other of others) {
+                const rect = other.getBoundingClientRect();
+                const mid = rect.top + rect.height / 2;
+                if (clientY < mid) {
+                    list.insertBefore(row, other);
+                    return;
+                }
+            }
+            list.appendChild(row);
+        }
+
+        function startTaskDrag(hit) {
+            taskDragState = {
+                list: hit.list,
+                row: hit.row,
+                owner: hit.owner,
+                startOrder: taskSortRows(hit.list).map(r => r.dataset.taskId)
+            };
+            hit.row.classList.add('task-dragging');
+            hit.list.classList.add('task-sort-active');
+            document.body.classList.add('task-drag-lock');
+            if (navigator.vibrate) navigator.vibrate(35);
+        }
+
+        function endTaskDrag(commit) {
+            if (!taskDragState) return;
+            const { list, row, owner, startOrder } = taskDragState;
+            row.classList.remove('task-dragging');
+            list.classList.remove('task-sort-active');
+            document.body.classList.remove('task-drag-lock');
+            const endOrder = taskSortRows(list).map(r => r.dataset.taskId);
+            const changed = startOrder.join() !== endOrder.join();
+            taskDragState = null;
+            if (commit && changed) {
+                row.dataset.suppressClick = '1';
+                setTimeout(() => { delete row.dataset.suppressClick; }, 400);
+                saveTaskOrderForOwner(owner, endOrder);
+            }
+        }
+
+        async function saveTaskOrderForOwner(owner, orderedIds) {
+            if (isReadOnly || !currentEventId || !owner) return;
             const batch = db.batch();
-            ids.forEach((id, i) => batch.update(db.collection('tasks').doc(id), { sortOrder: i }));
+            orderedIds.forEach((id, i) => batch.update(db.collection('tasks').doc(id), { sortOrder: i }));
             try {
                 await batch.commit();
-                expandedOwners.add(task.owner);
-                collapsedOwners.delete(task.owner);
+                expandedOwners.add(owner);
+                collapsedOwners.delete(owner);
             } catch (e) {
                 console.warn(e);
                 showToast('순서 변경에 실패했습니다', true);
+            }
+        }
+
+        function initTaskSortDrag() {
+            const area = document.getElementById('ownerCardsArea');
+            if (!area || area.dataset.taskSortInit) return;
+            area.dataset.taskSortInit = '1';
+
+            const onPressStart = (clientX, clientY, target) => {
+                if (isReadOnly || target.closest('.btn-edit-owner, .btn-add-task, .btn-set-sub, .btn-save-note')) return;
+                const hit = getTaskSortHit(target);
+                if (!hit) return;
+                taskDragPending = { hit, startX: clientX, startY: clientY };
+                clearTaskLongPress();
+                taskLongPressTimer = setTimeout(() => {
+                    if (taskDragPending?.hit === hit) startTaskDrag(hit);
+                    taskDragPending = null;
+                }, TASK_LONG_PRESS_MS);
+            };
+
+            const onPressMove = (clientX, clientY) => {
+                if (taskDragState) {
+                    reorderTaskRowAtY(taskDragState.list, taskDragState.row, clientY);
+                    return true;
+                }
+                if (taskDragPending) {
+                    const dx = Math.abs(clientX - taskDragPending.startX);
+                    const dy = Math.abs(clientY - taskDragPending.startY);
+                    if (dx + dy > TASK_MOVE_CANCEL_PX) {
+                        taskDragPending = null;
+                        clearTaskLongPress();
+                    }
+                }
+                return false;
+            };
+
+            const onPressEnd = () => {
+                clearTaskLongPress();
+                if (taskDragState) endTaskDrag(true);
+                taskDragPending = null;
+            };
+
+            area.addEventListener('touchstart', (e) => {
+                const t = e.touches[0];
+                if (t) onPressStart(t.clientX, t.clientY, e.target);
+            }, { passive: true });
+
+            area.addEventListener('touchmove', (e) => {
+                const t = e.touches[0];
+                if (!t) return;
+                if (onPressMove(t.clientX, t.clientY)) e.preventDefault();
+            }, { passive: false });
+
+            area.addEventListener('touchend', onPressEnd);
+            area.addEventListener('touchcancel', onPressEnd);
+
+            if (!('ontouchstart' in window)) {
+                area.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0 || isReadOnly) return;
+                    if (!getTaskSortHit(e.target)) return;
+                    onPressStart(e.clientX, e.clientY, e.target);
+                    const onMouseMove = (ev) => {
+                        if (onPressMove(ev.clientX, ev.clientY)) ev.preventDefault();
+                    };
+                    const onMouseUp = () => {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                        onPressEnd();
+                    };
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
             }
         }
 
@@ -2507,7 +2654,7 @@
             if (!title) return showToast('업무 내용을 입력하세요', true);
             await db.collection('tasks').doc(editingTaskId).update({ title });
             closeModal('taskEditModal');
-            showToast('저장되었습니다');
+            showToast('수정되었습니다');
         };
 
         window.deleteEditedTask = async () => {
@@ -2522,7 +2669,7 @@
             db.collection("eventMeta").where("eventId", "==", currentEventId).where("owner", "==", owner).get().then(snap => {
                 if (snap.empty) db.collection("eventMeta").add({ eventId: currentEventId, owner, note: n });
                 else snap.forEach(d => d.ref.update({ note: n }));
-                showToast('메모 저장됨');
+                showToast('메모 수정됨');
             });
         };
 
@@ -2765,6 +2912,7 @@
         bindHrAutocomplete('reg_employee_name', 'reg_hr_dropdown', (person, idx) => selectRegEmployee(idx), { autoExactOnBlur: true });
         bindHrAutocomplete('hr_name_search', 'hr_search_dropdown', (person, idx) => selectKakaoHrEmployee(idx));
         setupListClickDelegation();
+        initTaskSortDrag();
         document.getElementById('sub_picker_list').addEventListener('click', (e) => {
             const btn = e.target.closest('.sub-pick-btn');
             if (btn?.dataset.subName) pickSubstitute(btn.dataset.subName);
