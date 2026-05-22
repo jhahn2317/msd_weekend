@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>위크 · 주말·휴일 업무</title>
     <meta name="theme-color" content="#2d6a8f">
     <meta name="apple-mobile-web-app-title" content="위크">
@@ -27,21 +27,38 @@
             --wk-kakao: #2563eb;
             --wk-bus: #d97706;
             --wk-rose: #e11d48;
-            --wk-radius: 0.75rem;
+            --wk-radius: 12px;
+        }
+        /* 휴대폰 글자·디스플레이 크게 설정해도 앱 UI 비율 유지 (rem 기준 16px 고정) */
+        html {
+            font-size: 16px !important;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", sans-serif;
-            -webkit-tap-highlight-color: transparent; user-select: none;
-            background: var(--wk-bg); color: var(--wk-text);
+            font-size: 14px;
+            line-height: 1.45;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            background: var(--wk-bg);
+            color: var(--wk-text);
+            overflow-x: hidden;
         }
+        .max-w-md { max-width: 448px !important; }
+        .text-xs { font-size: 12px !important; line-height: 1.25 !important; }
+        .text-sm { font-size: 14px !important; line-height: 1.35 !important; }
+        .text-base { font-size: 16px !important; line-height: 1.4 !important; }
+        .text-lg { font-size: 18px !important; line-height: 1.35 !important; }
+        .text-xl { font-size: 20px !important; line-height: 1.3 !important; }
         .week-logo {
             display: inline-flex; align-items: center; justify-content: center;
             background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
             color: var(--wk-accent); border: 1px solid #93c5fd;
             font-weight: 800; letter-spacing: -0.06em;
-            border-radius: 0.625rem; padding: 0.38rem 0.65rem; font-size: 1.2rem; line-height: 1;
+            border-radius: 10px; padding: 6px 10px; font-size: 19px; line-height: 1;
         }
-        .week-logo-sm { font-size: 0.95rem; padding: 0.28rem 0.5rem; border-radius: 0.45rem; }
+        .week-logo-sm { font-size: 15px; padding: 4px 8px; border-radius: 7px; }
         .week-header-bar { background: var(--wk-surface); border-bottom: 1px solid var(--wk-border); }
         .week-modal-head {
             background: linear-gradient(180deg, #f8fafc 0%, var(--wk-accent-soft) 100%);
@@ -88,7 +105,10 @@
         .condolence-amt-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; }
         .wk-btn-secondary { background: var(--wk-bg); color: var(--wk-text); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
         .wk-btn-ghost { background: transparent; color: var(--wk-text-muted); font-weight: 700; border: 1px solid var(--wk-border); border-radius: var(--wk-radius); }
-        .wk-input { border: 1px solid var(--wk-border); border-radius: 0.5rem; background: var(--wk-bg); outline: none; }
+        .wk-input {
+            border: 1px solid var(--wk-border); border-radius: 8px; background: var(--wk-bg); outline: none;
+            font-size: 12px !important;
+        }
         .wk-input:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2); }
         .wk-pill-on {
             border: 1.5px solid var(--wk-accent) !important;
@@ -142,9 +162,9 @@
         }
         .hr-ac-wrap { position: relative; }
         .hr-ac-dropdown {
-            position: fixed; left: 0; right: auto; top: 0; width: 12rem;
-            max-height: 11rem; overflow-y: auto; z-index: 250;
-            background: var(--wk-bg); border: 1px solid var(--wk-border); border-radius: 0.75rem;
+            position: fixed; left: 0; right: auto; top: 0; width: 192px;
+            max-height: 176px; overflow-y: auto; z-index: 250;
+            background: var(--wk-bg); border: 1px solid var(--wk-border); border-radius: 12px;
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
         }
         .hr-ac-item {
@@ -153,7 +173,18 @@
         }
         .hr-ac-item:last-child { border-bottom: none; }
         .hr-ac-item:active, .hr-ac-item:hover { background: var(--wk-muted); }
-        #registerModal .reg-modal-body { max-height: calc(90vh - 3.25rem); overflow-y: auto; }
+        #registerModal .reg-modal-body { max-height: calc(90vh - 52px); overflow-y: auto; }
+        #memberProgress .break-words { word-break: keep-all; overflow-wrap: anywhere; }
+        main input:not(.picker-input):not([type="date"]):not([type="time"]),
+        main select:not(.picker-input),
+        main textarea {
+            font-size: 12px !important;
+        }
+        input[type="date"].picker-input, input[type="time"].picker-input,
+        .deceased-age-wrap input {
+            font-size: 16px !important;
+        }
+        nav.fixed { height: 56px !important; min-height: 56px !important; }
         .deceased-gender-on { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
         .deceased-gender-off { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
         .deceased-age-wrap { display: flex; align-items: center; gap: 0.125rem; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0 0.35rem; min-height: 40px; }
