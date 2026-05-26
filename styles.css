@@ -1,0 +1,17 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+/* 하단 탭: app-shell flex 맨 아래 (fixed/음수 offset 없음) */
+.app-bottom-nav {
+  flex: 0 0 auto;
+  width: 100%;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.fab-above-nav {
+  bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px) + 12px);
+}
