@@ -2963,7 +2963,10 @@
             const loc = parts[1]?.trim() || '';
             const busDepart = resolved.busDeparture || '';
             if (v.name.includes('위드고')) return `<위드고 1800-9222> 화환 발송\n\n배송일 : ${eventSchedule}\n*종류(금액)&수량 : \n*배송지 : ${loc}\n*보내는이(왼쪽문구) : \n*배송문구(오른쪽문구) : \n*받는이 : \n*주문자 : `;
-            if (v.name.includes('우영') || v.name.includes('상조용품')) return `<우영프라자 1668-5487> 상조용품 발송\n\n회사명 : 유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
+            if (v.name.includes('우영') || v.name.includes('상조용품')) {
+                const woTel = formatPhoneDisplay(v.tel) || v.tel || '1668-5487';
+                return `<${v.name} ${woTel}> 상조용품 발송\n\n회사명 : 유니테스트\n받는분 성함 : \n연락처 : \n장례식장/호실/고인명 : ${loc} / ${title}\n품목 및 수량 : \n비고 : `;
+            }
             if (isBusVendorForSms(v)) {
                 const departLine = busDepart || '버스 탭에서 규정 확인 후 신청';
                 const extra = resolved.busDepartureDetail ? `\n(규정: ${resolved.busDepartureDetail})` : '';
