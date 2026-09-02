@@ -185,6 +185,13 @@
             font-size: 16px !important;
         }
         nav.fixed { height: 56px !important; min-height: 56px !important; }
+        #dbStatusBanner.hidden { display: none !important; }
+        #dbStatusBanner {
+            font-size: 10px; font-weight: 700; line-height: 1.4;
+            padding: 6px 12px; text-align: center;
+            border-bottom: 1px solid #fecaca; background: #fef2f2; color: #b91c1c;
+        }
+        #dbStatusBanner.db-ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
         .deceased-gender-on { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
         .deceased-gender-off { flex: 1; min-width: 2.25rem; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 10px; font-weight: 700; }
         .deceased-age-wrap { display: flex; align-items: center; gap: 0.125rem; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0 0.35rem; min-height: 40px; }
@@ -212,6 +219,7 @@
             </button>
         </div>
     </header>
+    <div id="dbStatusBanner" class="hidden max-w-md mx-auto" role="status"></div>
 
     <main class="max-w-md mx-auto w-full p-3">
 
@@ -627,7 +635,7 @@
 
     <div id="smsPreviewModal" class="fixed inset-0 bg-slate-900/60 z-[350] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 class="font-bold text-sm"><i class="fa-solid fa-comment-sms mr-1"></i>문자 미리보기</h3><button type="button" onclick="closeModal('smsPreviewModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3"><p class="text-[10px] text-slate-500 font-bold">수신: <span id="sms_preview_tel" class="font-mono text-slate-800"></span></p><pre id="sms_preview_body" class="whitespace-pre-wrap text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto leading-relaxed"></pre><button type="button" id="sms_preview_send" class="w-full wk-btn-primary py-3 text-xs">문자 앱으로 보내기</button></div></div></div>
     <div id="taskEditModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl"><div class="bg-slate-100 px-4 py-3 flex justify-between items-center border-b border-slate-200"><h3 class="font-bold text-xs text-slate-700">업무 수정</h3><button onclick="closeModal('taskEditModal')"><i class="fa-solid fa-xmark text-slate-500"></i></button></div><div class="p-4 space-y-3"><label class="block text-[10px] font-bold text-slate-400 mb-1">업무 내용</label><textarea id="edit_task_title" rows="3" class="w-full wk-input p-2 text-[11px] resize-none"></textarea><div class="flex gap-2 pt-2"><button onclick="deleteEditedTask()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2 text-xs hover:bg-red-100">삭제</button><button onclick="saveEditedTask()" class="w-2/3 wk-btn-primary py-2 text-xs">수정</button></div></div></div></div>
-    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환 · 버스·대절" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
+    <div id="vendorModal" class="fixed inset-0 bg-slate-900/60 z-[300] hidden flex items-center justify-center p-4"><div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"><div class="week-modal-head px-4 py-3 flex justify-between items-center"><h3 id="vendorModalTitle" class="font-bold text-sm">업체 정보 관리</h3><button onclick="closeModal('vendorModal')"><i class="fa-solid fa-xmark"></i></button></div><div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto"><input type="hidden" id="v_id"><div class="flex gap-2"><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">업체명</label><input type="text" id="v_name" placeholder="예: ○○화환" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="w-1/2"><label class="block text-[10px] font-bold text-slate-500 mb-1">전화번호</label><input type="tel" id="v_tel" inputmode="tel" placeholder="010-0000-0000, 02-123-4567" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div></div><p id="v_tel_err" class="field-error-msg hidden"></p><div><label class="block text-[10px] font-bold text-slate-500 mb-1">업무 (분류)</label><input type="text" id="v_desc" placeholder="예: 조화·화환 · 버스·대절" class="w-full border border-slate-200 rounded-lg p-2 text-xs bg-slate-50 outline-none"></div><div class="flex justify-between items-center py-1 border-t border-b border-slate-100 mt-2"><span class="text-[11px] font-bold text-slate-700">전화 버튼 사용</span><input type="checkbox" id="v_use_call" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div class="flex justify-between items-center py-1 border-b border-slate-100"><span class="text-[11px] font-bold text-slate-700">문자 버튼 사용</span><input type="checkbox" id="v_use_sms" onchange="toggleSmsArea()" class="w-4 h-4 text-slate-700 border-gray-300 rounded"></div><div id="smsTemplateArea" class="hidden"><textarea id="v_sms_template" rows="5" class="w-full border border-slate-200 rounded-lg p-2 text-[10px] bg-slate-50 outline-none leading-relaxed" placeholder="예: [행사명] 조화 발송 요청 · [장소] [일시]"></textarea></div><div class="flex gap-2 pt-2 mt-4"><button id="btn_delete_vendor" onclick="deleteVendorAction()" class="w-1/3 bg-red-50 text-red-600 font-bold border border-red-100 rounded-lg py-2.5 text-xs hover:bg-red-100 hidden">삭제</button><button onclick="saveVendor()" class="flex-grow wk-btn-primary py-2.5 text-xs">저장</button></div></div></div></div>
 
     <script>
         // ★ 파이어베이스 설정
@@ -641,6 +649,59 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        let dbLinkState = { ok: false, error: null, checked: false };
+
+        function formatDbErrorMessage(err) {
+            const code = err?.code || '';
+            if (code === 'permission-denied') {
+                return 'DB 접근 거부 — Firebase Console → Firestore → 규칙에서 읽기·쓰기가 막혀 있습니다. (이 앱은 로그인 없이 동작합니다)';
+            }
+            if (code === 'unavailable' || code === 'failed-precondition') {
+                return 'DB에 연결할 수 없습니다. Wi‑Fi·데이터 연결을 확인하세요.';
+            }
+            return err?.message || 'DB 연결 오류';
+        }
+
+        function updateDbStatusBanner() {
+            const el = document.getElementById('dbStatusBanner');
+            if (!el) return;
+            if (location.protocol === 'file:') {
+                el.classList.remove('hidden', 'db-ok');
+                el.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>파일로 직접 열면 DB가 동작하지 않을 수 있습니다. <b>https://msd-weekend.vercel.app</b> 또는 로컬 서버로 여세요.';
+                return;
+            }
+            if (dbLinkState.ok) {
+                el.classList.add('hidden');
+                el.classList.remove('db-ok');
+                el.textContent = '';
+                return;
+            }
+            if (!dbLinkState.checked && !dbLinkState.error) return;
+            el.classList.remove('hidden', 'db-ok');
+            el.innerHTML = `<i class="fa-solid fa-plug-circle-xmark mr-1"></i>${escapeHtml(formatDbErrorMessage(dbLinkState.error) || 'DB 연결 확인 중…')}`;
+        }
+
+        function onDbSnapshotOk() {
+            dbLinkState.ok = true;
+            dbLinkState.error = null;
+            dbLinkState.checked = true;
+            updateDbStatusBanner();
+        }
+
+        function onDbSnapshotError(scope, err) {
+            dbLinkState.ok = false;
+            dbLinkState.error = err;
+            dbLinkState.checked = true;
+            console.warn(`[Firestore:${scope}]`, err);
+            updateDbStatusBanner();
+            if (scope === 'events') {
+                const area = document.getElementById('eventListArea');
+                if (area) {
+                    area.innerHTML = `<div class="p-4 bg-red-50 text-red-700 text-[11px] rounded-lg border border-red-200 leading-relaxed"><b>경조 목록을 불러오지 못했습니다</b><br>${escapeHtml(formatDbErrorMessage(err))}</div>`;
+                }
+            }
+        }
 
         let currentEventId = null;
         let isReadOnly = false;
@@ -1463,7 +1524,7 @@
                 hrRoster = data.employees || [];
                 hrRosterMeta = { updatedAt: data.updatedAt, count: data.count || hrRoster.length };
                 updateHrStatusUI();
-            }, err => console.warn('hrRoster', err));
+            }, err => onDbSnapshotError('hrRoster', err));
         }
 
         window.handleHrExcelUpload = async (input) => {
@@ -1804,14 +1865,30 @@
 
         function formatPhoneDisplay(tel) {
             const d = String(tel).replace(/\D/g,'');
-            if (d.length === 11) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
-            if (d.length === 10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+            if (d.length === 11 && d.startsWith('01')) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+            if (d.length === 10 && d.startsWith('01')) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+            if (d.startsWith('02')) {
+                if (d.length === 9) return `02-${d.slice(2,5)}-${d.slice(5)}`;
+                if (d.length === 10) return `02-${d.slice(2,6)}-${d.slice(6)}`;
+            }
+            if (d.length === 11 && d.startsWith('070')) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+            if (d.length === 11 && /^0[3-6]/.test(d)) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+            if (d.length === 10 && /^0[3-6]/.test(d)) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+            if ((d.length === 8 || d.length === 9) && /^1[568]/.test(d)) {
+                return d.length === 8 ? `${d.slice(0,4)}-${d.slice(4)}` : `${d.slice(0,4)}-${d.slice(4,7)}-${d.slice(7)}`;
+            }
             return tel;
         }
 
         function normalizePhone(tel) {
             const d = String(tel).replace(/\D/g,'');
-            return /^01[016789]\d{7,8}$/.test(d) ? d : null;
+            if (!d) return null;
+            if (/^01[016789]\d{7,8}$/.test(d)) return d;
+            if (/^02\d{7,8}$/.test(d)) return d;
+            if (/^0(3[1-9]|4[1-4]|5[1-5]|6[1-4])\d{7,8}$/.test(d)) return d;
+            if (/^070\d{8}$/.test(d)) return d;
+            if (/^1[568]\d{6,7}$/.test(d)) return d;
+            return null;
         }
 
         function showFieldError(id, msg) {
@@ -2218,26 +2295,27 @@
 
         function loadLists() {
             db.collection("tasks").onSnapshot(snap => {
+                onDbSnapshotOk();
                 globalTasks = [];
                 snap.forEach(doc => globalTasks.push({ id: doc.id, ...doc.data() }));
                 renderHomeList();
-            }, err => { globalTasks = []; renderHomeList(); console.warn('tasks', err); });
+            }, err => { globalTasks = []; renderHomeList(); onDbSnapshotError('tasks', err); });
 
             db.collection("events").where("status", "==", "active").onSnapshot(snap => {
+                onDbSnapshotOk();
                 globalEventsActive = [];
                 snap.forEach(doc => globalEventsActive.push({ id: doc.id, ...doc.data() }));
                 globalEventsActive.sort((a, b) => b.createdAt - a.createdAt);
                 renderHomeList();
-            }, err => {
-                document.getElementById('eventListArea').innerHTML = `<div class="p-4 bg-red-50 text-red-600 text-[11px] rounded-lg border border-red-200">목록을 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
-            });
+            }, err => onDbSnapshotError('events', err));
 
             db.collection("events").where("status", "==", "closed").onSnapshot(snap => {
+                onDbSnapshotOk();
                 globalEventsClosed = [];
                 snap.forEach(doc => globalEventsClosed.push({ id: doc.id, ...doc.data() }));
                 globalEventsClosed.sort((a, b) => b.createdAt - a.createdAt);
                 filterHistory();
-            }, err => console.warn('closed events', err));
+            }, err => onDbSnapshotError('events-closed', err));
         }
 
         function setupListClickDelegation() {
@@ -2820,6 +2898,7 @@
         }
 
         db.collection("vendors").onSnapshot(snap => {
+            onDbSnapshotOk();
             let html = ''; vendorDataCache = {};
             snap.forEach(doc => { 
                 const v = doc.data(); vendorDataCache[doc.id] = v;
@@ -2835,7 +2914,7 @@
                 const el = document.getElementById(id);
                 if (el) el.innerHTML = html || emptyHtml;
             });
-        });
+        }, err => onDbSnapshotError('vendors', err));
 
         window.openVendorModal = (id = null) => {
             document.getElementById('v_id').value = id || '';
@@ -2861,7 +2940,7 @@
             const telRaw = document.getElementById('v_tel').value.trim();
             const telNorm = normalizePhone(telRaw);
             if (!name || !telRaw) return showToast('업체명과 전화번호는 필수입니다', true);
-            if (!telNorm) { showFieldError('v_tel', '올바른 휴대폰 번호를 입력하세요'); return showToast('전화번호 형식을 확인하세요', true); }
+            if (!telNorm) { showFieldError('v_tel', '올바른 전화번호를 입력하세요'); return showToast('전화번호 형식을 확인하세요', true); }
             const data = { name, tel: telNorm, desc: document.getElementById('v_desc').value.trim(), useCall: document.getElementById('v_use_call').checked, useSms: document.getElementById('v_use_sms').checked, smsTemplate: document.getElementById('v_sms_template').value };
             if (id) db.collection("vendors").doc(id).update(data);
             else db.collection("vendors").add(data);
@@ -2949,6 +3028,7 @@
             if (btn?.dataset.subName) pickSubstitute(btn.dataset.subName);
         });
         loadLists();
+        updateDbStatusBanner();
         handleInitialRoute();
 
         // 모바일·인라인 onclick 호환
